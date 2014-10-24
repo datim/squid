@@ -12,13 +12,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+	// spring boot: http://projects.spring.io/spring-boot/
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.8.RELEASE")
     }
 }
 
 
 jar {
-    baseName = 'gs-rest-service'
+    baseName = 'squid'
     version =  '0.1.0'
 }
 
