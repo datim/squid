@@ -1,31 +1,38 @@
+// squid gradle file
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'application'
+apply plugin: 'spring-boot'
+
+buildscript {
+    repositories {
+        maven { url "http://repo.spring.io/libs-release" }
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.8.RELEASE")
+    }
+}
 
 
-// tag::repositories[]
+jar {
+    baseName = 'gs-rest-service'
+    version =  '0.1.0'
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url "http://repo.spring.io/libs-release" }
 }
-// end::repositories[]
 
-// tag::jar[]
-jar {
-    baseName = 'gs-gradle'
-    version =  '0.1.0'
-}
-// end::jar[]
-
-// tag::dependencies[]
 dependencies {
-    compile "joda-time:joda-time:2.2"
+    compile("org.springframework.boot:spring-boot-starter-web")
+    testCompile("junit:junit")
 }
-// end::dependencies[]
 
-// tag::wrapper[]
 task wrapper(type: Wrapper) {
     gradleVersion = '1.11'
 }
-// end::wrapper[]
