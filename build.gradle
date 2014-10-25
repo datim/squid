@@ -19,7 +19,7 @@ buildscript {
 
 
 jar {
-    baseName = 'squid'
+    baseName = 'redsquid'
     version =  '0.1.0'
 }
 
