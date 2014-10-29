@@ -26,8 +26,9 @@ public class GreetingController {
     
     @RequestMapping("/database")
     public void database() {
-    	// create new database 
+    	// create database tables
     	DatabaseTest x = new DatabaseTest();
+        x.createTables();
     }
     
 	// default listing

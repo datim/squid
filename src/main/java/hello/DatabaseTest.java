@@ -7,6 +7,9 @@ import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 public class DatabaseTest {
 	
 	public DatabaseTest() {
+	}
+	
+	public void createTables() {
 		
 	    SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
 	    dataSource.setDriverClass(org.h2.Driver.class);
