@@ -1,4 +1,4 @@
-// squid gradle file
+// squid gradle configuration
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
@@ -11,12 +11,12 @@ buildscript {
         mavenLocal()
         mavenCentral()
     }
+    
     dependencies {
-	// spring boot: http://projects.spring.io/spring-boot/
+		// spring boot: http://projects.spring.io/spring-boot/
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.8.RELEASE")
     }
 }
-
 
 jar {
     baseName = 'redsquid'
@@ -31,6 +31,8 @@ repositories {
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework:spring-jdbc")     
+    compile("com.h2database:h2")
     testCompile("junit:junit")
 }
 

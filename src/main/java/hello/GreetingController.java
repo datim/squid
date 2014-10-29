@@ -1,6 +1,7 @@
 package hello;
 
 import java.util.concurrent.atomic.AtomicLong;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,15 +15,25 @@ public class GreetingController {
     // jackson json will map the return object into JSON
     @RequestMapping("/greeting")
     public Greeting greeting(@RequestParam(value="name", defaultValue="World") String name) {
-        return new Greeting(counter.incrementAndGet(),
-                            String.format(template, name));
+        return new Greeting(counter.incrementAndGet(), String.format(template, name));
     }
 
     // jackson json will map the return object into JSON
     @RequestMapping("/listdir")
     public DirTraverse listDir(@RequestParam(value="dir", defaultValue="C:\\") String directory) {
-	return new DirTraverse(directory);
-  
+    	return new DirTraverse(directory);
+    }
+    
+    @RequestMapping("/database")
+    public void database() {
+    	// create new database 
+    	DatabaseTest x = new DatabaseTest();
+    }
+    
+	// default listing
+    @RequestMapping("/")
+    public String listDir() {
+	return new String("Hello Jeff!");
     }
 
 }
