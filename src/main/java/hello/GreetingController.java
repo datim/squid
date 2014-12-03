@@ -32,9 +32,10 @@ public class GreetingController {
     }
     
 	// default listing
+    /*
     @RequestMapping("/")
     public String listDir() {
 	return new String("Hello Jeff!");
     }
-
+*/
 }
