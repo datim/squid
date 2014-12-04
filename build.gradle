@@ -14,7 +14,7 @@ buildscript {
     
     dependencies {
 		// spring boot: http://projects.spring.io/spring-boot/
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.8.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.9.RELEASE")
     }
 }
 
