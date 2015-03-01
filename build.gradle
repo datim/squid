@@ -34,10 +34,11 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework:spring-jdbc")     
     compile("com.h2database:h2")
+    compile('com.mangofactory:swagger-springmvc:0.9.5')
     testCompile("junit:junit")
 }
 
 // generate gradle wrapper script, used to bootstrap gradle
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2.1'
+    gradleVersion = '2.3'
 }
