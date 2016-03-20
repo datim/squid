@@ -1,21 +1,18 @@
-package hello;
+package com.squid;
 
 
-
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
 @ComponentScan
 @EnableAutoConfiguration
+@Configuration
 public class Application {
-	
+
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-        // simple DS for test (not for production!)
-        
-        // now lets create some tables
-        DatabaseTest x = new DatabaseTest();
-        x.createTables();
     }
+
 }
