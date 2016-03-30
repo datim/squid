@@ -31,7 +31,7 @@ dependencies {
         exclude module: "spring-boot-starter-tomcat"
     }
     compile("org.springframework:spring-jdbc")
-    compile("com.h2database:h2")
+    compile("org.hsqldb:hsqldb:2.3.3")
     testCompile("junit:junit")
     compile("org.springframework.boot:spring-boot-starter-jetty")
     // end::jetty[]
