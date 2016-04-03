@@ -41,27 +41,6 @@ public class TestController {
     	return testService.getDirectories(dir);
     }
 
-    /**
-     * Echo the path variable back to the caller
-     * @param name
-     * @return
-     */
-    @RequestMapping(path = "/echo/{name}", method = RequestMethod.GET)
-    public String echoName(@PathVariable String name) {
-
-    	/*
-    	BoxData box = new BoxData();
-    	box.setLength(5);
-    	box.setWidth(12);
-    	box.setId(5);
-    	box.setHeigth(12);
-    	    	testService.saveBox(box);
-
-    	*/
-    	
-    	return "Echoing " + name;
-    }
-    
     @RequestMapping(path="/box/{id}", method = RequestMethod.GET)
     public @ResponseBody BoxDTO getBox(@PathVariable long id) {
     	BoxData data = testService.getBox(id);
@@ -74,9 +53,6 @@ public class TestController {
         	dto.width = data.getWidth();
         	dto.id = data.getId();    	
         	}
-    	
-
-    	
     	return dto;
     }
     
