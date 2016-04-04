@@ -1,5 +1,6 @@
 package com.squid.controller.crawler;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -29,6 +30,9 @@ public class CrawlerController {
 			// TODO Auto-generated catch block
 			//return new ResponseEntity<String>(HttpStatus.BAD_REQUEST);
 			//e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return output;
     }
