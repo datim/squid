@@ -5,8 +5,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+
+import javax.annotation.PostConstruct;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -20,11 +24,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class WebCrawler {
 	
-	static final String CSS_SUFFIX = ".css";
+	private List<String> suffixExclusions = null;
+	private List<String> pageExclusions = null;
 	static int MAX_IMAGES = 350;
 	static int MAX_DEPTH = 50;
 	
 	int count = 0;
+	
+	@PostConstruct
+	private void setup() {
+		// create suffix exclusion list
+		suffixExclusions = new ArrayList<>();
+		suffixExclusions.add("css");
+		suffixExclusions.add("pdf");
+	}
 	
 	// crawl a URL
 	/**
@@ -37,8 +50,9 @@ public class WebCrawler {
 		
 		Set<String> imageList = new HashSet<>();
 		Set<URL> vistedURLs = new HashSet<>();
+		Queue<URL> toVisitUrls = new LinkedList<>();
 				
-		discoverContent(huntUrl, imageList, vistedURLs);
+		discoverContent(huntUrl, imageList, toVisitUrls, vistedURLs);
 		
 		// reset count
 		count = 0;
@@ -48,17 +62,16 @@ public class WebCrawler {
 	}
 	
 	/**
-	 * Recursively find all photos in a series of links
+	 * Recursively find all photos in a series of links. Perform a breadth-first search
 	 * @param huntUrl
 	 * @return
 	 * @throws IOException 
 	 */
-	private void discoverContent(final URL huntUrl, Set<String> imageList, Set<URL> vistedURLs) throws IOException {
+	private void discoverContent(final URL huntUrl, Set<String> imageList, Queue<URL> toVisitUrls, Set<URL> vistedURLs) throws IOException {
 		
 		System.out.println("Discover content loop " + count++);
 		
 		if (count >= MAX_DEPTH) {
-			// reached max depth, return
 			return;
 		}
 		
@@ -70,18 +83,19 @@ public class WebCrawler {
 		parsePhotos(doc, imageList, base);
 		
 		// find all link references on this page
-		List<URL> subRefs = discoverLinks(doc, huntUrl, vistedURLs);
+		discoverLinks(doc, huntUrl, toVisitUrls, vistedURLs);
 		
-		for (URL url: subRefs) {
-			discoverContent(url, imageList, vistedURLs);
+		while (!toVisitUrls.isEmpty()) {
 			
-			// don't get more than max images
-			if (imageList.size() > MAX_IMAGES) {
+			final URL childUrl = toVisitUrls.remove();
+			discoverContent(childUrl, imageList, toVisitUrls, vistedURLs);
+			
+			// check gate parameters
+			if (imageList.size() > MAX_IMAGES || count >= MAX_DEPTH) {
 				break;
 			}
+
 		}
-		
-		return;
 	}
 	
 	/**
@@ -89,52 +103,56 @@ public class WebCrawler {
 	 * @param Document
 	 * @return
 	 */
-	private List<URL> discoverLinks(final Document doc, URL parentURL, Set<URL> vistedUrls) {
-		
-		List<URL> urlList = new ArrayList<>();
-		
+	private void discoverLinks(final Document doc, URL parentURL, Queue<URL> toVistUrls, Set<URL> vistedUrls) {
+				
 		Elements urlElements = doc.select("a[href]");
 		
-		String parentHost = parentURL.getHost();
+		final String parentHost = parentURL.getHost();
 		
 		for (Element urlElement: urlElements) {
-			try {
-				String urlString = urlElement.attr("abs:href");
-				
-				// ignore style sheets
-				if (urlString.endsWith(CSS_SUFFIX)) {
+
+			String urlString = urlElement.attr("abs:href");
+			
+			boolean notHtmlPage = false;
+			// we onl want HTML pages
+			for (String suffix: suffixExclusions) {
+				if (urlString.endsWith(suffix)) {
+					notHtmlPage = true;
 					continue;
-				}
-				
-				URL childUrl = new URL(urlString);
-				
-				// ignore links that don't have the same base as the parent
-				if (!childUrl.getHost().equals(parentHost)) {
-					//System.out.println("Ignore off-site url " + childUrl);
-					String x = childUrl.getHost();
-					continue;
-				}
-				
-				// don't re-vist URLs
-				if (vistedUrls.contains(childUrl)) {
-					// link was already visited
-					//System.out.println("URL " + childUrl + " has already been traversed");
-					continue;
-					
-				} else {
-					// mark the url as visted so we don't see it again
-					System.out.println("found new URL: " + urlString);
-					vistedUrls.add(childUrl);
-					urlList.add(new URL(urlString));
-				}
-								
-			} catch (MalformedURLException e) {
-				System.out.println("URL is malformed: " + urlElement.attr("abs:href"));
+				} 
+			}
+			
+			if (notHtmlPage) {
 				continue;
 			}
+			
+			URL childUrl;
+			
+			try {
+				childUrl = new URL(urlString);
+			} catch (MalformedURLException e) {
+				System.out.println("Malformed url for " + urlString);
+				continue;
+			}
+			
+			// ignore links that don't have the same base as the parent
+			if (!childUrl.getHost().equals(parentHost)) {
+				continue;
+			}
+				
+			// don't visit URLs twice
+			if (vistedUrls.contains(childUrl)) {
+				continue;
+			}
+			
+			// its' ok to add this URL to the queue
+			System.out.println("found new URL: " + urlString);
+			toVistUrls.add(childUrl);
+			
+			// make sure we don't visit this url again
+			vistedUrls.add(childUrl);
+					
 		}
-		
-		return urlList;
 	}
 	
 	/**
