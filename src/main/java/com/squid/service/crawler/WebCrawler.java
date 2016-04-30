@@ -16,7 +16,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.squid.data.PhotoData;
+import com.squid.data.PhotoDataRepository;
 
 /**
  * TODO: Breadth first search instead of depth-first search
@@ -24,8 +28,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class WebCrawler {
 	
+	@Autowired
+	private PhotoDataRepository photoRepo;
+	
 	private List<String> suffixExclusions = null;
-	private List<String> pageExclusions = null;
 	static int MAX_IMAGES = 350;
 	static int MAX_DEPTH = 50;
 	
@@ -173,14 +179,30 @@ public class WebCrawler {
         	
         	String imgUrl = image.attr("src");
         	
-        	if (imgUrl.startsWith("http")) {
-        		// image is already a well-formed URL
-        		imageList.add(imgUrl);
-        		
-        	} else {
-        		// partial image. Add host
-            	imageList.add(baseUrl + image.attr("src"));
+        	// found a photo. save it
+        	PhotoData photo = new PhotoData();
+        	photo.setName(imgUrl);
+        	photo.setSize(59);
+        	
+        	try {
+            	if (imgUrl.startsWith("http")) {
+            		// image is already a well-formed URL
+            		imageList.add(imgUrl);
+            		photo.setUrl(new URL(imgUrl));
+            		
+            	} else {
+            		// partial image. Add host
+            		String completeUrl = baseUrl + image.attr("src");
+                	imageList.add(completeUrl);
+                	photo.setUrl(new URL(completeUrl));
+            	}
+        	} catch (MalformedURLException e) {
+        		System.out.println("Invalid photo url " + imgUrl);
+        		continue;
         	}
+        	
+        	// save the photo
+        	photoRepo.save(photo);
         }
         
         return;
@@ -227,5 +249,16 @@ public class WebCrawler {
 		
 		return html;
 		
+	}
+
+	/**
+	 * Retrieve stored list of photos
+	 */
+	public List<PhotoData> getPhotos() {
+		return (List<PhotoData>) photoRepo.findAll();
+	}
+
+	public long getPhotosCount() {
+		return photoRepo.count();
 	}
 }

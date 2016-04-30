@@ -1,6 +1,0 @@
-create table supplier (
-    id int not null,
-    width int not null,
-    heigth int not null,
-    length int not null
-);
