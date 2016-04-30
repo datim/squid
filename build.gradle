@@ -26,8 +26,8 @@ flyway {
 }
 
 jar {
-    baseName = 'gs-spring-boot'
-    version =  '0.1.0'
+    baseName = 'squid'
+    version =  '1.0'
 }
 
 repositories {
