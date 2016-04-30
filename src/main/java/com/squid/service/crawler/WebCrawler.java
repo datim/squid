@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
@@ -28,6 +29,8 @@ import com.squid.data.PhotoDataRepository;
 @Service
 public class WebCrawler {
 	
+	static Logger log = Logger.getLogger(WebCrawler.class.getName());
+
 	@Autowired
 	private PhotoDataRepository photoRepo;
 	
@@ -152,6 +155,7 @@ public class WebCrawler {
 			}
 			
 			// its' ok to add this URL to the queue
+			log.info("Found new URL: " + urlString);
 			System.out.println("found new URL: " + urlString);
 			toVistUrls.add(childUrl);
 			
