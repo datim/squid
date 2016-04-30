@@ -23,7 +23,7 @@ public class CrawlerController {
 	private WebCrawler crawler;
 	
 	private String version = "1.0";
-
+	 
     @RequestMapping("/go")
     public String index() {
     	URL huntUrl;
@@ -65,6 +65,7 @@ public class CrawlerController {
     		photoDTOs.add(dto);
     	}
     	
+    	// return list of photos
     	return photoDTOs;
     }
     
@@ -77,6 +78,9 @@ public class CrawlerController {
     	return crawler.getPhotosCount();
     }
     
+    /**
+     * Get the product version
+     */
     @RequestMapping(path="/version", method = RequestMethod.GET)
     public String getVersion() {
     	return version;

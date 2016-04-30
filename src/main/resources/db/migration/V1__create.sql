@@ -1,21 +1,21 @@
 
 create table supplier (
-    id int not null,
+    id int not null ,
     width int not null,
     heigth int not null,
     length int not null
 );
 
-create table urlNode (
-  id int not null primary key,
-  url varchar(100) not null,
-  parent varchar(100),
+create table url_node (
+  id int not null primary key auto_increment,
+  url varchar(255) not null,
+  parent_url varchar(255),
   visted boolean
 );
 
-create table nodePhoto (
-  id int not null primary key,
-  url varchar(100) not null,
-  name varchar(100),
+create table node_photo (
+  id int not null primary key auto_increment,
+  url varchar(255) not null,
+  name varchar(255),
   size int
 );

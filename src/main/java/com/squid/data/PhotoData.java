@@ -13,7 +13,7 @@ import javax.persistence.Table;
  * Data Access class for photos
  */
 @Entity
-@Table(name = "nodePhoto")
+@Table(name = "node_photo")
 public class PhotoData {
 	
 	@Id

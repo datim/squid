@@ -13,7 +13,7 @@ import javax.persistence.Table;
  * Data Access object for a traversed URL node
  */
 @Entity
-@Table(name = "urlNode")
+@Table(name = "url_node")
 public class NodeData {
 
 	@Id
