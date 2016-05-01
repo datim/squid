@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,11 +20,13 @@ import com.squid.service.crawler.WebCrawler;
 @RequestMapping("/crawl")
 public class CrawlerController {
 	
+	static Logger log = Logger.getLogger(WebCrawler.class.getName());
+
+	private String version = "0.1";
+
 	@Autowired 
 	private WebCrawler crawler;
 	
-	private String version = "1.0";
-	 
     @RequestMapping("/go")
     public String index() {
     	URL huntUrl;
@@ -83,6 +86,8 @@ public class CrawlerController {
      */
     @RequestMapping(path="/version", method = RequestMethod.GET)
     public String getVersion() {
+    	System.out.println("Getting version");
+    	log.info("Version requested");
     	return version;
     }
 }
