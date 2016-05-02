@@ -25,28 +25,15 @@ public class CrawlerController {
 	static Logger log = Logger.getLogger(WebCrawler.class.getName());
 
 	private String version = "0.1";
+	private String urlString = "http://www.stampinup.com/ECWeb/ItemList.aspx?categoryid=102401";
 
 	@Autowired 
 	private WebCrawler crawler;
 	
     @RequestMapping("/go")
-    public String index() {
-    	URL huntUrl;
-    	String output = null;
-		try {
-			huntUrl = new URL("http://www.stampinup.com/ECWeb/ItemList.aspx?categoryid=102401");
-	    	output = crawler.startCrawl(huntUrl);
-
-		} catch (MalformedURLException e) {
-			
-			// TODO Auto-generated catch block
-			//return new ResponseEntity<String>(HttpStatus.BAD_REQUEST);
-			//e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return output;
+    public String index() throws IOException {
+		URL huntUrl = new URL(urlString);
+    	return crawler.startCrawl(huntUrl);
     }
     
     /**

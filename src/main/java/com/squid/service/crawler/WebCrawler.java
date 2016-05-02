@@ -75,6 +75,22 @@ public class WebCrawler {
 	}
 	
 	/**
+	 * Start a recursive, breadth-first search in a new thread
+	 * @param huntUrl
+	 * @throws IOException 
+	 */
+	public void startSearch(URL huntUrl) throws IOException {
+		final Set<String> imageList = new HashSet<>();
+		final Set<URL> vistedURLs = new HashSet<>();
+		final Queue<URL> toVisitUrls = new LinkedList<>();
+			
+		// reset the number of visited nodes before recursively searching
+		vistedNodes = 0;
+		
+		discoverContent(huntUrl, null, imageList, toVisitUrls, vistedURLs);		
+	}
+	
+	/**
 	 * Recursively find all photos in a series of links. Perform a breadth-first search
 	 * @param huntUrl
 	 * @return
