@@ -9,9 +9,11 @@ create table supplier (
 create table url_node (
   id int not null primary key auto_increment,
   url varchar(255) not null,
-  parent_url varchar(255),
-  visted boolean
+  parent_node int,
+  visited boolean
 );
+
+alter table url_node add foreign key (parent_node) references url_node(id);
 
 create table node_photo (
   id int not null primary key auto_increment,

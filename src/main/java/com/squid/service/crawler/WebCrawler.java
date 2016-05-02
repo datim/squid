@@ -20,6 +20,8 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.squid.data.NodeData;
+import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
 
@@ -34,11 +36,14 @@ public class WebCrawler {
 	@Autowired
 	private PhotoDataRepository photoRepo;
 	
-	private List<String> suffixExclusions = null;
+	@Autowired 
+	private NodeDataRepository nodeRepo;
+
 	static int MAX_IMAGES = 350;
-	static int MAX_DEPTH = 50;
+	static int MAX_NODES = 50;
 	
-	int count = 0;
+	private List<String> suffixExclusions = null;	
+	private int vistedNodes = 0;
 	
 	@PostConstruct
 	private void setup() {
@@ -47,24 +52,23 @@ public class WebCrawler {
 		suffixExclusions.add("css");
 		suffixExclusions.add("pdf");
 	}
-	
-	// crawl a URL
+		
 	/**
-	 * Web crawl a URL
+	 * Start a recursive, breadth-first search
 	 * @param huntUrl
 	 * @return
 	 * @throws IOException 
 	 */
 	public String startCrawl(final URL huntUrl) throws IOException {
 		
-		Set<String> imageList = new HashSet<>();
-		Set<URL> vistedURLs = new HashSet<>();
-		Queue<URL> toVisitUrls = new LinkedList<>();
-				
-		discoverContent(huntUrl, imageList, toVisitUrls, vistedURLs);
+		final Set<String> imageList = new HashSet<>();
+		final Set<URL> vistedURLs = new HashSet<>();
+		final Queue<URL> toVisitUrls = new LinkedList<>();
+			
+		// reset the number of visited nodes before recursively searching
+		vistedNodes = 0;
 		
-		// reset count
-		count = 0;
+		discoverContent(huntUrl, null, imageList, toVisitUrls, vistedURLs);
 		
         // return the list as a string
         return createHtmlBody(imageList);
@@ -76,69 +80,86 @@ public class WebCrawler {
 	 * @return
 	 * @throws IOException 
 	 */
-	private void discoverContent(final URL huntUrl, Set<String> imageList, Queue<URL> toVisitUrls, Set<URL> vistedURLs) throws IOException {
+	private void discoverContent(final URL huntUrl, final NodeData parentNode, Set<String> imageList, Queue<URL> toVisitUrls, Set<URL> vistedURLs) throws IOException {
 		
-		System.out.println("Discover content loop " + count++);
+		log.info("Discovered content loop " + vistedNodes++);
 		
-		if (count >= MAX_DEPTH) {
+		// don't exceed the max number of nodes
+		if (vistedNodes >= MAX_NODES) {
+			log.info("Reached maximum visited nodes");
 			return;
 		}
 		
-		Document doc = Jsoup.connect(huntUrl.toString()).get();
+		final Document huntUrlDoc = Jsoup.connect(huntUrl.toString()).get();
 		
-		String base = huntUrl.getProtocol() + "://" + huntUrl.getHost();
-
-		// find all photos on this page
-		parsePhotos(doc, imageList, base);
+		final String baseUrl = huntUrl.getProtocol() + "://" + huntUrl.getHost();
 		
-		// find all link references on this page
-		discoverLinks(doc, huntUrl, toVisitUrls, vistedURLs);
+		// create a URL node record
+		NodeData node = new NodeData();
+		node.setUrl(huntUrl);
+		node.setParent(parentNode);
+		node.setVisited(true);
+		
+		// save the node
+		node = nodeRepo.save(node);
+		
+		// find all photos associated with this URL
+		discoverPhotosAssociatedWithURL(huntUrlDoc, imageList, baseUrl);
+		
+		// find all links referenced by this URL
+		discoverLinksAssociatedWithURL(huntUrlDoc, huntUrl, toVisitUrls, vistedURLs);
 		
 		while (!toVisitUrls.isEmpty()) {
 			
 			final URL childUrl = toVisitUrls.remove();
-			discoverContent(childUrl, imageList, toVisitUrls, vistedURLs);
+			
+			if (childUrl == node.getUrl()) {
+				// don't traverse the same URL twice
+			}
+			discoverContent(childUrl, node, imageList, toVisitUrls, vistedURLs);
 			
 			// check gate parameters
-			if (imageList.size() > MAX_IMAGES || count >= MAX_DEPTH) {
+			if (imageList.size() > MAX_IMAGES || vistedNodes >= MAX_NODES) {
 				break;
 			}
-
 		}
 	}
 	
 	/**
-	 * Discover all URLs associated with the page
+	 * Discover all links associated with a URL
 	 * @param Document
 	 * @return
 	 */
-	private void discoverLinks(final Document doc, URL parentURL, Queue<URL> toVistUrls, Set<URL> vistedUrls) {
+	private void discoverLinksAssociatedWithURL(final Document doc, URL parentURL, Queue<URL> toVistUrls, Set<URL> vistedUrls) {
 				
-		Elements urlElements = doc.select("a[href]");
-		
+		final Elements urlElements = doc.select("a[href]");
 		final String parentHost = parentURL.getHost();
 		
+		// iterate through all URLS
 		for (Element urlElement: urlElements) {
 
-			String urlString = urlElement.attr("abs:href");
-			
+			final String urlString = urlElement.attr("abs:href");
 			boolean notHtmlPage = false;
-			// we onl want HTML pages
+			
+			// we only want HTML pages
 			for (String suffix: suffixExclusions) {
+				
 				if (urlString.endsWith(suffix)) {
 					notHtmlPage = true;
 					continue;
 				} 
 			}
 			
+			// if this is not an HTML page, ignore it
 			if (notHtmlPage) {
 				continue;
 			}
 			
-			URL childUrl;
+			URL childUrl = null;
 			
 			try {
 				childUrl = new URL(urlString);
+				
 			} catch (MalformedURLException e) {
 				System.out.println("Malformed url for " + urlString);
 				continue;
@@ -161,17 +182,17 @@ public class WebCrawler {
 			
 			// make sure we don't visit this url again
 			vistedUrls.add(childUrl);
-					
 		}
 	}
 	
 	/**
-	 * Parse photos from the HTML page
+	 * Parse photos from an HTML document
 	 * @param doc
 	 * @return
 	 */
-	private void parsePhotos(final Document doc, Set<String> imageList, String baseUrl) {
-        Elements images = doc.select("img");
+	private void discoverPhotosAssociatedWithURL(final Document doc, Set<String> imageList, String baseUrl) {
+        
+		final Elements images = doc.select("img");
         
         for (Element image: images) {
         	String source = image.attr("src");
@@ -181,7 +202,7 @@ public class WebCrawler {
         		continue;
         	}
         	
-        	String imgUrl = image.attr("src");
+        	final String imgUrl = image.attr("src");
         	
         	// found a photo. save it
         	PhotoData photo = new PhotoData();
@@ -213,7 +234,7 @@ public class WebCrawler {
 	}
 
 	/**
-	 * Temporary function to return all images from a page as an HTML document
+	 * Return all images from a page as an HTML document
 	 * @param imageList
 	 * @param urlBase
 	 * @return
@@ -237,17 +258,6 @@ public class WebCrawler {
 			html += "</div>" + rt;
 		}
 		
-		/*
-
-		html += "<ul>" + rt;
-		// add each image as a list item
-		for (String imageName: imageList) {
-			html += "<li style=\"list-style-type:none\"><img src=" + urlBase + imageName + "></li>" + rt;
-		}
-		
-		html += "</ul>" + rt;
-		*/
-	
 		html += "</body>" + rt;
 		html += "</html>" + rt;
 		
@@ -262,7 +272,17 @@ public class WebCrawler {
 		return (List<PhotoData>) photoRepo.findAll();
 	}
 
+	/**
+	 * Retreive the number of discovered photos
+	 */
 	public long getPhotosCount() {
 		return photoRepo.count();
+	}
+	
+	/**
+	 * Retrieve all discovered nodes
+	 */
+	public List<NodeData> getNodes() {
+		return (List<NodeData>) nodeRepo.findAll();
 	}
 }

@@ -2,11 +2,16 @@ package com.squid.data;
 
 import java.net.URL;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -19,9 +24,10 @@ public class NodeData {
 	@Id
     @GeneratedValue(strategy=GenerationType.AUTO)
 	private int id;
-	
-	@Column (name = "parent_url")
-	private URL parent;
+		
+	@ManyToOne(cascade={CascadeType.ALL})
+	@JoinColumn(name = "parent_node")
+	private NodeData parent;
 	
 	@Column (name = "url")
 	private URL url;
@@ -42,10 +48,10 @@ public class NodeData {
 		this.id = id;
 	}
 
-	public URL getParent() {
+	public NodeData getParent() {
 		return parent;
 	}
-	public void setParent(URL parent) {
+	public void setParent(NodeData parent) {
 		this.parent = parent;
 	}
 	public URL getUrl() {

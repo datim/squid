@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.squid.controller.rest.NodeDTO;
 import com.squid.controller.rest.PhotoDTO;
+import com.squid.data.NodeData;
 import com.squid.data.PhotoData;
 import com.squid.service.crawler.WebCrawler;
 
@@ -89,5 +91,30 @@ public class CrawlerController {
     	System.out.println("Getting version");
     	log.info("Version requested");
     	return version;
+    }
+    
+    @RequestMapping(path="/nodes", method = RequestMethod.GET)
+    public List<NodeDTO> getNodes() {
+    	final List<NodeData> nodes = crawler.getNodes();
+    	
+    	final List<NodeDTO> dtoList = new ArrayList<>(nodes.size());
+    	
+    	// convert to DTO
+    	for (NodeData dao: nodes) {
+    		final NodeDTO dto = new NodeDTO();
+    		dto.setId(dao.getId());
+    		dto.setUrl(dao.getUrl().toString());
+
+    		// add parent, if it exists
+    		if (dao.getParent() != null) {
+        		dto.setParentId(dao.getParent().getId());
+        		dto.setParentUrl(dao.getParent().getUrl().toString());
+    		}
+
+    		
+    		dtoList.add(dto);
+    	}
+    	
+    	return dtoList;
     }
 }
