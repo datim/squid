@@ -27,8 +27,25 @@ function startSearch() {
   xhr.open("GET", url, false);
   xhr.send();
 
-  var searchResults = xhr.responseText;
+  xhr.open("GET", "http://localhost:8080/crawl/photos", false);
+  xhr.send();
 
-  document.write(searchResults);
+  var photoResults = JSON.parse(xhr.responseText);
 
+  var table = document.getElementById("photoResultsTable");
+
+  // write a table of photos
+  for (i = 0; i < photoResults.length; /*i++*/ ) {
+    var row = table.insertRow(0);
+    var cell1 = row.insertCell(0);
+    cell1.innerHTML = "<td><img src=" + photoResults[i].url + ">";
+
+    i = i + 1;
+
+    // add a second row if there is enough items
+    if (i < photoResults.length)
+      var cell2 = row.insertCell(1);
+      cell2.innerHTML = "<td><img src=" + photoResults[i].url + " alt=" + photoResults[i].name + "></td>";
+      i = i + 1;
+    }
 }

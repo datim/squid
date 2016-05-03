@@ -59,7 +59,7 @@ public class WebCrawler {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String startCrawl(final URL huntUrl) throws IOException {
+	public void startCrawl(final URL huntUrl) throws IOException {
 		
 		final Set<String> imageList = new HashSet<>();
 		final Set<URL> vistedURLs = new HashSet<>();
@@ -69,9 +69,6 @@ public class WebCrawler {
 		vistedNodes = 0;
 		
 		discoverContent(huntUrl, null, imageList, toVisitUrls, vistedURLs);
-		
-        // return the list as a string
-        return createHtmlBody(imageList);
 	}
 	
 	/**
@@ -247,38 +244,6 @@ public class WebCrawler {
         }
         
         return;
-	}
-
-	/**
-	 * Return all images from a page as an HTML document
-	 * @param imageList
-	 * @param urlBase
-	 * @return
-	 */
-	private String createHtmlBody(Set<String> imageList) {
-		
-		String rt = "\n";
-		
-		String html = new String();
-		
-		html += "<html xmlns=\"http://www.w3.org/1999/xhtml\">" + rt;
-		
-		html += "<body>" + rt;
-		
-		html += "<p> " + imageList.size() + " images found. </p>" + rt;
-
-		for (String imageName: imageList) {
-			html += "<div>" + rt;
-			html += "<img src=" + imageName + ">" + rt;
-			html += "<p>" + imageName + "</p>" + rt;
-			html += "</div>" + rt;
-		}
-		
-		html += "</body>" + rt;
-		html += "</html>" + rt;
-		
-		return html;
-		
 	}
 
 	/**

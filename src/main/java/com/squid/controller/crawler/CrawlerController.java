@@ -31,9 +31,9 @@ public class CrawlerController {
 	private WebCrawler crawler;
 	
     @RequestMapping("/go")
-    public String index() throws IOException {
+    public void index() throws IOException {
 		URL huntUrl = new URL(urlString);
-    	return crawler.startCrawl(huntUrl);
+    	crawler.startCrawl(huntUrl);
     }
     
     /**
@@ -98,7 +98,6 @@ public class CrawlerController {
         		dto.setParentUrl(dao.getParent().getUrl().toString());
     		}
 
-    		
     		dtoList.add(dto);
     	}
     	
