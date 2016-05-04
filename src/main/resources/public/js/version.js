@@ -26,8 +26,13 @@ function startSearch() {
   var url = "http://localhost:8080/crawl/go";
   xhr.open("GET", url, false);
   xhr.send();
+}
 
-  // now fetch photos
+//
+// Add the search results to an existing table
+//
+function reportResults() {
+  var xhr = new XMLHttpRequest();
   xhr.open("GET", "http://localhost:8080/crawl/photos", false);
   xhr.send();
 
@@ -36,27 +41,24 @@ function startSearch() {
   var table = document.getElementById("PhotoResultsTable");
 
   // write a table of photos
+  var photosPerRow = 2;
   var i = 0;
-  for (i = 0; i < photoResults.length; /*i++*/ ) {
-    var row = table.insertRow();
-    var cell1 = row.insertCell();
+  var row = table.insertRow();
+  for (i = 0; i < photoResults.length; i++) {
 
-    // create the image and assign it to a cell
-    var image = document.createElement('img');
-    image.src = photoResults[i].url;
-    cell1.appendChild(image);
-    //cell1.innerHTML = image;
-
-    i = i + 1;
-
-    // add a second row if there is enough items
-    if (i < photoResults.length)
-      var cell2 = row.insertCell();
-
-      // insert image into row two
-      var image2 = document.createElement('img');
-      image2.src = photoResults[i].url;
-      cell2.appendChild(image2);
-      i = i + 1;
+    // create a new row after all the photos have been exhausted
+    if (i % photosPerRow == 0) {
+      row = table.insertRow();
     }
+
+    insertTableRowCell(row, photoResults[i].url);
+  }
+}
+
+// insert a photo into a table row cell
+function insertTableRowCell(row, photoURL) {
+  var cell = row.insertCell();
+  var image = document.createElement('img');
+  image.src = photoURL;
+  cell.appendChild(image);
 }
