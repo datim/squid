@@ -1,3 +1,5 @@
+"use strict";
+
 //
 // return the results in version
 //
@@ -9,12 +11,10 @@ function getVersion() {
   xhr.open("GET", url, false);
   xhr.send();
 
-  var version = "Squid " + xhr.responseText;
+  var version = "<p align=right> Squid " + xhr.responseText + "</p>";
   version = version.fontcolor("#D3D3D3");
 
-  document.write("<p align=right>");
   document.write(version);
-  document.write("</p>");
 }
 
 //
@@ -27,25 +27,36 @@ function startSearch() {
   xhr.open("GET", url, false);
   xhr.send();
 
+  // now fetch photos
   xhr.open("GET", "http://localhost:8080/crawl/photos", false);
   xhr.send();
 
   var photoResults = JSON.parse(xhr.responseText);
 
-  var table = document.getElementById("photoResultsTable");
+  var table = document.getElementById("PhotoResultsTable");
 
   // write a table of photos
+  var i = 0;
   for (i = 0; i < photoResults.length; /*i++*/ ) {
-    var row = table.insertRow(0);
-    var cell1 = row.insertCell(0);
-    cell1.innerHTML = "<td><img src=" + photoResults[i].url + ">";
+    var row = table.insertRow();
+    var cell1 = row.insertCell();
+
+    // create the image and assign it to a cell
+    var image = document.createElement('img');
+    image.src = photoResults[i].url;
+    cell1.appendChild(image);
+    //cell1.innerHTML = image;
 
     i = i + 1;
 
     // add a second row if there is enough items
     if (i < photoResults.length)
-      var cell2 = row.insertCell(1);
-      cell2.innerHTML = "<td><img src=" + photoResults[i].url + " alt=" + photoResults[i].name + "></td>";
+      var cell2 = row.insertCell();
+
+      // insert image into row two
+      var image2 = document.createElement('img');
+      image2.src = photoResults[i].url;
+      cell2.appendChild(image2);
       i = i + 1;
     }
 }

@@ -18,6 +18,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.squid.data.NodeData;
@@ -67,6 +70,10 @@ public class WebCrawler {
 			
 		// reset the number of visited nodes before recursively searching
 		vistedNodes = 0;
+		
+		// clean out the photo and node repositories before beginning
+		photoRepo.deleteAll();
+		nodeRepo.deleteAll();
 		
 		discoverContent(huntUrl, null, imageList, toVisitUrls, vistedURLs);
 	}
@@ -249,12 +256,14 @@ public class WebCrawler {
 	/**
 	 * Retrieve stored list of photos
 	 */
-	public List<PhotoData> getPhotos() {
-		return (List<PhotoData>) photoRepo.findAll();
+	@SuppressWarnings("unchecked")
+	public List<PhotoData> getPhotos(int pageNum, int pageSize) {
+		Page<PhotoData> photos = photoRepo.findAll(new PageRequest(pageNum, pageSize));		
+		return photos.getContent();
 	}
 
 	/**
-	 * Retreive the number of discovered photos
+	 * Retrieve the number of discovered photos
 	 */
 	public long getPhotosCount() {
 		return photoRepo.count();

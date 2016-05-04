@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.squid.controller.rest.NodeDTO;
@@ -40,10 +41,11 @@ public class CrawlerController {
      * Obtain a list of all discovered photos
      */
     @RequestMapping(path="/photos", method = RequestMethod.GET)
-    public List<PhotoDTO> getPhotos() {
+    public List<PhotoDTO> getPhotos(@RequestParam(value="PageNum", defaultValue = "1") int pageNum,
+    		                        @RequestParam(value="PageSize", defaultValue = "30") int pageSize) {
     	
     	// retrieve a stored list of photos
-    	final List<PhotoData> photos = crawler.getPhotos();
+    	final List<PhotoData> photos = crawler.getPhotos(pageNum, pageSize);
     	
     	final List<PhotoDTO> photoDTOs = new ArrayList<>(photos.size());
     	
