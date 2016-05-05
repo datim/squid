@@ -42,7 +42,7 @@ public class CrawlerController {
      */
     @RequestMapping(path="/photos", method = RequestMethod.GET)
     public List<PhotoDTO> getPhotos(@RequestParam(value="PageNum", defaultValue = "1") int pageNum,
-    		                        @RequestParam(value="PageSize", defaultValue = "30") int pageSize) {
+    		                        @RequestParam(value="PageSize", defaultValue = "100") int pageSize) {
     	
     	// retrieve a stored list of photos
     	final List<PhotoData> photos = crawler.getPhotos(pageNum, pageSize);
