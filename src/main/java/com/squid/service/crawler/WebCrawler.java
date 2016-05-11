@@ -20,7 +20,6 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.squid.data.NodeData;
@@ -44,9 +43,26 @@ public class WebCrawler {
 
 	static int MAX_IMAGES = 350;
 	static int MAX_NODES = 50;
+	static String URL_INLINE_TAG = "#";
 	
 	private List<String> suffixExclusions = null;	
 	private int vistedNodes = 0;
+	
+	/**
+	 * Private class to store information for nodes that
+	 * have not yet been traversed
+	 */
+	private class PendingNode {
+		
+		// constructor
+		public PendingNode(final URL url, final URL parentURL) {
+			this.url = url;
+			this.parentUrl = parentURL;
+		}
+		
+		public URL url;
+		public URL parentUrl;
+	}
 	
 	@PostConstruct
 	private void setup() {
@@ -66,32 +82,14 @@ public class WebCrawler {
 		
 		final Set<String> imageList = new HashSet<>();
 		final Set<URL> vistedURLs = new HashSet<>();
-		final Queue<URL> toVisitUrls = new LinkedList<>();
+		final Queue<PendingNode> toVisitUrls = new LinkedList<>();
 			
 		// reset the number of visited nodes before recursively searching
 		vistedNodes = 0;
 		
-		// clean out the photo and node repositories before beginning
-		photoRepo.deleteAll();
-		nodeRepo.deleteAll();
+		final PendingNode node = new PendingNode(huntUrl, null);
 		
-		discoverContent(huntUrl, null, imageList, toVisitUrls, vistedURLs);
-	}
-	
-	/**
-	 * Start a recursive, breadth-first search in a new thread
-	 * @param huntUrl
-	 * @throws IOException 
-	 */
-	public void startSearch(URL huntUrl) throws IOException {
-		final Set<String> imageList = new HashSet<>();
-		final Set<URL> vistedURLs = new HashSet<>();
-		final Queue<URL> toVisitUrls = new LinkedList<>();
-			
-		// reset the number of visited nodes before recursively searching
-		vistedNodes = 0;
-		
-		discoverContent(huntUrl, null, imageList, toVisitUrls, vistedURLs);		
+		discoverContent(node, imageList, toVisitUrls, vistedURLs);
 	}
 	
 	/**
@@ -100,7 +98,7 @@ public class WebCrawler {
 	 * @return
 	 * @throws IOException 
 	 */
-	private void discoverContent(final URL huntUrl, final NodeData parentNode, Set<String> imageList, Queue<URL> toVisitUrls, Set<URL> vistedURLs) throws IOException {
+	private void discoverContent(final PendingNode checkNode, Set<String> imageList, Queue<PendingNode> toVisitUrls, Set<URL> vistedURLs) throws IOException {
 		
 		log.info("Discovered content loop " + vistedNodes++);
 		
@@ -110,33 +108,45 @@ public class WebCrawler {
 			return;
 		}
 		
+		final URL huntUrl = checkNode.url;
+		
 		final Document huntUrlDoc = Jsoup.connect(huntUrl.toString()).get();
 		
 		final String baseUrl = huntUrl.getProtocol() + "://" + huntUrl.getHost();
 		
-		// create a URL node record
-		NodeData node = new NodeData();
-		node.setUrl(huntUrl);
-		node.setParent(parentNode);
-		node.setVisited(true);
-		
-		// save the node
-		node = nodeRepo.save(node);
-		
-		// find all photos associated with this URL
-		discoverPhotosAssociatedWithURL(huntUrlDoc, imageList, baseUrl);
-		
-		// find all links referenced by this URL
-		discoverLinksAssociatedWithURL(huntUrlDoc, huntUrl, toVisitUrls, vistedURLs);
+		if (nodeRepo.findByUrl(huntUrl.toString()) == null) {
+			
+			// create a node record and save it
+			NodeData node = new NodeData();
+			node.setUrl(huntUrl.toString());
+
+			node.setVisited(true);
+			
+			// set parent node, if one exists
+			if (checkNode.parentUrl != null) {
+				node.setParentUrl(checkNode.parentUrl.toString());
+			}
+			
+			log.info("saving node, url: " + node.getUrl() + ", parent: " + node.getParent());
+			
+			// save the node
+			node = nodeRepo.save(node);
+			
+			// find all photos associated with this URL
+			discoverPhotosAssociatedWithURL(huntUrlDoc, imageList, baseUrl);
+			
+			// find all links referenced by this URL
+			discoverSubNodes(huntUrlDoc, huntUrl, toVisitUrls, vistedURLs);
+			
+		} else {
+			log.info("Node " + huntUrl.toString() + " has previously been visited. Skipping");
+		}
 		
 		while (!toVisitUrls.isEmpty()) {
 			
-			final URL childUrl = toVisitUrls.remove();
+			final PendingNode childNode = toVisitUrls.remove();
 			
-			if (childUrl == node.getUrl()) {
-				// don't traverse the same URL twice
-			}
-			discoverContent(childUrl, node, imageList, toVisitUrls, vistedURLs);
+			discoverContent(childNode, imageList, toVisitUrls, vistedURLs);
 			
 			// check gate parameters
 			if (imageList.size() > MAX_IMAGES || vistedNodes >= MAX_NODES) {
@@ -146,22 +156,27 @@ public class WebCrawler {
 	}
 	
 	/**
-	 * Discover all links associated with a URL
+	 * Discover all nodes associated with the current node
 	 * @param Document
 	 * @return
 	 */
-	private void discoverLinksAssociatedWithURL(final Document doc, URL parentURL, Queue<URL> toVistUrls, Set<URL> vistedUrls) {
+	private void discoverSubNodes(final Document doc, URL parentURL, Queue<PendingNode> toVistUrls, Set<URL> discoveredUrls) {
 				
 		final Elements urlElements = doc.select("a[href]");
 		final String parentHost = parentURL.getHost();
 		
-		// iterate through all URLS
+		// find all the URL nodes on this page.
 		for (Element urlElement: urlElements) {
 
-			final String urlString = urlElement.attr("abs:href");
+			String urlString = urlElement.attr("abs:href");
+			
+			// Strip off in-page tags from URL
+			if (urlString.contains(URL_INLINE_TAG)) {
+				urlString = urlString.substring(0, urlString.indexOf(URL_INLINE_TAG));
+			}			
 			boolean notHtmlPage = false;
 			
-			// we only want HTML pages
+			// Exclude URLs with particular suffixes
 			for (String suffix: suffixExclusions) {
 				
 				if (urlString.endsWith(suffix)) {
@@ -170,7 +185,6 @@ public class WebCrawler {
 				} 
 			}
 			
-			// if this is not an HTML page, ignore it
 			if (notHtmlPage) {
 				continue;
 			}
@@ -190,18 +204,19 @@ public class WebCrawler {
 				continue;
 			}
 				
-			// don't visit URLs twice
-			if (vistedUrls.contains(childUrl)) {
+			// don't visit a URL that has already been seen
+			if (discoveredUrls.contains(childUrl)) {
 				continue;
 			}
 			
-			// its' ok to add this URL to the queue
+			// add this URL to the queue to be visited
 			log.info("Found new URL: " + urlString);
 			System.out.println("found new URL: " + urlString);
-			toVistUrls.add(childUrl);
 			
-			// make sure we don't visit this url again
-			vistedUrls.add(childUrl);
+			toVistUrls.add(new PendingNode(childUrl, parentURL));
+			
+			// record this URL as having been seen
+			discoveredUrls.add(childUrl);
 		}
 	}
 	

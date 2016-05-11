@@ -7,13 +7,10 @@ create table supplier (
 );
 
 create table url_node (
-  id int not null primary key auto_increment,
-  url varchar(255) not null,
-  parent_node int,
+  url varchar(255) not null primary key,
+  parent_node varchar(255),
   visited boolean
 );
-
-alter table url_node add foreign key (parent_node) references url_node(id);
 
 /*discovered photos for a node */
 create table node_photo (

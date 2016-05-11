@@ -1,17 +1,8 @@
 package com.squid.data;
 
-import java.net.URL;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -22,15 +13,11 @@ import javax.persistence.Table;
 public class NodeData {
 
 	@Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-	private int id;
-		
-	@ManyToOne(cascade={CascadeType.ALL})
-	@JoinColumn(name = "parent_node")
-	private NodeData parent;
-	
 	@Column (name = "url")
-	private URL url;
+	private String url;
+	
+	@Column (name = "parent_node")
+	private String parentUrl;
 	
 	@Column (name = "visited")
 	private boolean visited;
@@ -41,23 +28,17 @@ public class NodeData {
 	public void setVisited(boolean visited) {
 		this.visited = visited;
 	}
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
 
-	public NodeData getParent() {
-		return parent;
+	public String getParent() {
+		return parentUrl;
 	}
-	public void setParent(NodeData parent) {
-		this.parent = parent;
+	public void setParentUrl(String parent) {
+		this.parentUrl = parent;
 	}
-	public URL getUrl() {
+	public String getUrl() {
 		return url;
 	}
-	public void setUrl(URL url) {
+	public void setUrl(String url) {
 		this.url = url;
 	}
 }

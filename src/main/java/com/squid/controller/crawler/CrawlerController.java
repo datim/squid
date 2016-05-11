@@ -1,7 +1,6 @@
 package com.squid.controller.crawler;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,13 +90,11 @@ public class CrawlerController {
     	// convert to DTO
     	for (NodeData dao: nodes) {
     		final NodeDTO dto = new NodeDTO();
-    		dto.setId(dao.getId());
     		dto.setUrl(dao.getUrl().toString());
 
     		// add parent, if it exists
     		if (dao.getParent() != null) {
-        		dto.setParentId(dao.getParent().getId());
-        		dto.setParentUrl(dao.getParent().getUrl().toString());
+        		dto.setParentUrl(dao.getParent().toString());
     		}
 
     		dtoList.add(dto);
