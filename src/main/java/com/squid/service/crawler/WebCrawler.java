@@ -114,17 +114,17 @@ public class WebCrawler {
 		
 		final String baseUrl = huntUrl.getProtocol() + "://" + huntUrl.getHost();
 		
-		if (nodeRepo.findByUrl(huntUrl.toString()) == null) {
+		if (nodeRepo.findByUrl(huntUrl) == null) {
 			
 			// create a node record and save it
 			NodeData node = new NodeData();
-			node.setUrl(huntUrl.toString());
+			node.setUrl(huntUrl);
 
 			node.setVisited(true);
 			
 			// set parent node, if one exists
 			if (checkNode.parentUrl != null) {
-				node.setParentUrl(checkNode.parentUrl.toString());
+				node.setParentUrl(checkNode.parentUrl);
 			}
 			
 			log.info("saving node, url: " + node.getUrl() + ", parent: " + node.getParent());
@@ -242,7 +242,6 @@ public class WebCrawler {
         	// found a photo. save it
         	PhotoData photo = new PhotoData();
         	photo.setName(imgUrl);
-        	photo.setSize(59);
         	
         	try {
             	if (imgUrl.startsWith("http")) {

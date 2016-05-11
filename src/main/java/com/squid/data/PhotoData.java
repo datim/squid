@@ -26,8 +26,49 @@ public class PhotoData {
 	@Column (name = "url")
 	private URL url;
 	
-	@Column (name = "size")
-	private int size;
+	@Column (name = "width")
+	private int width;
+	
+	public int getWidth() {
+		return width;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public int getHeigth() {
+		return heigth;
+	}
+
+	public void setHeigth(int heigth) {
+		this.heigth = heigth;
+	}
+
+	public boolean isSaved() {
+		return saved;
+	}
+
+	public void setSaved(boolean saved) {
+		this.saved = saved;
+	}
+
+	public boolean isPinned() {
+		return pinned;
+	}
+
+	public void setPinned(boolean pinned) {
+		this.pinned = pinned;
+	}
+
+	@Column (name = "heigth")
+	private int heigth;
+	
+	@Column (name = "saved")
+	private boolean saved;
+	
+	@Column (name = "pinned")
+	private boolean pinned;
 	
 	public int getId() {
 		return id;
@@ -53,13 +94,6 @@ public class PhotoData {
 		this.url = url;
 	}
 
-	public int getSize() {
-		return size;
-	}
-
-	public void setSize(int size) {
-		this.size = size;
-	}
 
 
 }

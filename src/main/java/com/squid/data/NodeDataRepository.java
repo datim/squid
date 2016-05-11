@@ -9,5 +9,5 @@ import org.springframework.data.repository.CrudRepository;
  */
 public interface NodeDataRepository extends CrudRepository<NodeData, Long> {
 	
-	public NodeData findByUrl(String url);
+	public NodeData findByUrl(URL url);
 }

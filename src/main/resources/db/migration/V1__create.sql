@@ -6,9 +6,9 @@ create table supplier (
     length int not null
 );
 
-create table url_node (
+create table node (
   url varchar(255) not null primary key,
-  parent_node varchar(255),
+  parent_url varchar(255),
   visited boolean
 );
 
@@ -17,7 +17,10 @@ create table node_photo (
   id int not null primary key auto_increment,
   url varchar(255) not null,
   name varchar(255),
-  size int
+  width int,
+  heigth int,
+  pinned boolean,
+  saved boolean
 );
 
 /* Keep track of downloaded photos */

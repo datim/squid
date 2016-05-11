@@ -1,5 +1,7 @@
 package com.squid.data;
 
+import java.net.URL;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -9,15 +11,15 @@ import javax.persistence.Table;
  * Data Access object for a traversed URL node
  */
 @Entity
-@Table(name = "url_node")
+@Table(name = "node")
 public class NodeData {
 
 	@Id
 	@Column (name = "url")
-	private String url;
+	private URL url;
 	
-	@Column (name = "parent_node")
-	private String parentUrl;
+	@Column (name = "parent_url")
+	private URL parentUrl;
 	
 	@Column (name = "visited")
 	private boolean visited;
@@ -29,16 +31,16 @@ public class NodeData {
 		this.visited = visited;
 	}
 
-	public String getParent() {
+	public URL getParent() {
 		return parentUrl;
 	}
-	public void setParentUrl(String parent) {
+	public void setParentUrl(URL parent) {
 		this.parentUrl = parent;
 	}
-	public String getUrl() {
+	public URL getUrl() {
 		return url;
 	}
-	public void setUrl(String url) {
+	public void setUrl(URL url) {
 		this.url = url;
 	}
 }
