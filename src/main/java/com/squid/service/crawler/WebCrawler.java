@@ -2,6 +2,7 @@ package com.squid.service.crawler;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -86,7 +87,7 @@ public class WebCrawler {
 			
 		// reset the number of visited nodes before recursively searching
 		vistedNodes = 0;
-		
+				
 		final PendingNode node = new PendingNode(huntUrl, null);
 		
 		discoverContent(node, imageList, toVisitUrls, vistedURLs);
@@ -110,7 +111,14 @@ public class WebCrawler {
 		
 		final URL huntUrl = checkNode.url;
 		
-		final Document huntUrlDoc = Jsoup.connect(huntUrl.toString()).get();
+		Document huntUrlDoc = null;
+		
+		try {
+			huntUrlDoc = Jsoup.connect(huntUrl.toString()).get();
+		
+		} catch (SocketTimeoutException e) {
+			log.severe("Socket timeout attempting to connect to url " + huntUrl.toString());
+		}
 		
 		final String baseUrl = huntUrl.getProtocol() + "://" + huntUrl.getHost();
 		
@@ -120,23 +128,28 @@ public class WebCrawler {
 			NodeData node = new NodeData();
 			node.setUrl(huntUrl);
 
-			node.setVisited(true);
+			if (huntUrlDoc != null) {
+				node.setVisited(true);
+			}
 			
 			// set parent node, if one exists
 			if (checkNode.parentUrl != null) {
 				node.setParentUrl(checkNode.parentUrl);
 			}
 			
-			log.info("saving node, url: " + node.getUrl() + ", parent: " + node.getParent());
+			log.fine("saving node, url: " + node.getUrl() + ", parent: " + node.getParent());
 			
 			// save the node
 			node = nodeRepo.save(node);
 			
-			// find all photos associated with this URL
-			discoverPhotosAssociatedWithURL(huntUrlDoc, imageList, baseUrl);
-			
-			// find all links referenced by this URL
-			discoverSubNodes(huntUrlDoc, huntUrl, toVisitUrls, vistedURLs);
+			if (huntUrlDoc != null) {
+				// find all photos associated with this URL
+				discoverPhotosAssociatedWithURL(huntUrlDoc, imageList, baseUrl);
+				
+				// find all links referenced by this URL
+				discoverSubNodes(huntUrlDoc, huntUrl, toVisitUrls, vistedURLs);
+			}
+
 			
 		} else {
 			log.info("Node " + huntUrl.toString() + " has previously been visited. Skipping");
