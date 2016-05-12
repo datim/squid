@@ -144,7 +144,7 @@ public class WebCrawler {
 			
 			if (huntUrlDoc != null) {
 				// find all photos associated with this URL
-				discoverPhotosAssociatedWithURL(huntUrlDoc, imageList, baseUrl);
+				discoverPhotosAssociatedWithURL(huntUrlDoc, imageList, baseUrl, huntUrl);
 				
 				// find all links referenced by this URL
 				discoverSubNodes(huntUrlDoc, huntUrl, toVisitUrls, vistedURLs);
@@ -238,7 +238,7 @@ public class WebCrawler {
 	 * @param doc
 	 * @return
 	 */
-	private void discoverPhotosAssociatedWithURL(final Document doc, Set<String> imageList, String baseUrl) {
+	private void discoverPhotosAssociatedWithURL(final Document doc, Set<String> imageList, String baseUrl, URL nodeURL) {
         
 		final Elements images = doc.select("img");
         
@@ -251,10 +251,11 @@ public class WebCrawler {
         	}
         	
         	final String imgUrl = image.attr("src");
-        	
+        	        	
         	// found a photo. save it
         	PhotoData photo = new PhotoData();
         	photo.setName(imgUrl);
+        	photo.setNodeUrl(nodeURL);
         	
         	try {
             	if (imgUrl.startsWith("http")) {
@@ -273,6 +274,12 @@ public class WebCrawler {
         		continue;
         	}
         	
+        	// don't save the photo twice
+        	if (photoRepo.findByUrl(photo.getUrl()) != null) {
+        		log.fine("Photo " + photo.getName() + " already discovered. Skipping");
+        		continue;
+        	}
+        	
         	// save the photo
         	photoRepo.save(photo);
         }
@@ -283,7 +290,6 @@ public class WebCrawler {
 	/**
 	 * Retrieve stored list of photos
 	 */
-	@SuppressWarnings("unchecked")
 	public List<PhotoData> getPhotos(int pageNum, int pageSize) {
 		Page<PhotoData> photos = photoRepo.findAll(new PageRequest(pageNum, pageSize));		
 		return photos.getContent();

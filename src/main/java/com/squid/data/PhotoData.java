@@ -17,17 +17,26 @@ import javax.persistence.Table;
 public class PhotoData {
 	
 	@Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-	private int id;
-
-	@Column (name = "name")
-	private String name;
-	
 	@Column (name = "url")
 	private URL url;
 	
+	@Column (name = "node_url")
+	private URL nodeUrl;
+	
+	@Column (name = "name")
+	private String name;
+	
 	@Column (name = "width")
 	private int width;
+	
+	@Column (name = "heigth")
+	private int heigth;
+	
+	@Column (name = "saved")
+	private boolean saved;
+	
+	@Column (name = "pinned")
+	private boolean pinned;
 	
 	public int getWidth() {
 		return width;
@@ -61,23 +70,6 @@ public class PhotoData {
 		this.pinned = pinned;
 	}
 
-	@Column (name = "heigth")
-	private int heigth;
-	
-	@Column (name = "saved")
-	private boolean saved;
-	
-	@Column (name = "pinned")
-	private boolean pinned;
-	
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -92,6 +84,14 @@ public class PhotoData {
 
 	public void setUrl(URL url) {
 		this.url = url;
+	}
+
+	public URL getNodeUrl() {
+		return nodeUrl;
+	}
+
+	public void setNodeUrl(URL nodeUrl) {
+		this.nodeUrl = nodeUrl;
 	}
 
 

@@ -9,19 +9,21 @@ create table supplier (
 create table node (
   url varchar(255) not null primary key,
   parent_url varchar(255),
-  visited boolean
+  visited boolean default false
 );
 
 /*discovered photos for a node */
 create table node_photo (
-  id int not null primary key auto_increment,
-  url varchar(255) not null,
+  url varchar(255) not null primary key,
+  node_url varchar(255) not null,
   name varchar(255),
   width int,
   heigth int,
-  pinned boolean,
-  saved boolean
+  pinned boolean default false,
+  saved boolean default false
 );
+
+/* Link to node url */
 
 /* Keep track of downloaded photos */
 create table downloaded_photos (

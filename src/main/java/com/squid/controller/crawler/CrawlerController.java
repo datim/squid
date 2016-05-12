@@ -51,9 +51,11 @@ public class CrawlerController {
     	// convert DAO to DTO
     	for (PhotoData dao: photos) {
     		PhotoDTO dto = new PhotoDTO();
-    		dto.setId(dao.getId());
     		dto.setName(dao.getName());
     		dto.setUrl(dao.getUrl().toString());
+    		dto.setNodeUrl(dao.getNodeUrl().toString());
+    		dto.setHeight(dao.getHeigth());
+    		dto.setWidth(dao.getWidth());
     		
     		photoDTOs.add(dto);
     	}
