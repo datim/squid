@@ -1,0 +1,32 @@
+body {
+  /* Black background */
+  background-color: #000000;
+
+  /* text color is gray */
+  color: #FFFFFF;
+
+  /* collapse the borders of the table and its cells */
+  border-collapse: collapse;
+}
+
+table {
+  table-layout: fixed;
+  border: 1px;
+  //border-color: #D3D3D3;
+}
+
+th {
+  /* use full height of table contents */
+  height: 100%;
+  border-color: #D3D3D3;
+}
+
+td {
+  /* limit width to 50 pixels */
+  width: 400px;
+  border: 1px;
+  border-color: #D3D3D3;
+}
+
+/* alternate table colors */
+tr:nth-child(even) {background-color: #A9A9A9}

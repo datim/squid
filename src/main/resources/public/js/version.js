@@ -12,7 +12,6 @@ function getVersion() {
   xhr.send();
 
   var version = "<p align=right> Squid " + xhr.responseText + "</p>";
-  version = version.fontcolor("#D3D3D3");
 
   document.write(version);
 }
