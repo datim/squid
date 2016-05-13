@@ -3,10 +3,13 @@
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="text/squid.css">
-    
+
     <script src="js/version.js"></script>
     <script src="https://fb.me/react-15.0.2.js"></script>
     <script src="https://fb.me/react-dom-15.0.2.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+</style>
+
   </head>
   <!-- <body bgcolor="#000000"> -->
   <body>
@@ -16,12 +19,18 @@
         getVersion()
       </script>
     </div>
+
     <br>
     <button type="button" onclick="startSearch()">Discover</button>
     <button type "button" onclick="reportResults()">Results</button>
 
+    <!-- Division for displaying photo results -->
+    <div id="PhotoResultsDiv">
+    </div>
+
     <!-- table for displaying photo results -->
-    <table width=10 cellpadding=5 id="PhotoResultsTable">
+    <table cellpadding=5 id="PhotoResultsTable">
     </table>
+
   </body>
 </html>
