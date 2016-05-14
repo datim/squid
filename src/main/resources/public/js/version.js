@@ -70,26 +70,6 @@ function reportResults() {
 
   var photoResults = JSON.parse(xhr.responseText);
 
-/*
-  var photoDiv = document.getElementById("PhotoResultsDiv");
-
-  // add new sub-divisions containing photos
-  var i = 0;
-  for (i = 0; i < photoResults.length; i++) {
-
-      var image = document.createElement('img')
-      image.src = photoResults[i].url;
-      image.width = 100;
-      image.height = 100;
-
-      var thumbDiv = document.createElement('div');
-      thumbDiv.className = "nailthumb-container square"
-      thumbDiv.appendChild(image);
-
-      photoDiv.appendChild(thumbDiv);
-  }
-  */
-
   var table = document.getElementById("PhotoResultsTable");
 
   // write a table of photos
@@ -115,19 +95,16 @@ function insertTableRowCell(row, photoResult) {
   image.width = 200;
   image.height = 200;
 
-  var thumbDiv = document.createElement('PhotoDiv');
-  thumbDiv.appendChild(image);
+  var photoCaption = document.createElement('figcaption');
+  photoCaption.innerHTML = photoResult.name;
+
+  var photoFigure = document.createElement('figure');
+  photoFigure.appendChild(image);
+  photoFigure.appendChild(photoCaption);
+
+  var thumbDiv = document.createElement('div');
+  thumbDiv.appendChild(photoFigure);
 
   var cell = row.insertCell();
   cell.appendChild(thumbDiv);
-
-  /*
-  var image = document.createElement('img');
-  image.src = photoURL;
-  image.width = 200;
-  image.height = 200;
-
-  var cell = row.insertCell();
-  cell.appendChild(image);
-  */
 }
