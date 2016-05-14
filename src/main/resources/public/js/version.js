@@ -17,6 +17,39 @@ function getVersion() {
 }
 
 //
+// Delete all node and photo content
+//
+function deleteAllContent() {
+  // make the call
+  var xhr = new XMLHttpRequest();
+  xhr.open("DELETE", "http://localhost:8080/crawl/content", false);
+  xhr.send();
+}
+
+//
+// getCounts
+//
+// Get the number of photos and nodes that are stored in the system
+//
+function getCounts() {
+
+  // make the call
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "http://localhost:8080/crawl/photos/count", false);
+  xhr.send();
+  var photoCount = xhr.responseText;
+
+  xhr.open("GET", "http://localhost:8080/crawl/nodes/count", false);
+  xhr.send();
+  var nodeCount = xhr.responseText;
+
+  var version = "<p align=right> Photos: " + photoCount + "<br> Nodes: " + nodeCount + "</p>";
+
+  document.write(version);
+
+}
+
+//
 // start a search for nodes and display results
 //
 function startSearch() {

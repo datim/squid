@@ -1,9 +1,14 @@
 package com.squid.service.crawler;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -13,6 +18,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
+import javax.imageio.ImageIO;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -279,7 +285,7 @@ public class WebCrawler {
         		log.fine("Photo " + photo.getName() + " already discovered. Skipping");
         		continue;
         	}
-        	
+        	        	
         	// save the photo
         	photoRepo.save(photo);
         }
@@ -307,5 +313,37 @@ public class WebCrawler {
 	 */
 	public List<NodeData> getNodes() {
 		return (List<NodeData>) nodeRepo.findAll();
+	}
+
+	/**
+	 * Retrieve the number of discovered nodes
+	 */
+	public long getNodeCount() {
+		return nodeRepo.count();
+	}
+
+	/**
+	 * Delete all photos
+	 */
+	public void deletePhotos() {
+		log.info("Erasing all photos");
+		
+		List<PhotoData> photos = (List<PhotoData>) photoRepo.findAll();
+		
+		for (PhotoData p: photos) {
+			photoRepo.delete(p);
+		}
+	}
+	
+	/**
+	 *  Delete All nodes
+	 */
+	public void deleteNodes() {
+		log.info("Erasing all nodes");
+		
+		List<NodeData> nodes = (List<NodeData>) nodeRepo.findAll();
+		for (NodeData n: nodes) {
+			nodeRepo.delete(n);
+		}
 	}
 }

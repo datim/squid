@@ -104,4 +104,21 @@ public class CrawlerController {
     	
     	return dtoList;
     }
+    
+    /**
+     * Report the number of nodes
+     */
+    @RequestMapping(path="/nodes/count", method = RequestMethod.GET)
+    public long getNodeCount() {
+    	return crawler.getNodeCount();
+    }
+    
+    /**
+     * Delete all photo and node content
+     */
+    @RequestMapping(path="/content", method = RequestMethod.DELETE)
+    public void deletePhotos() {
+    	crawler.deletePhotos();
+    	crawler.deleteNodes();    	
+    }
 }
