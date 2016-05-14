@@ -1,13 +1,10 @@
 package com.squid.service.crawler;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,8 +15,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
-import javax.imageio.ImageIO;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -51,8 +46,9 @@ public class WebCrawler {
 	static int MAX_IMAGES = 350;
 	static int MAX_NODES = 50;
 	static String URL_INLINE_TAG = "#";
+	static String URL_SEARCH_TAG = "?";
 	
-	private List<String> suffixExclusions = null;	
+	private List<String> nodeSuffixExclusions = null;	
 	private int vistedNodes = 0;
 	
 	/**
@@ -74,9 +70,9 @@ public class WebCrawler {
 	@PostConstruct
 	private void setup() {
 		// create suffix exclusion list
-		suffixExclusions = new ArrayList<>();
-		suffixExclusions.add("css");
-		suffixExclusions.add("pdf");
+		nodeSuffixExclusions = new ArrayList<>();
+		nodeSuffixExclusions.add("css");
+		nodeSuffixExclusions.add("pdf");
 	}
 		
 	/**
@@ -196,7 +192,7 @@ public class WebCrawler {
 			boolean notHtmlPage = false;
 			
 			// Exclude URLs with particular suffixes
-			for (String suffix: suffixExclusions) {
+			for (String suffix: nodeSuffixExclusions) {
 				
 				if (urlString.endsWith(suffix)) {
 					notHtmlPage = true;
@@ -255,19 +251,21 @@ public class WebCrawler {
         	if (source.endsWith("spacer.gif")) {
         		continue;
         	}
-        	
-        	final String imgUrl = image.attr("src");
+        	        	
+			// Strip off search tags from URL
+			if (source.contains(URL_SEARCH_TAG)) {
+				source = source.substring(0, source.indexOf(URL_SEARCH_TAG));
+			}	
         	        	
         	// found a photo. save it
         	PhotoData photo = new PhotoData();
-        	photo.setName(imgUrl);
-        	photo.setNodeUrl(nodeURL);
         	
+        	// 
         	try {
-            	if (imgUrl.startsWith("http")) {
+            	if (source.startsWith("http")) {
             		// image is already a well-formed URL
-            		imageList.add(imgUrl);
-            		photo.setUrl(new URL(imgUrl));
+            		imageList.add(source);
+            		photo.setUrl(new URL(source));
             		
             	} else {
             		// partial image. Add host
@@ -276,9 +274,13 @@ public class WebCrawler {
                 	photo.setUrl(new URL(completeUrl));
             	}
         	} catch (MalformedURLException e) {
-        		System.out.println("Invalid photo url " + imgUrl);
+        		System.out.println("Invalid photo url " + source);
         		continue;
         	}
+        	
+        	photo.setName(source.substring(source.lastIndexOf("/") + 1));
+        	photo.setNodeUrl(nodeURL);
+        	
         	
         	// don't save the photo twice
         	if (photoRepo.findByUrl(photo.getUrl()) != null) {
