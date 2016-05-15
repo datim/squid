@@ -11,8 +11,6 @@ body {
 
 table {
   table-layout: fixed;
-  //border: 1px;
-  //border-color: #D3D3D3;
 }
 
 th {
@@ -24,14 +22,13 @@ th {
 td {
   /* limit width to 50 pixels */
   width: 300;
-  //border: 1px;
-  //border-color: #D3D3D3;
+}
+
+figcaption {
+  font-size: 80%;
 }
 
 img {
   /* round image */
   border-radius: 8px;
 }
-
-/* alternate table colors */
-//tr:nth-child(even) {background-color: #A9A9A9}

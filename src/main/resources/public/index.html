@@ -3,11 +3,9 @@
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="text/squid.css">
-
     <script src="js/version.js"></script>
-    <script src="https://fb.me/react-15.0.2.js"></script>
-    <script src="https://fb.me/react-dom-15.0.2.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+
 </style>
 
   </head>
@@ -15,16 +13,15 @@
   <body>
     <div>
       <script type="text/javascript">
-        <!-- display the program version -->
-        getVersion()
-        getCounts()
+        getSquidVersion()
+        getContentCounts()
       </script>
     </div>
 
     <br>
-    <button type="button" onclick="startSearch()">Discover</button>
-    <button type="button" onclick="reportResults()">Results</button>
-    <button type="button" onclick="deleteAllContent()">Clear</button>
+    <button type="button" onclick="startSearch()">Crawl</button>
+    <button type="button" onclick="reportResults()">Display Results</button>
+    <button type="button" onclick="deleteAllContent()">Clean</button>
 
     <!-- Division for displaying photo results -->
     <div id="PhotoResultsDiv">

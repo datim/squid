@@ -3,7 +3,7 @@
 //
 // return the results in version
 //
-function getVersion() {
+function getSquidVersion() {
 
   // make the call
   var xhr = new XMLHttpRequest();
@@ -31,7 +31,7 @@ function deleteAllContent() {
 //
 // Get the number of photos and nodes that are stored in the system
 //
-function getCounts() {
+function getContentCounts() {
 
   // make the call
   var xhr = new XMLHttpRequest();
@@ -46,7 +46,6 @@ function getCounts() {
   var version = "<p align=right> Photos: " + photoCount + "<br> Nodes: " + nodeCount + "</p>";
 
   document.write(version);
-
 }
 
 //
