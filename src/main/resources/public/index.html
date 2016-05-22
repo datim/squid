@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="text/squid.css">
+    <script src="js/version.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script src="https://fb.me/react-15.0.2.js"></script>
+    <script src="https://fb.me/react-dom-15.0.2.js"></script>
+    <script type="text/babel" src="js/phototable.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+
+
+</style>
+
+  </head>
+  <!-- <body bgcolor="#000000"> -->
+  <body>
+    <div>
+      <script type="text/javascript">
+        getSquidVersion()
+        getContentCounts()
+      </script>
+    </div>
+
+    <br>
+    <button type="button" onclick="startSearch()">Crawl</button>
+    <button type="button" onclick="reportResults()">Display Results</button>
+    <button type="button" onclick="deleteAllContent()">Clean</button>
+
+    <!-- Division for displaying photo results -->
+    <div id="PhotoResultsDiv"></div>
+
+    <!-- table for displaying photo results -->
+    <table cellpadding=5 id="PhotoResultsTable">
+    </table>
+
+
+  </body>
+</html>

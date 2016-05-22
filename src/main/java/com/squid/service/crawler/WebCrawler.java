@@ -2,21 +2,32 @@ package com.squid.service.crawler;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import com.squid.data.NodeData;
+import com.squid.data.NodeDataRepository;
+import com.squid.data.PhotoData;
+import com.squid.data.PhotoDataRepository;
 
 /**
  * TODO: Breadth first search instead of depth-first search
@@ -24,41 +35,64 @@ import org.springframework.stereotype.Service;
 @Service
 public class WebCrawler {
 	
-	private List<String> suffixExclusions = null;
-	private List<String> pageExclusions = null;
-	static int MAX_IMAGES = 350;
-	static int MAX_DEPTH = 50;
+	static Logger log = Logger.getLogger(WebCrawler.class.getName());
+
+	@Autowired
+	private PhotoDataRepository photoRepo;
 	
-	int count = 0;
+	@Autowired 
+	private NodeDataRepository nodeRepo;
+
+	static int MAX_IMAGES = 350;
+	static int MAX_NODES = 50;
+	static String URL_INLINE_TAG = "#";
+	static String URL_SEARCH_TAG = "?";
+	
+	private List<String> nodeSuffixExclusions = null;	
+	private int vistedNodes = 0;
+	
+	/**
+	 * Private class to store information for nodes that
+	 * have not yet been traversed
+	 */
+	private class PendingNode {
+		
+		// constructor
+		public PendingNode(final URL url, final URL parentURL) {
+			this.url = url;
+			this.parentUrl = parentURL;
+		}
+		
+		public URL url;
+		public URL parentUrl;
+	}
 	
 	@PostConstruct
 	private void setup() {
 		// create suffix exclusion list
-		suffixExclusions = new ArrayList<>();
-		suffixExclusions.add("css");
-		suffixExclusions.add("pdf");
+		nodeSuffixExclusions = new ArrayList<>();
+		nodeSuffixExclusions.add("css");
+		nodeSuffixExclusions.add("pdf");
 	}
-	
-	// crawl a URL
+		
 	/**
-	 * Web crawl a URL
+	 * Start a recursive, breadth-first search
 	 * @param huntUrl
 	 * @return
 	 * @throws IOException 
 	 */
-	public String startCrawl(final URL huntUrl) throws IOException {
+	public void startCrawl(final URL huntUrl) throws IOException {
 		
-		Set<String> imageList = new HashSet<>();
-		Set<URL> vistedURLs = new HashSet<>();
-		Queue<URL> toVisitUrls = new LinkedList<>();
+		final Set<String> imageList = new HashSet<>();
+		final Set<URL> vistedURLs = new HashSet<>();
+		final Queue<PendingNode> toVisitUrls = new LinkedList<>();
+			
+		// reset the number of visited nodes before recursively searching
+		vistedNodes = 0;
 				
-		discoverContent(huntUrl, imageList, toVisitUrls, vistedURLs);
+		final PendingNode node = new PendingNode(huntUrl, null);
 		
-		// reset count
-		count = 0;
-		
-        // return the list as a string
-        return createHtmlBody(imageList);
+		discoverContent(node, imageList, toVisitUrls, vistedURLs);
 	}
 	
 	/**
@@ -67,55 +101,99 @@ public class WebCrawler {
 	 * @return
 	 * @throws IOException 
 	 */
-	private void discoverContent(final URL huntUrl, Set<String> imageList, Queue<URL> toVisitUrls, Set<URL> vistedURLs) throws IOException {
+	private void discoverContent(final PendingNode checkNode, Set<String> imageList, Queue<PendingNode> toVisitUrls, Set<URL> vistedURLs) throws IOException {
 		
-		System.out.println("Discover content loop " + count++);
+		log.info("Discovered content loop " + vistedNodes++);
 		
-		if (count >= MAX_DEPTH) {
+		// don't exceed the max number of nodes
+		if (vistedNodes >= MAX_NODES) {
+			log.info("Reached maximum visited nodes");
 			return;
 		}
 		
-		Document doc = Jsoup.connect(huntUrl.toString()).get();
+		final URL huntUrl = checkNode.url;
 		
-		String base = huntUrl.getProtocol() + "://" + huntUrl.getHost();
+		Document huntUrlDoc = null;
+		
+		try {
+			huntUrlDoc = Jsoup.connect(huntUrl.toString()).get();
+		
+		} catch (SocketTimeoutException e) {
+			log.severe("Socket timeout attempting to connect to url " + huntUrl.toString());
+		}
+		
+		final String baseUrl = huntUrl.getProtocol() + "://" + huntUrl.getHost();
+		
+		if (nodeRepo.findByUrl(huntUrl) == null) {
+			
+			// create a node record and save it
+			NodeData node = new NodeData();
+			node.setUrl(huntUrl);
 
-		// find all photos on this page
-		parsePhotos(doc, imageList, base);
-		
-		// find all link references on this page
-		discoverLinks(doc, huntUrl, toVisitUrls, vistedURLs);
+			if (huntUrlDoc != null) {
+				node.setVisited(true);
+			}
+			
+			// set parent node, if one exists
+			if (checkNode.parentUrl != null) {
+				node.setParentUrl(checkNode.parentUrl);
+			}
+			
+			log.fine("saving node, url: " + node.getUrl() + ", parent: " + node.getParent());
+			
+			// save the node
+			node = nodeRepo.save(node);
+			
+			if (huntUrlDoc != null) {
+				// find all photos associated with this URL
+				discoverPhotosAssociatedWithURL(huntUrlDoc, imageList, baseUrl, huntUrl);
+				
+				// find all links referenced by this URL
+				discoverSubNodes(huntUrlDoc, huntUrl, toVisitUrls, vistedURLs);
+			}
+
+			
+		} else {
+			log.info("Node " + huntUrl.toString() + " has previously been visited. Skipping");
+		}
 		
 		while (!toVisitUrls.isEmpty()) {
 			
-			final URL childUrl = toVisitUrls.remove();
-			discoverContent(childUrl, imageList, toVisitUrls, vistedURLs);
+			final PendingNode childNode = toVisitUrls.remove();
+			
+			discoverContent(childNode, imageList, toVisitUrls, vistedURLs);
 			
 			// check gate parameters
-			if (imageList.size() > MAX_IMAGES || count >= MAX_DEPTH) {
+			if (imageList.size() > MAX_IMAGES || vistedNodes >= MAX_NODES) {
 				break;
 			}
-
 		}
 	}
 	
 	/**
-	 * Discover all URLs associated with the page
+	 * Discover all nodes associated with the current node
 	 * @param Document
 	 * @return
 	 */
-	private void discoverLinks(final Document doc, URL parentURL, Queue<URL> toVistUrls, Set<URL> vistedUrls) {
+	private void discoverSubNodes(final Document doc, URL parentURL, Queue<PendingNode> toVistUrls, Set<URL> discoveredUrls) {
 				
-		Elements urlElements = doc.select("a[href]");
-		
+		final Elements urlElements = doc.select("a[href]");
 		final String parentHost = parentURL.getHost();
 		
+		// find all the URL nodes on this page.
 		for (Element urlElement: urlElements) {
 
 			String urlString = urlElement.attr("abs:href");
 			
+			// Strip off in-page tags from URL
+			if (urlString.contains(URL_INLINE_TAG)) {
+				urlString = urlString.substring(0, urlString.indexOf(URL_INLINE_TAG));
+			}			
 			boolean notHtmlPage = false;
-			// we onl want HTML pages
-			for (String suffix: suffixExclusions) {
+			
+			// Exclude URLs with particular suffixes
+			for (String suffix: nodeSuffixExclusions) {
+				
 				if (urlString.endsWith(suffix)) {
 					notHtmlPage = true;
 					continue;
@@ -126,10 +204,11 @@ public class WebCrawler {
 				continue;
 			}
 			
-			URL childUrl;
+			URL childUrl = null;
 			
 			try {
 				childUrl = new URL(urlString);
+				
 			} catch (MalformedURLException e) {
 				System.out.println("Malformed url for " + urlString);
 				continue;
@@ -140,28 +219,30 @@ public class WebCrawler {
 				continue;
 			}
 				
-			// don't visit URLs twice
-			if (vistedUrls.contains(childUrl)) {
+			// don't visit a URL that has already been seen
+			if (discoveredUrls.contains(childUrl)) {
 				continue;
 			}
 			
-			// its' ok to add this URL to the queue
+			// add this URL to the queue to be visited
+			log.info("Found new URL: " + urlString);
 			System.out.println("found new URL: " + urlString);
-			toVistUrls.add(childUrl);
 			
-			// make sure we don't visit this url again
-			vistedUrls.add(childUrl);
-					
+			toVistUrls.add(new PendingNode(childUrl, parentURL));
+			
+			// record this URL as having been seen
+			discoveredUrls.add(childUrl);
 		}
 	}
 	
 	/**
-	 * Parse photos from the HTML page
+	 * Parse photos from an HTML document
 	 * @param doc
 	 * @return
 	 */
-	private void parsePhotos(final Document doc, Set<String> imageList, String baseUrl) {
-        Elements images = doc.select("img");
+	private void discoverPhotosAssociatedWithURL(final Document doc, Set<String> imageList, String baseUrl, URL nodeURL) {
+        
+		final Elements images = doc.select("img");
         
         for (Element image: images) {
         	String source = image.attr("src");
@@ -170,62 +251,101 @@ public class WebCrawler {
         	if (source.endsWith("spacer.gif")) {
         		continue;
         	}
+        	        	
+			// Strip off search tags from URL
+			if (source.contains(URL_SEARCH_TAG)) {
+				source = source.substring(0, source.indexOf(URL_SEARCH_TAG));
+			}	
+        	        	
+        	// found a photo. save it
+        	PhotoData photo = new PhotoData();
         	
-        	String imgUrl = image.attr("src");
-        	
-        	if (imgUrl.startsWith("http")) {
-        		// image is already a well-formed URL
-        		imageList.add(imgUrl);
-        		
-        	} else {
-        		// partial image. Add host
-            	imageList.add(baseUrl + image.attr("src"));
+        	// 
+        	try {
+            	if (source.startsWith("http")) {
+            		// image is already a well-formed URL
+            		imageList.add(source);
+            		photo.setUrl(new URL(source));
+            		
+            	} else {
+            		// partial image. Add host
+            		String completeUrl = baseUrl + image.attr("src");
+                	imageList.add(completeUrl);
+                	photo.setUrl(new URL(completeUrl));
+            	}
+        	} catch (MalformedURLException e) {
+        		System.out.println("Invalid photo url " + source);
+        		continue;
         	}
+        	
+        	photo.setName(source.substring(source.lastIndexOf("/") + 1));
+        	photo.setNodeUrl(nodeURL);
+        	
+        	
+        	// don't save the photo twice
+        	if (photoRepo.findByUrl(photo.getUrl()) != null) {
+        		log.fine("Photo " + photo.getName() + " already discovered. Skipping");
+        		continue;
+        	}
+        	        	
+        	// save the photo
+        	photoRepo.save(photo);
         }
         
         return;
 	}
 
 	/**
-	 * Temporary function to return all images from a page as an HTML document
-	 * @param imageList
-	 * @param urlBase
-	 * @return
+	 * Retrieve stored list of photos
 	 */
-	private String createHtmlBody(Set<String> imageList) {
-		
-		String rt = "\n";
-		
-		String html = new String();
-		
-		html += "<html xmlns=\"http://www.w3.org/1999/xhtml\">" + rt;
-		
-		html += "<body>" + rt;
-		
-		html += "<p> " + imageList.size() + " images found. </p>" + rt;
+	public List<PhotoData> getPhotos(int pageNum, int pageSize) {
+		Page<PhotoData> photos = photoRepo.findAll(new PageRequest(pageNum, pageSize));		
+		return photos.getContent();
+	}
 
-		for (String imageName: imageList) {
-			html += "<div>" + rt;
-			html += "<img src=" + imageName + ">" + rt;
-			html += "<p>" + imageName + "</p>" + rt;
-			html += "</div>" + rt;
-		}
-		
-		/*
-
-		html += "<ul>" + rt;
-		// add each image as a list item
-		for (String imageName: imageList) {
-			html += "<li style=\"list-style-type:none\"><img src=" + urlBase + imageName + "></li>" + rt;
-		}
-		
-		html += "</ul>" + rt;
-		*/
+	/**
+	 * Retrieve the number of discovered photos
+	 */
+	public long getPhotosCount() {
+		return photoRepo.count();
+	}
 	
-		html += "</body>" + rt;
-		html += "</html>" + rt;
+	/**
+	 * Retrieve all discovered nodes
+	 */
+	public List<NodeData> getNodes() {
+		return (List<NodeData>) nodeRepo.findAll();
+	}
+
+	/**
+	 * Retrieve the number of discovered nodes
+	 */
+	public long getNodeCount() {
+		return nodeRepo.count();
+	}
+
+	/**
+	 * Delete all photos
+	 */
+	public void deletePhotos() {
+		log.info("Erasing all photos");
 		
-		return html;
+		List<PhotoData> photos = (List<PhotoData>) photoRepo.findAll();
 		
+		for (PhotoData p: photos) {
+			photoRepo.delete(p);
+		}
+	}
+	
+	/**
+	 *  Delete All nodes
+	 */
+	public void deleteNodes() {
+		log.info("Erasing all nodes");
+		
+		List<NodeData> nodes = (List<NodeData>) nodeRepo.findAll();
+		for (NodeData n: nodes) {
+			nodeRepo.delete(n);
+		}
 	}
 }

@@ -1,2 +1,1 @@
-
-java -jar build/libs/redsquid-0.1.0.jar
+java -jar build/libs/squid-1.0.jar

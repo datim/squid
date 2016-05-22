@@ -1,0 +1,34 @@
+body {
+  /* Black background */
+  background-color: #000000;
+
+  /* text color is gray */
+  color: #FFFFFF;
+
+  /* collapse the borders of the table and its cells */
+  border-collapse: collapse;
+}
+
+table {
+  table-layout: fixed;
+}
+
+th {
+  /* use full height of table contents */
+  height: 100%;
+  border-color: #D3D3D3;
+}
+
+td {
+  /* limit width to 50 pixels */
+  width: 300;
+}
+
+figcaption {
+  font-size: 80%;
+}
+
+img {
+  /* round image */
+  border-radius: 8px;
+}
