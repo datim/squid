@@ -8,10 +8,12 @@ var rootPath = path.join(__dirname, "src", "main", "resources", "public");
 module.exports = {
   context: rootPath,
   entry: './js/initreact.js',
-  devtool: debug ? "inline-sourcemap" : null,
+  //devtool: debug ? "inline-sourcemap" : null,
+  devtool: debug ? "eval-source-map" : null,
   output: {
     path: rootPath,
-    filename: 'initreact.min.js'
+    filename: 'initreact.min.js',
+    sourceMapFileName: 'initreact.min.js.map'
   },
 
   module: {
