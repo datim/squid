@@ -13,19 +13,19 @@ export default class PhotoPanel extends React.Component {
   constructor() {
     super();
     this.state = {
-      photos: [],
       length: 0
     };
 
     this.photoResultURL = 'http://localhost:8080/crawl/photos';
     this.startSearchURL = 'http://localhost:8080/crawl/go';
     this.deletePhotosURL = 'http://localhost:8080/crawl/content';
+    this.photos = [];
   }
 
   componentWillMount() {
     // Called the first time the component is loaded right before the component is added to the page
-    var photoList = this.getPhotos();
-    this.setState({photos: photoList, length: photoList.length})
+    this.photos = this.getPhotos();
+    this.setState({length: this.photos.length})
   }
 
   // perform a search for photos and nodes
@@ -53,7 +53,8 @@ export default class PhotoPanel extends React.Component {
 
   updatePhotos(photoList) {
     // update the state, triggering a re-render of the page
-    this.setState({photos: photoList, length: photoList.length})
+    this.photos = photoList;
+    this.setState({length: photoList.length})
   }
 
   render() {
@@ -64,7 +65,7 @@ export default class PhotoPanel extends React.Component {
         <ActionButton callMethod={this.performNodeDiscovery.bind(this)} message='Search' />
         <ActionButton callMethod={this.getPhotos.bind(this)} response={this.updatePhotos.bind(this)} message='Refresh'/>
         <ActionButton callMethod={this.clearPhotos.bind(this)} message='Delete' />
-        <PhotoResults photos={this.state.photos} photosPerRow={this.props.photosPerRow}/>
+        <PhotoResults photos={this.photos} photosPerRow={this.props.photosPerRow}/>
       </div>
     )
   }
