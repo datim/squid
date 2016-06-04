@@ -26,8 +26,7 @@ export default class IconPanel extends React.Component {
       'images/react_logo.png',
       'images/spring_logo.png',
       'images/java_logo.png',
-      'images/js_logo.jpg',
-      'images/h2_logo.jpg'
+      'images/js_logo.jpg'
     ]
   }
 

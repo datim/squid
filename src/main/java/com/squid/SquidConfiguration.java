@@ -17,7 +17,9 @@ public class SquidConfiguration {
         return new WebMvcConfigurerAdapter() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/crawl/**").allowedOrigins("http://localhost:7777");
+                registry.addMapping("/crawl/**")
+                		.allowedOrigins("http://localhost:7777")
+            			.allowedMethods("PUT", "DELETE", "POST", "GET");
             }
         };
     }

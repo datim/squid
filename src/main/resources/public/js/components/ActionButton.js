@@ -16,10 +16,9 @@ export default class ActionButton extends React.Component {
     console.log("Searching For Photos!");
 
     var result = this.props.callMethod();
-    console.log(result);
 
+    // report results, if any are returned
     if (this.props.response != null) {
-      // return the results if there is a reponse defined
       this.props.response(result);
     }
   }
