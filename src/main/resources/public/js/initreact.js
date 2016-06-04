@@ -2,35 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 import SquidVersion from "./components/SquidVersion"
-import Statistics from "./components/Statistics"
 import PhotoPanel from "./components/PhotoPanel"
-
-class IconDisplay extends React.Component {
-
-  constructor() {
-    super();
-    this.photosPerRow = 6;
-  }
-
-  render() {
-    var { myphotoSrc } = this.props;
-
-    return (
-      <div>
-        <br />
-        <img src={myphotoSrc}></img>
-        <br />
-      </div>
-
-    )
-  }
-}
+import IconPanel from "./components/IconPanel"
 
 class MyApp extends React.Component {
 
   constructor() {
     super();
-    this.photoSource = 'http://cdn2.hubspot.net/hub/451063/hubfs/mobile_uploads/react_2.png?t=1458853862314&width=50&height=50';
     this.photosPerRow = 4;
   }
 
@@ -39,9 +17,9 @@ class MyApp extends React.Component {
     return(
       <div>
         <br />
-        <IconDisplay myphotoSrc={this.photoSource}/>
+        <IconPanel/>
+        <br />
         <SquidVersion/>
-        <Statistics />
         <PhotoPanel photosPerRow={this.photosPerRow} />
         <br />
       </div>

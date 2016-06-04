@@ -2,9 +2,9 @@ import React from "react";
 /*
  * Display all of the buttons and the photo display results
  */
-
- import DisplayButton from "./DisplayButton"
- import PhotoResults from "./PhotoResults"
+import PhotoResults from "./PhotoResults"
+import ActionButton from "./ActionButton"
+import Statistics from "./Statistics"
 
 export default class PhotoPanel extends React.Component {
 
@@ -16,6 +16,15 @@ export default class PhotoPanel extends React.Component {
     };
 
     this.photoResultURL = 'http://localhost:8080/crawl/photos';
+    this.startSearchURL = 'http://localhost:8080/crawl/go';
+    this.deletePhotosURL = 'http://localhost:8080/crawl/content';
+  }
+
+  // perform a search for photos and nodes
+  performNodeDiscovery() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", this.startSearchURL, false);
+    xhr.send();
   }
 
   // Query all of the photos and get results
@@ -25,6 +34,13 @@ export default class PhotoPanel extends React.Component {
     xhr.send();
 
     return JSON.parse(xhr.responseText);
+  }
+
+  // erase all photos
+  clearPhotos() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("DELETE", this.deletePhotosURL, false);
+    xhr.send();
   }
 
   updatePhotos(photoList) {
@@ -38,8 +54,11 @@ export default class PhotoPanel extends React.Component {
 
     return (
       <div>
-      <DisplayButton callMethod={this.getPhotos.bind(this)} response={this.updatePhotos.bind(this)}/>
-      <PhotoResults photos={this.state.photos} photosPerRow={this.props.photosPerRow}/>
+        <Statistics />
+        <ActionButton callMethod={this.performNodeDiscovery.bind(this)} message='Search' />
+        <ActionButton callMethod={this.getPhotos.bind(this)} response={this.updatePhotos.bind(this)} message='Display'/>
+        <ActionButton callMethod={this.clearPhotos.bind(this)} message='Delete' />
+        <PhotoResults photos={this.state.photos} photosPerRow={this.props.photosPerRow}/>
       </div>
     )
   }

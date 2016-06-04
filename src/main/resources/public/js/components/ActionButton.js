@@ -4,30 +4,32 @@ import React from "react";
  */
  // Reference: https://facebook.github.io/react/docs/interactivity-and-dynamic-uis.html
 
-export default class DisplayButton extends React.Component {
+export default class ActionButton extends React.Component {
 
   constructor() {
     super();
     this.state = {};
-
     this.handleClick = this.handleClick.bind(this);
   }
 
   handleClick() {
     console.log("Searching For Photos!");
 
-    var photoJSON = this.props.callMethod();
-    console.log(photoJSON);
+    var result = this.props.callMethod();
+    console.log(result);
 
-    // update the results
-    this.props.response(photoJSON);
+    if (this.props.response != null) {
+      // return the results if there is a reponse defined
+      this.props.response(result);
+    }
   }
 
   render() {
+
     // display
     return(
       <button onClick={this.handleClick.bind(this)}>
-        Display
+        {this.props.message}
       </button>
     )
   }
