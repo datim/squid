@@ -1,5 +1,9 @@
 import React from "react";
 
+/*
+ *
+ * Generate an image
+ */
 class IconPanelImage extends React.Component {
 
   // generate an icon image
@@ -36,6 +40,7 @@ export default class IconPanel extends React.Component {
 
     // generate images for icons
     for (var i = 0; i < this.logos.length; i++ ) {
+      var klogo = this.logos[i];
       images.push(<IconPanelImage src={this.logos[i]} height='40' width='40'/>);
     }
 

@@ -1,11 +1,13 @@
 import React from "react";
-/*
- * Display all of the buttons and the photo display results
- */
+
+
 import PhotoResults from "./PhotoResults"
 import ActionButton from "./ActionButton"
 import Statistics from "./Statistics"
 
+/*
+ * Display all of the buttons and the photo panel
+ */
 export default class PhotoPanel extends React.Component {
 
   constructor() {
@@ -18,6 +20,12 @@ export default class PhotoPanel extends React.Component {
     this.photoResultURL = 'http://localhost:8080/crawl/photos';
     this.startSearchURL = 'http://localhost:8080/crawl/go';
     this.deletePhotosURL = 'http://localhost:8080/crawl/content';
+  }
+
+  componentWillMount() {
+    // Called the first time the component is loaded right before the component is added to the page
+    var photoList = this.getPhotos();
+    this.setState({photos: photoList, length: photoList.length})
   }
 
   // perform a search for photos and nodes
@@ -49,14 +57,12 @@ export default class PhotoPanel extends React.Component {
   }
 
   render() {
-    // rend
-    console.log('render!');
-
+    console.log("refesh photo panel");
     return (
       <div>
         <Statistics />
         <ActionButton callMethod={this.performNodeDiscovery.bind(this)} message='Search' />
-        <ActionButton callMethod={this.getPhotos.bind(this)} response={this.updatePhotos.bind(this)} message='Display'/>
+        <ActionButton callMethod={this.getPhotos.bind(this)} response={this.updatePhotos.bind(this)} message='Refresh'/>
         <ActionButton callMethod={this.clearPhotos.bind(this)} message='Delete' />
         <PhotoResults photos={this.state.photos} photosPerRow={this.props.photosPerRow}/>
       </div>
