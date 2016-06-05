@@ -4,6 +4,7 @@ import React from "react";
 import PhotoResults from "./PhotoResults"
 import ActionButton from "./ActionButton"
 import Statistics from "./Statistics"
+import PhotoDisplay from "./PhotoDisplay"
 
 /*
  * Display all of the buttons and the photo panel
@@ -65,7 +66,7 @@ export default class PhotoPanel extends React.Component {
         <ActionButton callMethod={this.performNodeDiscovery.bind(this)} message='Search' />
         <ActionButton callMethod={this.getPhotos.bind(this)} response={this.updatePhotos.bind(this)} message='Refresh'/>
         <ActionButton callMethod={this.clearPhotos.bind(this)} message='Delete' />
-        <PhotoResults photos={this.photos} photosPerRow={this.props.photosPerRow}/>
+        <PhotoDisplay photos={this.photos} />
       </div>
     )
   }

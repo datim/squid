@@ -16,12 +16,9 @@ class MyApp extends React.Component {
 
     return(
       <div>
-        <br />
         <IconPanel/>
-        <br />
         <SquidVersion/>
         <PhotoPanel photosPerRow={this.photosPerRow} />
-        <br />
       </div>
     )
   }

@@ -3,7 +3,7 @@ import React from "react";
 /*
  * Render a Photo Image Column
  */
-class PhotoResultImageColumn extends React.Component {
+export default class PhotoResultImageColumn extends React.Component {
 
   render() {
     var { imgURL, dimensions } = this.props;
