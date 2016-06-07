@@ -1,38 +1,7 @@
 import React from "react";
 import {Table, Column, Cell} from 'fixed-data-table';
 
-class ImageCell extends React.Component {
-  constructor() {
-    super()
-    this.button = this.setDownloadButton(false)
-
-    this.state = {clicked: false}
-  }
-
-  setDownloadButton(disabled = false) {
-    if (disabled == true) {
-      return <button disabled> Saved </button>
-    }
-
-    return <button onClick={this.setClicked.bind(this)}> Download </button>
-  }
-
-  setClicked() {
-    this.setState({clicked: true})
-    this.button = this.setDownloadButton(true)
-  }
-
-  render() {
-    var {rowIndex, data, url, height, width, ...props} = this.props;
-    return(
-      <Cell {...props}>
-        <img src={data[rowIndex].url} width={width} heigth={height} label={data[rowIndex].name}></img>
-        {this.button}
-        {data[rowIndex].name}
-      </Cell>
-    )
-  }
-}
+import ImageCell from "./PhotoDisplay/ImageCell"
 
 /*
  * Render a Photo Image Column
@@ -40,7 +9,7 @@ class ImageCell extends React.Component {
 export default class PhotoDisplay extends React.Component {
   constructor() {
     super();
-    this.imageWidth = 200;
+    this.imageDimension = 300;
   }
 
   /*
@@ -56,27 +25,27 @@ export default class PhotoDisplay extends React.Component {
 
     return(
       <Table
-        height={this.imageWidth * 4}
-        width={this.imageWidth * 4}
+        height={this.imageDimension * 4}
+        width={this.imageDimension * 4}
         rowsCount={rows.length}
-        rowHeight={this.imageWidth + 50}
+        rowHeight={this.imageDimension + 50}
         headerHeight={0}
       >
       <Column
-        cell={<ImageCell data={rows}/>}
-        width={this.imageWidth}
+        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension}/>}
+        width={this.imageDimension}
       />
       <Column
-        cell={<ImageCell data={rows} height={this.imageWidth} width={this.imageWidth}/>}
-        width={this.imageWidth}
+        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension}/>}
+        width={this.imageDimension}
       />
       <Column
-        cell={<ImageCell data={rows} height={this.imageWidth} width={this.imageWidth}/>}
-        width={this.imageWidth}
+        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension}/>}
+        width={this.imageDimension}
       />
       <Column
-        cell={<ImageCell data={rows} height={this.imageWidth} width={this.imageWidth}/>}
-        width={this.imageWidth}
+        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension}/>}
+        width={this.imageDimension}
       />
       </Table>
     )

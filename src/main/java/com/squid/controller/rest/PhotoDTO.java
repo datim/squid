@@ -11,7 +11,8 @@ public class PhotoDTO {
 	public String nodeUrl;
 	public int height;
 	public int width;
-	
+	public boolean saved;
+
 	public int getId() {
 		return id;
 	}
@@ -47,5 +48,12 @@ public class PhotoDTO {
 	}
 	public void setWidth(int width) {
 		this.width = width;
+	}
+	
+	public boolean isSaved() {
+		return saved;
+	}
+	public void setSaved(boolean saved) {
+		this.saved = saved;
 	}
 }

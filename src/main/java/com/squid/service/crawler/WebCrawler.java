@@ -1,11 +1,16 @@
 package com.squid.service.crawler;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.squid.controller.rest.PhotoDTO;
 import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;
@@ -299,8 +305,9 @@ public class WebCrawler {
 	 * Retrieve stored list of photos
 	 */
 	public List<PhotoData> getPhotos(int pageNum, int pageSize) {
-		Page<PhotoData> photos = photoRepo.findAll(new PageRequest(pageNum, pageSize));		
-		return photos.getContent();
+		//Page<PhotoData> photos = photoRepo.findAll(new PageRequest(pageNum, pageSize));	
+		//return photos.getContent();
+		return (List<PhotoData>) photoRepo.findAll();
 	}
 
 	/**
@@ -347,5 +354,37 @@ public class WebCrawler {
 		for (NodeData n: nodes) {
 			nodeRepo.delete(n);
 		}
+	}
+
+	/**
+	 * Download a Photo to the default directory. Overwrite photo if it exists
+	 * @param Download a photo to the default directory. Save the updated photo
+	 * @throws IOException
+	 */
+	public PhotoData savePhoto(PhotoData photo) throws IOException {
+		
+		// get download directory
+		Path downloadDirPath = SquidConstants.getDownloadDirectory();
+		
+		// create it if it doesn't exist
+		final File downloadDir = new File(downloadDirPath.toString());
+		
+		if (!downloadDir.exists()) {
+			downloadDir.mkdirs();
+		}
+		
+		// construct the path to the file
+		final Path downloadFilePath = Paths.get(downloadDirPath.toString(), photo.getName()); 
+		
+		// download the picture
+		try (InputStream in = photo.getUrl().openStream()) {
+		    Files.copy(in, downloadFilePath, StandardCopyOption.REPLACE_EXISTING);
+		}
+		
+		// photo was saved, update its status in the database
+		photo.setSaved(true);
+		
+		// return the updated record
+		return photoRepo.save(photo);
 	}
 }
