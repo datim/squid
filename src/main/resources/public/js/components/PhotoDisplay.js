@@ -1,27 +1,47 @@
+'use-strict'
+
 import React from "react";
 import {Table, Column, Cell} from 'fixed-data-table';
 
 import ImageCell from "./PhotoDisplay/ImageCell"
 
 /*
- * Render a Photo Image Column
+ * Render the table display of photos
  */
 export default class PhotoDisplay extends React.Component {
   constructor() {
     super();
     this.imageDimension = 300;
+    this.numColumns = 4;
   }
 
   /*
-  rowGetter={function(rowIndex) {return rows[rowIndex]; }}>
-  <Column dataKey="url" width={400} label="URL" />
-  <Column dataKey="name" width={100} label="Name" />
-  <Column cell={<CreateImage  />} width={200} label="Image" />
-  */
+   * convert a list of photo objets into a two dimensional list
+   * Each row in the list is a nested list of numColumn items
+   */
+  createPhotoColumns(photoList) {
+
+    var columnizedData = [];
+    var rowData = [];
+    for(var i = 0; i < photoList.length; i++) {
+
+      var photoData = photoList[i];
+      rowData.push(photoData);
+
+      if (i % this.numColumns === 0 && i !== 0) {
+        // if we've pushed four items into the row, then time to add to
+        // the column object and start over
+        columnizedData.push(rowData);
+        rowData = [];
+      }
+    }
+
+    return columnizedData;
+  }
 
   render() {
-    //var rows = this.data;
-    var rows = this.props.photos;
+
+    const rows = this.createPhotoColumns(this.props.photos);
 
     return(
       <Table
@@ -32,19 +52,19 @@ export default class PhotoDisplay extends React.Component {
         headerHeight={0}
       >
       <Column
-        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension}/>}
+        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='0'/>}
         width={this.imageDimension}
       />
       <Column
-        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension}/>}
+        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='1'/>}
         width={this.imageDimension}
       />
       <Column
-        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension}/>}
+        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='2'/>}
         width={this.imageDimension}
       />
       <Column
-        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension}/>}
+        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='3'/>}
         width={this.imageDimension}
       />
       </Table>

@@ -52,6 +52,9 @@ export default class DownloadButton extends React.Component {
      xhr.send(param);
    }
 
+   /*
+    * Set the state of the button to be clicked
+    */
    setClicked() {
      this.performImageDownload()
      this.button = this.setButton(true)

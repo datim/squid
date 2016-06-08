@@ -1,22 +1,29 @@
+'use-strict'
+
 import React from "react";
 import {Table, Column, Cell} from 'fixed-data-table';
 
 import DownloadButton from "./DownloadButton"
 
-
+/*
+ * Render a cell within the photo data table
+ */
 export default class ImageCell extends React.Component {
   constructor() {
-    super()
+    super();
   }
 
   render() {
-    var {rowIndex, data, url, height, width, ...props} = this.props;
+    var {rowIndex, data, url, height, width, columnIndex, ...props} = this.props;
+
+    // get photo data for the correct row and column
+    var photoData = data[rowIndex][columnIndex];
 
     return(
       <Cell {...props}>
-        <img src={data[rowIndex].url} width={width} heigth={height} label={data[rowIndex].name}></img>
-        {data[rowIndex].name}
-        <DownloadButton photoData={data[rowIndex]} />
+        <img src={photoData.url} width={width} heigth={height} label={photoData.name}></img>
+        {photoData.name}
+        <DownloadButton photoData={photoData} />
       </Cell>
     )
   }
