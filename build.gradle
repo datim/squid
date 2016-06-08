@@ -58,6 +58,11 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-jetty")
 
     compile("org.springframework.boot:spring-boot-starter-actuator")
+
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+    compile group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
+    compile group: 'commons-discovery', name: 'commons-discovery', version: '0.5'
+
 }
 
 task wrapper(type: Wrapper) {
