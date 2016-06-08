@@ -3,7 +3,7 @@
 import React from "react";
 import {Table, Column, Cell} from 'fixed-data-table';
 
-import ImageCell from "./PhotoDisplay/ImageCell"
+import PhotoCell from "./PhotoDisplay/PhotoCell"
 
 /*
  * Render the table display of photos
@@ -52,19 +52,19 @@ export default class PhotoDisplay extends React.Component {
         headerHeight={0}
       >
       <Column
-        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='0'/>}
+        cell={<PhotoCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='0'/>}
         width={this.imageDimension}
       />
       <Column
-        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='1'/>}
+        cell={<PhotoCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='1'/>}
         width={this.imageDimension}
       />
       <Column
-        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='2'/>}
+        cell={<PhotoCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='2'/>}
         width={this.imageDimension}
       />
       <Column
-        cell={<ImageCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='3'/>}
+        cell={<PhotoCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='3'/>}
         width={this.imageDimension}
       />
       </Table>
