@@ -11,7 +11,10 @@ import PhotoCell from "./PhotoDisplay/PhotoCell"
 export default class PhotoDisplay extends React.Component {
   constructor() {
     super();
-    this.imageDimension = 300;
+    this.imageWidth = 300;
+    this.imageHeight = 300;
+    this.cellWidth = 300;
+    this.cellHeight = 300;
     this.numColumns = 4;
   }
 
@@ -45,27 +48,27 @@ export default class PhotoDisplay extends React.Component {
 
     return(
       <Table
-        height={this.imageDimension * 4}
-        width={this.imageDimension * 4}
+        height={this.cellHeight * 2}  // table width
+        width={this.cellWidth * 4}    // table height
         rowsCount={rows.length}
-        rowHeight={this.imageDimension + 50}
+        rowHeight={this.cellHeight}
         headerHeight={0}
       >
       <Column
-        cell={<PhotoCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='0'/>}
-        width={this.imageDimension}
+        cell={<PhotoCell data={rows} height={this.imageHeight} width={this.imageWidth} columnIndex='0'/>}
+        width={this.cellWidth}
       />
       <Column
-        cell={<PhotoCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='1'/>}
-        width={this.imageDimension}
+        cell={<PhotoCell data={rows} height={this.imageHeight} width={this.imageWidth} columnIndex='1'/>}
+        width={this.cellWidth}
       />
       <Column
-        cell={<PhotoCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='2'/>}
-        width={this.imageDimension}
+        cell={<PhotoCell data={rows} height={this.imageHeight} width={this.imageWidth} columnIndex='2'/>}
+        width={this.cellWidth}
       />
       <Column
-        cell={<PhotoCell data={rows} height={this.imageDimension} width={this.imageDimension} columnIndex='3'/>}
-        width={this.imageDimension}
+        cell={<PhotoCell data={rows} height={this.imageHeight} width={this.imageWidth} columnIndex='3'/>}
+        width={this.cellWidth}
       />
       </Table>
     )
