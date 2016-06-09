@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.squid.config.SquidConstants;
+import com.squid.config.SquidProperties;
 import com.squid.controller.rest.NodeDTO;
 import com.squid.controller.rest.PhotoDTO;
 import com.squid.data.NodeData;
@@ -33,9 +34,12 @@ public class CrawlerController {
 	@Autowired
 	private DataMapper dataMapper;
 	
+	@Autowired
+	private SquidProperties squidProps;
+	
     @RequestMapping("/go")
     public void index() throws IOException {
-		URL huntUrl = new URL(SquidConstants.getBasedURL());
+		URL huntUrl = new URL(squidProps.getBaseUrl());
     	crawler.startCrawl(huntUrl);
     }
     
@@ -90,7 +94,8 @@ public class CrawlerController {
     public String getVersion() {
     	System.out.println("Getting version");
     	log.info("Version requested");
-    	return SquidConstants.getVersion();
+    	final String version = squidProps.getSquidVersion();
+    	return version;
     }
     
     @RequestMapping(path="/nodes", method = RequestMethod.GET)

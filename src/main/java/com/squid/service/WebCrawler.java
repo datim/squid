@@ -28,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.squid.config.SquidConstants;
+import com.squid.config.SquidProperties;
 import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;
@@ -40,6 +41,9 @@ import com.squid.data.PhotoDataRepository;
 public class WebCrawler {
 	
 	static Logger log = Logger.getLogger(WebCrawler.class.getName());
+	
+	@Autowired
+	private SquidProperties squidProps;
 
 	@Autowired
 	private PhotoDataRepository photoRepo;
@@ -47,8 +51,6 @@ public class WebCrawler {
 	@Autowired 
 	private NodeDataRepository nodeRepo;
 
-	static int MAX_IMAGES = 350;
-	static int MAX_NODES = 50;
 	static String URL_INLINE_TAG = "#";
 	static String URL_SEARCH_TAG = "?";
 	
@@ -90,6 +92,8 @@ public class WebCrawler {
 		final Set<String> imageList = new HashSet<>();
 		final Set<URL> vistedURLs = new HashSet<>();
 		final Queue<PendingNode> toVisitUrls = new LinkedList<>();
+		
+		// set local values
 			
 		// reset the number of visited nodes before recursively searching
 		vistedNodes = 0;
@@ -109,8 +113,13 @@ public class WebCrawler {
 		
 		log.info("Discovered content loop " + vistedNodes++);
 		
+		// get maximum values
+		final int maxImages = squidProps.getMaxImages();
+		final int maxNodes = squidProps.getMaxNodes();
+		
+		
 		// don't exceed the max number of nodes
-		if (vistedNodes >= MAX_NODES) {
+		if (vistedNodes >= maxNodes) {
 			log.info("Reached maximum visited nodes");
 			return;
 		}
@@ -168,7 +177,7 @@ public class WebCrawler {
 			discoverContent(childNode, imageList, toVisitUrls, vistedURLs);
 			
 			// check gate parameters
-			if (imageList.size() > MAX_IMAGES || vistedNodes >= MAX_NODES) {
+			if (imageList.size() > maxImages || vistedNodes >= maxNodes) {
 				break;
 			}
 		}
