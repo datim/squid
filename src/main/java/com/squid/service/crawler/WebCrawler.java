@@ -27,6 +27,7 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.squid.controller.rest.PhotoDTO;
@@ -307,7 +308,7 @@ public class WebCrawler {
 	public List<PhotoData> getPhotos(int pageNum, int pageSize) {
 		//Page<PhotoData> photos = photoRepo.findAll(new PageRequest(pageNum, pageSize));	
 		//return photos.getContent();
-		return (List<PhotoData>) photoRepo.findAll();
+		return (List<PhotoData>) photoRepo.findAll(new Sort(Sort.Direction.DESC, "Name"));
 	}
 
 	/**
