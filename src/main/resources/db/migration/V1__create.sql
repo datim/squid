@@ -1,11 +1,4 @@
 
-create table supplier (
-    id int not null ,
-    width int not null,
-    heigth int not null,
-    length int not null
-);
-
 /* table for nodes */
 create table node (
   id int not null primary key auto_increment,
