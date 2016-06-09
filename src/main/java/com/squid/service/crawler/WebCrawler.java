@@ -287,14 +287,14 @@ public class WebCrawler {
         	
         	photo.setName(source.substring(source.lastIndexOf("/") + 1));
         	photo.setNodeUrl(nodeURL);
+        	photo.setBaseUrl(baseUrl);
         	
-        	
-        	// don't save the photo twice
-        	if (photoRepo.findByUrl(photo.getUrl()) != null) {
+        	// don't save the photo if it has already been saved for this URL
+        	if (photoRepo.findByNameAndBaseUrl(photo.getName(), photo.getBaseUrl()) != null) {
         		log.fine("Photo " + photo.getName() + " already discovered. Skipping");
         		continue;
         	}
-        	        	
+   	
         	// save the photo
         	photoRepo.save(photo);
         }
@@ -308,7 +308,7 @@ public class WebCrawler {
 	public List<PhotoData> getPhotos(int pageNum, int pageSize) {
 		//Page<PhotoData> photos = photoRepo.findAll(new PageRequest(pageNum, pageSize));	
 		//return photos.getContent();
-		return (List<PhotoData>) photoRepo.findAll(new Sort(Sort.Direction.DESC, "Name"));
+		return (List<PhotoData>) photoRepo.findAll(new Sort(Sort.Direction.ASC, "id"));
 	}
 
 	/**

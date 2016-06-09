@@ -25,6 +25,8 @@ public class DataMapper {
 		dto.setHeight(dao.getHeigth());
 		dto.setWidth(dao.getWidth());
 		dto.setSaved(dao.isSaved());
+		dto.setId(dao.getId());
+		dto.setBaseUrl(dao.getBaseUrl());
 		
 		return dto;
 	}
@@ -37,6 +39,8 @@ public class DataMapper {
 		dao.setName(dto.getName());
 		dao.setNodeUrl(new URL(dto.getNodeUrl()));
 		dao.setSaved(dto.isSaved());
+		dao.setId(dto.getId());
+		dao.setBaseUrl(dto.getBaseUrl());
 		
 		return dao;
 	}
@@ -46,6 +50,7 @@ public class DataMapper {
 		
 		final NodeDTO dto = new NodeDTO();
 		dto.setUrl(dao.getUrl().toString());
+		dto.setId(dao.getId());
 
 		// add parent, if it exists
 		if (dao.getParent() != null) {

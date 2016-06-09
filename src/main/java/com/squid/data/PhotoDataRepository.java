@@ -11,4 +11,6 @@ public interface PhotoDataRepository extends PagingAndSortingRepository<PhotoDat
 	PhotoData findByUrl(URL url);
 	
 	List<PhotoData> findAll(Sort sort);
+	
+	PhotoData findByNameAndBaseUrl(String name, String baseUrl);
 }

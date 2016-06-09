@@ -6,24 +6,35 @@ create table supplier (
     length int not null
 );
 
+/* table for nodes */
 create table node (
-  url varchar(255) not null primary key,
+  id int not null primary key auto_increment,
+  url varchar(255) not null,
   parent_url varchar(255),
   visited boolean default false
 );
 
+/* add constraints to node */
+alter table node add UNIQUE (url);
+
 /*discovered photos for a node */
 create table node_photo (
-  url varchar(255) not null primary key,
+  id int not null primary key auto_increment,
+  url varchar(255) not null ,
   node_url varchar(255) not null,
   name varchar(255),
+  base_url varchar(255),
   width int,
   heigth int,
   pinned boolean default false,
   saved boolean default false
 );
 
-/* Link to node url */
+/* add constraints to node_photo */
+alter table node_photo add UNIQUE (url);
+
+/* There should be a unique name for every website */
+alter table node_photo add UNIQUE (name, base_url);
 
 /* Keep track of downloaded photos */
 create table downloaded_photos (
