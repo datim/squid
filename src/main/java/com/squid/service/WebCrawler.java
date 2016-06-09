@@ -19,6 +19,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
+
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -133,6 +135,9 @@ public class WebCrawler {
 		
 		} catch (SocketTimeoutException e) {
 			log.severe("Socket timeout attempting to connect to url " + huntUrl.toString());
+
+		} catch (HttpStatusException e) {
+			log.severe("Unable to fetch URL: " + e);
 		}
 		
 		final String baseUrl = huntUrl.getProtocol() + "://" + huntUrl.getHost();
