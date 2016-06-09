@@ -1,10 +1,12 @@
-package com.squid.controller.rest;
+package com.squid.controller;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.springframework.stereotype.Service;
 
+import com.squid.controller.rest.NodeDTO;
+import com.squid.controller.rest.PhotoDTO;
 import com.squid.data.NodeData;
 import com.squid.data.PhotoData;
 

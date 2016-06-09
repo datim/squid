@@ -1,4 +1,4 @@
-package com.squid.controller.crawler;
+package com.squid.controller;
 
 import java.io.IOException;
 import java.net.URL;
@@ -14,13 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.squid.controller.rest.DataMapper;
+import com.squid.config.SquidConstants;
 import com.squid.controller.rest.NodeDTO;
 import com.squid.controller.rest.PhotoDTO;
 import com.squid.data.NodeData;
 import com.squid.data.PhotoData;
-import com.squid.service.crawler.SquidConstants;
-import com.squid.service.crawler.WebCrawler;
+import com.squid.service.WebCrawler;
 
 @RestController
 @RequestMapping("/crawl")

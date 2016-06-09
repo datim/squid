@@ -1,4 +1,4 @@
-package com.squid.service.crawler;
+package com.squid.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.squid.config.SquidConstants;
 import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;

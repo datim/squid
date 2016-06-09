@@ -1,4 +1,4 @@
-package com.squid.service.crawler;
+package com.squid.config;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
