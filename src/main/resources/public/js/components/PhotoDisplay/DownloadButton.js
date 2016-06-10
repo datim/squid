@@ -1,45 +1,55 @@
+'use-strict'
+
 import React from "react";
 
+/*
+ * Render the button used for saving images and displaying images as saved
+ */
 export default class DownloadButton extends React.Component {
 
   constructor() {
-    super()
-    this.state = {clicked: false}
+    super();
+    this.state = {clicked: false};
     this.image_height = '20';
     this.image_width = '20';
     this.download_img = 'images/download.jpg'
     this.saved_img = 'images/saved.png'
-    this.button = this.setButton(false)
+  }
+
+  componentWillMount() {
+    // Called the first time the component is loaded right before the component is added to the page
+    this.state.clicked = this.props.photoData.saved;
   }
 
   /*
    * Determine whether to display a 'download' or a 'saved' button
    */
   setButton(disabled = false) {
-    if (disabled === false) {
-      return this.getDownloadButton()
+    if (this.state.clicked === false) {
+      return this.getDownloadButton();
 
     } else {
-      return this.getSavedButton()
+      return this.getSavedButton();
+
     }
   }
 
-    /*
-     * Display a download button
-     */
+  /*
+   * Display a download button
+   */
    getDownloadButton() {
-     return <input type="image" src={this.download_img} alt="Submit" onClick={this.setClicked.bind(this)} width={this.image_width} height={this.image_height}/>
+     return <input type="image" src={this.download_img} alt="Submit" onClick={this.setClicked.bind(this)} width={this.image_width} height={this.image_height}/>;
    }
 
    /*
     * Display a saved button
     */
    getSavedButton() {
-     return <input type="image" src={this.saved_img}  width={this.image_width} height={this.image_height}/>
+     return <input type="image" src={this.saved_img}  width={this.image_width} height={this.image_height}/>;
    }
 
    /*
-    * Request that the image is downloaded
+    * Make rest call to download an image
     */
    performImageDownload() {
      const DOWNLOAD_URL = 'http://localhost:8080/crawl/photos/download'
@@ -56,14 +66,15 @@ export default class DownloadButton extends React.Component {
     * Set the state of the button to be clicked
     */
    setClicked() {
-     this.performImageDownload()
-     this.button = this.setButton(true)
-     this.setState({clicked: true})
+     this.performImageDownload();
+     this.setState({clicked: true});
    }
 
    render() {
+     var button = this.setButton();
+     
      return(
-        this.button
+        button
      )
    }
   }

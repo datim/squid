@@ -12,16 +12,15 @@ export default class PhotoCell extends React.Component {
   constructor() {
     super();
   }
-  //<img src={photoData.url} width={width} heigth={height} label={photoData.name}></img>
 
   render() {
     var {rowIndex, data, url, height, width, columnIndex, ...props} = this.props;
 
     // get photo data for the correct row and column
     var photoData = data[rowIndex][columnIndex];
-
     var imgStyle = {'width' : width};
 
+    // display the download button, image name, and the image itself
     return(
       <Cell {...props}>
         <div>
