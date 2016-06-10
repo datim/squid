@@ -12,7 +12,6 @@ export default class ActionButton extends React.Component {
   }
 
   handleClick() {
-    console.log("Searching For Photos!");
 
     var result = this.props.callMethod();
 

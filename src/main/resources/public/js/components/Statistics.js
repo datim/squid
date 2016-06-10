@@ -1,20 +1,18 @@
 import React from "react";
 
 /*
- * Report Squid photo and node statistics
+ * Report statistic counts
  */
 export default class Statistics extends React.Component {
 
   constructor() {
     super();
     this.state = {};
-    this.photoCount = 0;
-    this.nodeCount = 0;
   }
 
   componentWillMount() {
     // Called the first time the component is loaded right before the component is added to the page
-    this.getStatistics();
+
   }
 
   componentDidMount(){
@@ -33,29 +31,38 @@ export default class Statistics extends React.Component {
     // Called when the component is removed
   }
 
-  getStatistics() {
-    // look up statistics
-    // make the call
+  // get the number of photos
+  getPhotoCount() {
+
     const photoCountURL = 'http://localhost:8080/crawl/photos/count';
-    const nodeCountURL = 'http://localhost:8080/crawl/nodes/count';
 
     // get the photo count
     var xhr = new XMLHttpRequest();
     xhr.open("GET", photoCountURL, false);
     xhr.send();
-    this.photoCount = xhr.responseText;
+    return xhr.responseText;
+  }
+
+  // get the number of nodes
+  getNodeCount() {
+
+    const nodeCountURL = 'http://localhost:8080/crawl/nodes/count';
 
     // get the node count
+    var xhr = new XMLHttpRequest();
     xhr.open("GET", nodeCountURL, false);
     xhr.send();
-    this.nodeCount = xhr.responseText;
+    return xhr.responseText;
   }
 
   render() {
     // display the photo and node counts
+    var nodeCount = this.getNodeCount();
+    var photoCount = this.getPhotoCount();
+
     return(
       <div>
-        <p Alignment='right'> Photos {this.photoCount} <br /> Nodes: {this.nodeCount} </p>
+        <p Alignment='right'> Photos {photoCount} <br /> Nodes: {nodeCount} </p>
       </div>
     )
   }
