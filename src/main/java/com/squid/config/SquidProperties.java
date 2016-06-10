@@ -1,9 +1,7 @@
 package com.squid.config;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
@@ -11,6 +9,8 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.apache.commons.discovery.tools.ResourceUtils;
+
 
 /**
  * Read all properties for Squid from a file
@@ -36,9 +36,7 @@ public class SquidProperties {
 	@PostConstruct
 	void readPropertiesFile() throws FileNotFoundException, IOException {
 		
-		final String fullPath = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", PROPERTIES_FILE).toString();
-		final Properties props = new Properties();
-		props.load(new FileInputStream(fullPath));
+		final Properties props = ResourceUtils.loadProperties(null, PROPERTIES_FILE, null);
 		
 		this.maxNodes = Integer.parseInt(props.getProperty("server.search.maxnodes"));
 		this.maxImages = Integer.parseInt(props.getProperty("server.search.maxphotos"));
