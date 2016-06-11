@@ -18,8 +18,10 @@ import com.squid.config.SquidConstants;
 import com.squid.config.SquidProperties;
 import com.squid.controller.rest.NodeDTO;
 import com.squid.controller.rest.PhotoDTO;
+import com.squid.controller.rest.SearchStatusDTO;
 import com.squid.data.NodeData;
 import com.squid.data.PhotoData;
+import com.squid.data.SearchStatusData;
 import com.squid.service.WebCrawler;
 
 @RestController
@@ -127,5 +129,16 @@ public class CrawlerController {
     public void deletePhotos() {
     	crawler.deletePhotos();
     	crawler.deleteNodes();    	
+    }
+    
+    /**
+     * Get search status
+     */
+    @RequestMapping(path="/url/search/status", method = RequestMethod.GET)
+    public SearchStatusDTO getSearchStatus() {
+    	
+    	final SearchStatusData dao = crawler.getSearchStatus(squidProps.getBaseUrl());
+    	
+    	return dataMapper.daoToDto(dao);
     }
 }

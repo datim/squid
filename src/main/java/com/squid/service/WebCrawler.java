@@ -3,28 +3,14 @@ package com.squid.service;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
-
-import org.jsoup.HttpStatusException;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -35,6 +21,8 @@ import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
+import com.squid.data.SearchStatusData;
+import com.squid.data.SearchStatusRepository;
 import com.squid.search.SearchNodes;
 
 /**
@@ -53,6 +41,9 @@ public class WebCrawler {
 	
 	@Autowired 
 	private NodeDataRepository nodeRepo;
+	
+	@Autowired
+	private SearchStatusRepository searchStatusRepo;
 
 	
 	/**
@@ -63,7 +54,7 @@ public class WebCrawler {
 	public void startCrawl(final URL baseUrl) throws IOException {
 		
 		// begin a search in a new thread and return
-		final SearchNodes searchThread = new SearchNodes(baseUrl, photoRepo, nodeRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
+		final SearchNodes searchThread = new SearchNodes(baseUrl, photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
 		searchThread.start();
 	}
 
@@ -152,5 +143,14 @@ public class WebCrawler {
 		
 		// return the updated record
 		return photoRepo.save(photo);
+	}
+	
+	/**
+	 * Return the last search status
+	 * @return
+	 */
+	public SearchStatusData getSearchStatus(String url) {
+		// it is expected that there will only be one record
+		return searchStatusRepo.findByUrl(url);
 	}
 }

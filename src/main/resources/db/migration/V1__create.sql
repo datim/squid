@@ -39,20 +39,14 @@ create table downloaded_photos (
   type varchar(20)
 );
 
-/* system preferences table */
-create table system_preferences (
-  num_columns int default 2,
-  page_size int default 100,
-  default_display_height int default 500,
-  default_display_width int default 200,
+/* Represent the status of a search */
+create table search_status (
+    id int not null primary key auto_increment,
+    search_url varchar(255) not null,
+    node_count int not null,
+    max_depth int not null,
+    status varchar(20)
 );
 
-/* Nodes that are not to be searched */
-create table node_exclusion (
-  node_url varchar(255)
-);
-
-/* User specified filter criteria for photos */
-create table photo_filter (
-  filter_criteria varchar (255)
-);
+/* add constraints to search_status */
+alter table search_status add UNIQUE (search_url);
