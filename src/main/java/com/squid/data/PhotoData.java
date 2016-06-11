@@ -4,6 +4,8 @@ import java.net.URL;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -15,11 +17,18 @@ import javax.persistence.Table;
 public class PhotoData {
 	
 	@Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+	@Column (name = "id")
+	private long id;
+	
 	@Column (name = "url")
 	private URL url;
 	
 	@Column (name = "node_url")
 	private URL nodeUrl;
+	
+	@Column (name = "base_url")
+	private String baseUrl;
 	
 	@Column (name = "name")
 	private String name;
@@ -92,6 +101,19 @@ public class PhotoData {
 		this.nodeUrl = nodeUrl;
 	}
 
+	public long getId() {
+		return id;
+	}
 
+	public void setId(long id) {
+		this.id = id;
+	}
 
+	public String getBaseUrl() {
+		return baseUrl;
+	}
+
+	public void setBaseUrl(String baseUrl) {
+		this.baseUrl = baseUrl;
+	}
 }

@@ -1,23 +1,38 @@
-# Usage
+#Dev Setup and Usage
 
-## Dev Setup and Usage
+## Database Setup
+`./gradlew flywayclean`
+`./gradlew flywaymigrate`
 
-### Database Setup
-./gradlew flywayclean
-./gradlew flywaymigrate
+## Compile 
+#### Front-End Compile
+(optional) `npm install webpack -g`
 
-### Software Setup
+`npm install`
+`webpack`
 
+#### Server Compile
 Install all npm based packages:
 
-./gradlew npmInstall    
-./gradlew build
+`./gradlew clean`   
+`./gradlew build`
 
-### Execute From the Command Line
-./run.sh
+## Execute
+#### Execute Back-End the Command Line
+`./run.sh`
 
 
-### Execute from Eclipse
-./gradlew eclipse
+## Development
+
+### Execute Back-End from Eclipse
+'./gradlew eclipse'
 
 Open eclipse. Build Project. Run Project
+
+#### Execute Front-End Dev Setup
+`npm run dev`
+
+This launches a nodejs express server and runs webpack.  Code is auto-updated.
+Access frontend test server through http://localhost:7777
+
+Optionally, launch the backend server to test REST APIs with front-end

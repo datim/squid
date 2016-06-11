@@ -1,11 +1,9 @@
-package com.squid.service.crawler;
+package com.squid.search;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -14,42 +12,37 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
 
 import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
+import com.squid.service.WebCrawler;
 
 /**
- * TODO: Breadth first search instead of depth-first search
+ * Search nodes in a new thread
+ *
  */
-@Service
-public class WebCrawler {
-	
-	static Logger log = Logger.getLogger(WebCrawler.class.getName());
+public class SearchNodes extends Thread {
+		
+	static Logger log = Logger.getLogger(SearchNodes.class.getName());
 
-	@Autowired
-	private PhotoDataRepository photoRepo;
-	
-	@Autowired 
-	private NodeDataRepository nodeRepo;
-
-	static int MAX_IMAGES = 350;
-	static int MAX_NODES = 50;
 	static String URL_INLINE_TAG = "#";
 	static String URL_SEARCH_TAG = "?";
 	
 	private List<String> nodeSuffixExclusions = null;	
 	private int vistedNodes = 0;
+	private URL searchUrl;
+	private long maxNodes;
+	private long maxImages;
+	private PhotoDataRepository photoRepo;
+	private NodeDataRepository nodeRepo;
+
 	
 	/**
 	 * Private class to store information for nodes that
@@ -67,25 +60,53 @@ public class WebCrawler {
 		public URL parentUrl;
 	}
 	
-	@PostConstruct
-	private void setup() {
-		// create suffix exclusion list
+	/**
+	 * Constructor
+	 * @param huntUrl
+	 * @param nodeRepo 
+	 * @param photoRepo 
+	 */
+	public SearchNodes(final URL huntUrl, PhotoDataRepository photoRepoIn, NodeDataRepository nodeRepoIn, long maxImages, long maxNodes) {
+		this.searchUrl = huntUrl;
+		this.vistedNodes = 0;
+		this.photoRepo = photoRepoIn;
+		this.nodeRepo = nodeRepoIn;
+		this.maxImages = maxImages;
+		this.maxNodes = maxNodes;
+		
+		// create exclusions
 		nodeSuffixExclusions = new ArrayList<>();
 		nodeSuffixExclusions.add("css");
 		nodeSuffixExclusions.add("pdf");
 	}
-		
+
+	/**
+	 * Execute a new thread
+	 */
+	@Override
+	public void run() {
+		try {
+			startSearch(this.searchUrl);
+		} catch (IOException e) {
+			log.severe("An error occurred while searching sub-pages: " + e);
+		}
+	}
+	
 	/**
 	 * Start a recursive, breadth-first search
 	 * @param huntUrl
 	 * @return
 	 * @throws IOException 
 	 */
-	public void startCrawl(final URL huntUrl) throws IOException {
+	private void startSearch(final URL huntUrl) throws IOException {
+		
+		log.info("Starting search for page " + huntUrl);
 		
 		final Set<String> imageList = new HashSet<>();
 		final Set<URL> vistedURLs = new HashSet<>();
 		final Queue<PendingNode> toVisitUrls = new LinkedList<>();
+		
+		// set local values
 			
 		// reset the number of visited nodes before recursively searching
 		vistedNodes = 0;
@@ -105,8 +126,9 @@ public class WebCrawler {
 		
 		log.info("Discovered content loop " + vistedNodes++);
 		
+
 		// don't exceed the max number of nodes
-		if (vistedNodes >= MAX_NODES) {
+		if (vistedNodes >= maxNodes) {
 			log.info("Reached maximum visited nodes");
 			return;
 		}
@@ -120,6 +142,9 @@ public class WebCrawler {
 		
 		} catch (SocketTimeoutException e) {
 			log.severe("Socket timeout attempting to connect to url " + huntUrl.toString());
+
+		} catch (HttpStatusException e) {
+			log.severe("Unable to fetch URL: " + e);
 		}
 		
 		final String baseUrl = huntUrl.getProtocol() + "://" + huntUrl.getHost();
@@ -164,12 +189,13 @@ public class WebCrawler {
 			discoverContent(childNode, imageList, toVisitUrls, vistedURLs);
 			
 			// check gate parameters
-			if (imageList.size() > MAX_IMAGES || vistedNodes >= MAX_NODES) {
+			if (imageList.size() > maxImages || vistedNodes >= maxNodes) {
 				break;
 			}
 		}
 	}
 	
+
 	/**
 	 * Discover all nodes associated with the current node
 	 * @param Document
@@ -280,14 +306,14 @@ public class WebCrawler {
         	
         	photo.setName(source.substring(source.lastIndexOf("/") + 1));
         	photo.setNodeUrl(nodeURL);
+        	photo.setBaseUrl(baseUrl);
         	
-        	
-        	// don't save the photo twice
-        	if (photoRepo.findByUrl(photo.getUrl()) != null) {
+        	// don't save the photo if it has already been saved for this URL
+        	if (photoRepo.findByNameAndBaseUrl(photo.getName(), photo.getBaseUrl()) != null) {
         		log.fine("Photo " + photo.getName() + " already discovered. Skipping");
         		continue;
         	}
-        	        	
+   	
         	// save the photo
         	photoRepo.save(photo);
         }
@@ -295,57 +321,4 @@ public class WebCrawler {
         return;
 	}
 
-	/**
-	 * Retrieve stored list of photos
-	 */
-	public List<PhotoData> getPhotos(int pageNum, int pageSize) {
-		Page<PhotoData> photos = photoRepo.findAll(new PageRequest(pageNum, pageSize));		
-		return photos.getContent();
-	}
-
-	/**
-	 * Retrieve the number of discovered photos
-	 */
-	public long getPhotosCount() {
-		return photoRepo.count();
-	}
-	
-	/**
-	 * Retrieve all discovered nodes
-	 */
-	public List<NodeData> getNodes() {
-		return (List<NodeData>) nodeRepo.findAll();
-	}
-
-	/**
-	 * Retrieve the number of discovered nodes
-	 */
-	public long getNodeCount() {
-		return nodeRepo.count();
-	}
-
-	/**
-	 * Delete all photos
-	 */
-	public void deletePhotos() {
-		log.info("Erasing all photos");
-		
-		List<PhotoData> photos = (List<PhotoData>) photoRepo.findAll();
-		
-		for (PhotoData p: photos) {
-			photoRepo.delete(p);
-		}
-	}
-	
-	/**
-	 *  Delete All nodes
-	 */
-	public void deleteNodes() {
-		log.info("Erasing all nodes");
-		
-		List<NodeData> nodes = (List<NodeData>) nodeRepo.findAll();
-		for (NodeData n: nodes) {
-			nodeRepo.delete(n);
-		}
-	}
 }

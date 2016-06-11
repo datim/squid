@@ -2,7 +2,7 @@ package com.squid.controller.rest;
 
 public class NodeDTO {
 
-	private int id;
+	private long id;
 	
 	private String url;
 	
@@ -12,11 +12,11 @@ public class NodeDTO {
 	
 	private boolean visited;
 
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 
