@@ -3,12 +3,16 @@ package com.squid.config;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import com.squid.service.WebCrawler;
+
 import org.apache.commons.discovery.tools.ResourceUtils;
 
 
@@ -24,6 +28,9 @@ public class SquidProperties {
 	int maxImages;
 	String baseUrl;
 	String squidVersion;
+	
+	static Logger log = Logger.getLogger(SquidProperties.class.getName());
+
 	
 	@Autowired
 	Environment env;
@@ -42,6 +49,24 @@ public class SquidProperties {
 		this.maxImages = Integer.parseInt(props.getProperty("server.search.maxphotos"));
 		this.baseUrl = props.getProperty("server.search.baseurl");
 		this.squidVersion = props.getProperty("server.version");
+		
+		setProxy(props.getProperty("server.proxy.host"), props.getProperty("server.proxy.port"));
+	}
+	
+	/**
+	 * Set the proxy for the system, if defined
+	 * @param host
+	 * @param port
+	 */
+	private void setProxy(String host, String port) {
+		
+		if( host != null && port != null) {
+			log.info("Setting proxy to be: " + host + ":" + port);
+			System.setProperty("https.proxyHost", host);
+			System.setProperty("https.proxyPort", port);
+		} else {
+			log.info("Proxy not set");
+		}
 	}
 
 	public String getBaseUrl() {
