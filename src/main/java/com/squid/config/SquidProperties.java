@@ -26,6 +26,8 @@ public class SquidProperties {
 	int maxImages;
 	String baseUrl;
 	String squidVersion;
+	String proxyHost;
+	String proxyPort;
 	
 	static Logger log = Logger.getLogger(SquidProperties.class.getName());
 
@@ -47,8 +49,10 @@ public class SquidProperties {
 		this.maxImages = Integer.parseInt(props.getProperty("server.search.maxphotos"));
 		this.baseUrl = props.getProperty("server.search.baseurl");
 		this.squidVersion = props.getProperty("server.version");
+		this.proxyHost = props.getProperty("server.proxy.host");
+		this.proxyPort = props.getProperty("server.proxy.port");
 		
-		setProxy(props.getProperty("server.proxy.host"), props.getProperty("server.proxy.port"));
+		setProxy(this.proxyHost, this.proxyPort);
 	}
 	
 	/**
@@ -99,5 +103,13 @@ public class SquidProperties {
 
 	public void setSquidVersion(String squidVersion) {
 		this.squidVersion = squidVersion;
+	}
+
+	public String getProxyHost() {
+		return proxyHost;
+	}
+
+	public String getProxyPort() {
+		return proxyPort;
 	}
 }
