@@ -24,7 +24,6 @@ import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
-import com.squid.service.WebCrawler;
 
 /**
  * Search nodes in a new thread
@@ -125,7 +124,7 @@ public class SearchNodes extends Thread {
 		searchStatus.setUrl(huntUrl.toString());
 		searchStatus.setMaxDepth(maxNodes);
 		searchStatus.setNodeCount(0);
-		searchStatus.setStatus("place holder");
+		searchStatus.setStatus(SearchStatusData.SearchStatus.NoResults);
 		
 		searchStatus = searchStatusRepo.save(searchStatus);
 		
@@ -133,7 +132,7 @@ public class SearchNodes extends Thread {
 		
 		// complete status
 		searchStatus.setNodeCount(maxNodes);
-		searchStatus.setStatus("done");
+		searchStatus.setStatus(SearchStatusData.SearchStatus.Complete);
 		searchStatusRepo.save(searchStatus);
 	}
 	
@@ -147,6 +146,7 @@ public class SearchNodes extends Thread {
 		
 		// update status
 		searchStatus.setNodeCount(nodeRepo.count());
+		searchStatus.setStatus(SearchStatusData.SearchStatus.InProgress);
 		searchStatusRepo.save(searchStatus);
 		
 		log.info("Discovered content loop " + vistedNodes++);

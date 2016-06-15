@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.squid.config.SquidConstants;
 import com.squid.config.SquidProperties;
 import com.squid.controller.rest.NodeDTO;
 import com.squid.controller.rest.PhotoDTO;
@@ -139,6 +138,13 @@ public class CrawlerController {
     	
     	final SearchStatusData dao = crawler.getSearchStatus(squidProps.getBaseUrl());
     	
-    	return dataMapper.daoToDto(dao);
+    	if (dao == null) {
+    		// no status yet, report no status
+    		SearchStatusDTO dto = new SearchStatusDTO();
+    		dto.setStatus("no status");
+    		return dto;
+    	} 
+    	
+    	return dataMapper.daoToDto(dao);    	
     }
 }

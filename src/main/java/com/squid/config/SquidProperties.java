@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import com.squid.service.WebCrawler;
-
 import org.apache.commons.discovery.tools.ResourceUtils;
 
 
@@ -61,11 +59,13 @@ public class SquidProperties {
 	private void setProxy(String host, String port) {
 		
 		if( host != null && port != null) {
-			log.info("Setting proxy to be: " + host + ":" + port);
+			System.setProperty("http.proxyHost", host);
+			System.setProperty("http.proxyPort", port);
 			System.setProperty("https.proxyHost", host);
 			System.setProperty("https.proxyPort", port);
+			log.info("Set system proxy to " + host + ":" + port);
 		} else {
-			log.info("Proxy not set");
+			log.info("System proxy not set");
 		}
 	}
 

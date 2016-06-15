@@ -2,6 +2,8 @@ package com.squid.data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -13,6 +15,21 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "search_status")
 public class SearchStatusData {
+	
+	public enum SearchStatus {
+		NoResults("No Results"), InProgress("In Progress"), Complete("Complete"), Error("Error");
+
+		String value;
+		
+		SearchStatus(String value) {
+			this.value = value;
+		}
+		
+		// get the string representation of this enums
+		public String getString() {
+			return value;
+		}
+	}
 	
 	@Id
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -55,12 +72,12 @@ public class SearchStatusData {
 		this.maxDepth = maxDepth;
 	}
 
-	public String getStatus() {
-		return status;
+	public SearchStatus getStatus() {
+		return SearchStatus.valueOf(status);
 	}
 
-	public void setStatus(String status) {
-		this.status = status;
+	public void setStatus(SearchStatus status) {
+		this.status = status.toString();
 	}
 
 	public long getId() {

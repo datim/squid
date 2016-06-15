@@ -70,7 +70,7 @@ public class DataMapper {
 		final SearchStatusDTO dto = new SearchStatusDTO();
 		dto.setUrl(dao.getUrl());
 		dto.setNodeCount(dao.getNodeCount());
-		dto.setStatus(dao.getStatus());
+		dto.setStatus(dao.getStatus().getString());
 		dto.setMaxDepth(dao.getMaxDepth());
 		dto.setId(dao.getId());
 		
