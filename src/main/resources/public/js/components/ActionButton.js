@@ -5,20 +5,14 @@ import React from "react";
  // Reference: https://facebook.github.io/react/docs/interactivity-and-dynamic-uis.html
 export default class ActionButton extends React.Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {};
     this.handleClick = this.handleClick.bind(this);
   }
 
   handleClick() {
-
-    var result = this.props.callMethod();
-
-    // report results, if any are returned
-    if (this.props.response != null) {
-      this.props.response(result);
-    }
+    this.props.callback();
   }
 
   render() {
