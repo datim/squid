@@ -42,20 +42,19 @@ export default class SearchStatus extends React.Component {
 
 
   checkSearchStatus() {
+
+    // there is already a timer in progress. Don't start a new one
     if (this.timer !== undefined) {
-      console.log("Cannot update, search already in progress");
       return;
     }
 
     if (this.props.searchInProgress === true) {
-      console.log("SearchStatus: Search is in progress!");
+      console.log("SearchStatus: starting timer!");
 
       // set a repeating timer for this.ms milliseconds
       this.timer = setInterval(this.tick.bind(this), this.ms);
 
       // update the state to re-render
-    } else {
-      console.log("SearchStatus: Search is not in progress!")
     }
   }
 
@@ -64,26 +63,21 @@ export default class SearchStatus extends React.Component {
    * or complete.
    */
   tick() {
-    console.log("Tick!")
     this.statusResults = this.getStatus();
 
     if (this.statusResults.status !== "In Progress") {
-      console.log("Tick: status not in progress.clearing interval");
+      console.log("Time finished. State is " + this.statusResults.status);
       // the search is not currently running. Disable further checks and report back
       clearInterval(this.timer);
       this.timer = undefined;
-      this.props.callback(this.statusResults.status);
-
-    } else {
-      console.log("Tick: status  in progress");
-      // we're still searching. Update the state so that we can display progress
-      this.setState({elapsed: new Date() - this.props.start});
     }
+
+    // update the state
+    this.props.callback();
   }
 
   componentWillMount() {
     // Called the first time the component is loaded right before the component is added to the page
-    console.log("Component will mount!");
 
     // perform first status check
     this.statusResults = this.getStatus();
@@ -91,13 +85,11 @@ export default class SearchStatus extends React.Component {
 
   componentDidMount() {
     // Called after the component has been rendered into the page
-    console.log("Component did mount!");
     this.checkSearchStatus();
   }
 
   componentDidUpdate() {
     // called after balah
-    console.log("Component did update!");
     this.checkSearchStatus();
   }
 

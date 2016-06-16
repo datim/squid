@@ -2,7 +2,6 @@
 import React from "react";
 
 import ActionButton from "./ActionButton"
-import Statistics from "./Statistics"
 import PhotoDisplay from "./PhotoDisplay"
 import SearchStatus from "./SearchStatus"
 
