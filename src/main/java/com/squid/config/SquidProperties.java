@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import com.squid.service.WebCrawler;
-
 import org.apache.commons.discovery.tools.ResourceUtils;
 
 
@@ -28,6 +26,8 @@ public class SquidProperties {
 	int maxImages;
 	String baseUrl;
 	String squidVersion;
+	String proxyHost;
+	String proxyPort;
 	
 	static Logger log = Logger.getLogger(SquidProperties.class.getName());
 
@@ -49,8 +49,10 @@ public class SquidProperties {
 		this.maxImages = Integer.parseInt(props.getProperty("server.search.maxphotos"));
 		this.baseUrl = props.getProperty("server.search.baseurl");
 		this.squidVersion = props.getProperty("server.version");
+		this.proxyHost = props.getProperty("server.proxy.host");
+		this.proxyPort = props.getProperty("server.proxy.port");
 		
-		setProxy(props.getProperty("server.proxy.host"), props.getProperty("server.proxy.port"));
+		setProxy(this.proxyHost, this.proxyPort);
 	}
 	
 	/**
@@ -61,11 +63,13 @@ public class SquidProperties {
 	private void setProxy(String host, String port) {
 		
 		if( host != null && port != null) {
-			log.info("Setting proxy to be: " + host + ":" + port);
+			System.setProperty("http.proxyHost", host);
+			System.setProperty("http.proxyPort", port);
 			System.setProperty("https.proxyHost", host);
 			System.setProperty("https.proxyPort", port);
+			log.info("Set system proxy to " + host + ":" + port);
 		} else {
-			log.info("Proxy not set");
+			log.info("System proxy not set");
 		}
 	}
 
@@ -99,5 +103,13 @@ public class SquidProperties {
 
 	public void setSquidVersion(String squidVersion) {
 		this.squidVersion = squidVersion;
+	}
+
+	public String getProxyHost() {
+		return proxyHost;
+	}
+
+	public String getProxyPort() {
+		return proxyPort;
 	}
 }

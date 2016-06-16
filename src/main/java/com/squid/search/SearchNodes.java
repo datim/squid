@@ -22,7 +22,8 @@ import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
-import com.squid.service.WebCrawler;
+import com.squid.data.SearchStatusData;
+import com.squid.data.SearchStatusRepository;
 
 /**
  * Search nodes in a new thread
@@ -42,7 +43,8 @@ public class SearchNodes extends Thread {
 	private long maxImages;
 	private PhotoDataRepository photoRepo;
 	private NodeDataRepository nodeRepo;
-
+	private SearchStatusRepository searchStatusRepo;
+	private SearchStatusData searchStatus;
 	
 	/**
 	 * Private class to store information for nodes that
@@ -63,14 +65,17 @@ public class SearchNodes extends Thread {
 	/**
 	 * Constructor
 	 * @param huntUrl
+	 * @param searchStatusRepo 
 	 * @param nodeRepo 
 	 * @param photoRepo 
 	 */
-	public SearchNodes(final URL huntUrl, PhotoDataRepository photoRepoIn, NodeDataRepository nodeRepoIn, long maxImages, long maxNodes) {
+	public SearchNodes(final URL huntUrl, final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
+					   final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes) {
 		this.searchUrl = huntUrl;
 		this.vistedNodes = 0;
 		this.photoRepo = photoRepoIn;
 		this.nodeRepo = nodeRepoIn;
+		this.searchStatusRepo = inSearchRepo;
 		this.maxImages = maxImages;
 		this.maxNodes = maxNodes;
 		
@@ -106,14 +111,31 @@ public class SearchNodes extends Thread {
 		final Set<URL> vistedURLs = new HashSet<>();
 		final Queue<PendingNode> toVisitUrls = new LinkedList<>();
 		
-		// set local values
-			
-		// reset the number of visited nodes before recursively searching
-		vistedNodes = 0;
-				
 		final PendingNode node = new PendingNode(huntUrl, null);
 		
+		// maintain one record. If the record already exists, update it
+		searchStatus = searchStatusRepo.findByUrl(huntUrl.toString());
+		
+		if (searchStatus == null) {
+			// record doesn't exist, create a new one
+			searchStatus = new SearchStatusData();
+		}
+
+		searchStatus.setUrl(huntUrl.toString());
+		searchStatus.setMaxDepth(maxNodes);
+		searchStatus.setNodeCount(0);
+		searchStatus.setImageCount(0);
+		searchStatus.setStatus(SearchStatusData.SearchStatus.NoResults);
+		
+		searchStatus = searchStatusRepo.save(searchStatus);
+		
 		discoverContent(node, imageList, toVisitUrls, vistedURLs);
+		
+		// complete status
+		searchStatus.setNodeCount(nodeRepo.count());
+		searchStatus.setImageCount(photoRepo.count());
+		searchStatus.setStatus(SearchStatusData.SearchStatus.Complete);
+		searchStatusRepo.save(searchStatus);
 	}
 	
 	/**
@@ -124,9 +146,14 @@ public class SearchNodes extends Thread {
 	 */
 	private void discoverContent(final PendingNode checkNode, Set<String> imageList, Queue<PendingNode> toVisitUrls, Set<URL> vistedURLs) throws IOException {
 		
+		// update status
+		searchStatus.setNodeCount(nodeRepo.count());
+		searchStatus.setStatus(SearchStatusData.SearchStatus.InProgress);
+		searchStatus.setImageCount(photoRepo.count());
+		searchStatusRepo.save(searchStatus);
+		
 		log.info("Discovered content loop " + vistedNodes++);
 		
-
 		// don't exceed the max number of nodes
 		if (vistedNodes >= maxNodes) {
 			log.info("Reached maximum visited nodes");
