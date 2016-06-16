@@ -73,6 +73,7 @@ public class DataMapper {
 		dto.setStatus(dao.getStatus().getString());
 		dto.setMaxDepth(dao.getMaxDepth());
 		dto.setId(dao.getId());
+		dto.setImageCount(dao.getImageCount());
 		
 		return dto;
 	}

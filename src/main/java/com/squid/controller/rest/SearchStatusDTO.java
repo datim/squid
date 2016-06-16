@@ -8,6 +8,7 @@ public class SearchStatusDTO {
 	public String url;
 	public long nodeCount;
 	public long maxDepth;
+	public long imageCount;
 	public String status;
 	public long id;
 	
@@ -40,5 +41,11 @@ public class SearchStatusDTO {
 	}
 	public void setId(long id) {
 		this.id = id;
+	}
+	public long getImageCount() {
+		return imageCount;
+	}
+	public void setImageCount(long imageCount) {
+		this.imageCount = imageCount;
 	}
 }

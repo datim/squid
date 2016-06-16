@@ -45,6 +45,9 @@ public class SearchStatusData {
 	@Column (name = "max_depth")
 	private long maxDepth;
 	
+	@Column (name = "image_count")
+	private long imageCount;
+	
 	@Column (name = "status")
 	private String status;
 
@@ -87,6 +90,16 @@ public class SearchStatusData {
 	public void setId(long id) {
 		this.id = id;
 	}
-	
-	
+
+	public long getImageCount() {
+		return imageCount;
+	}
+
+	public void setImageCount(long count) {
+		this.imageCount = count;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
 }

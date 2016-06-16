@@ -45,6 +45,7 @@ create table search_status (
     search_url varchar(255) not null,
     node_count int not null,
     max_depth int not null,
+    image_count int not null,
     status varchar(20)
 );
 

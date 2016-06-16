@@ -124,6 +124,7 @@ public class SearchNodes extends Thread {
 		searchStatus.setUrl(huntUrl.toString());
 		searchStatus.setMaxDepth(maxNodes);
 		searchStatus.setNodeCount(0);
+		searchStatus.setImageCount(0);
 		searchStatus.setStatus(SearchStatusData.SearchStatus.NoResults);
 		
 		searchStatus = searchStatusRepo.save(searchStatus);
@@ -131,7 +132,8 @@ public class SearchNodes extends Thread {
 		discoverContent(node, imageList, toVisitUrls, vistedURLs);
 		
 		// complete status
-		searchStatus.setNodeCount(maxNodes);
+		searchStatus.setNodeCount(nodeRepo.count());
+		searchStatus.setImageCount(photoRepo.count());
 		searchStatus.setStatus(SearchStatusData.SearchStatus.Complete);
 		searchStatusRepo.save(searchStatus);
 	}
@@ -147,6 +149,7 @@ public class SearchNodes extends Thread {
 		// update status
 		searchStatus.setNodeCount(nodeRepo.count());
 		searchStatus.setStatus(SearchStatusData.SearchStatus.InProgress);
+		searchStatus.setImageCount(photoRepo.count());
 		searchStatusRepo.save(searchStatus);
 		
 		log.info("Discovered content loop " + vistedNodes++);
