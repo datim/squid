@@ -59,12 +59,31 @@ public class WebCrawler {
 	}
 
 	/**
-	 * Retrieve stored list of photos
+	 * Retrieve stored list of photos. Provide an optional filter term, which can be an empty string
 	 */
-	public List<PhotoData> getPhotos(int pageNum, int pageSize) {
-		//Page<PhotoData> photos = photoRepo.findAll(new PageRequest(pageNum, pageSize));	
-		//return photos.getContent();
-		return (List<PhotoData>) photoRepo.findAll(new Sort(Sort.Direction.ASC, "id"));
+	public List<PhotoData> getPhotos(String filter) {
+		if (filter.isEmpty()) {
+			return getAllPhotos();
+			
+		} else {
+			return getPhotosWithFilter(filter);
+		}
+	}
+	
+	/**
+	 * Query all photos
+	 */
+	public List<PhotoData> getAllPhotos() {
+		log.info("Requesting all photos");
+		return photoRepo.findAll(new Sort(Sort.Direction.ASC, "id"));
+	}
+	
+	/**
+	 * Query photos with a filter
+	 */
+	public List<PhotoData> getPhotosWithFilter(String filter) {
+		log.info("Requesting photos with filter '" + filter + "'");
+		return photoRepo.findFilteredPhotos(filter);
 	}
 
 	/**

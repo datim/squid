@@ -38,9 +38,18 @@ public class CrawlerController {
 	@Autowired
 	private SquidProperties squidProps;
 	
-    @RequestMapping("/go")
-    public void index() throws IOException {
+    @RequestMapping(path = "/nodes/search", method = RequestMethod.GET)
+    public void index(@RequestParam(value="discoverUrl", defaultValue = "") String inUrl) throws IOException {
+    	
+    	// initialize with default
 		URL huntUrl = new URL(squidProps.getBaseUrl());
+
+    	if (inUrl != null && !inUrl.isEmpty()) {
+    		// search url provided. use it
+    		log.info("No URL specified. Using default URL: " + squidProps.getBaseUrl());
+    		huntUrl = new URL(inUrl);
+    	}
+    	
     	crawler.startCrawl(huntUrl);
     }
     
@@ -48,11 +57,10 @@ public class CrawlerController {
      * Obtain a list of all discovered photos
      */
     @RequestMapping(path="/photos", method = RequestMethod.GET)
-    public List<PhotoDTO> getPhotos(@RequestParam(value="PageNum", defaultValue = "1") int pageNum,
-    		                        @RequestParam(value="PageSize", defaultValue = "500") int pageSize) {
+    public List<PhotoDTO> getPhotos(@RequestParam(value="filter", defaultValue = "") String filter) {
     	
     	// retrieve a stored list of photos
-    	final List<PhotoData> photos = crawler.getPhotos(pageNum, pageSize);
+    	final List<PhotoData> photos = crawler.getPhotos(filter);
     	
     	final List<PhotoDTO> photoDTOs = new ArrayList<>(photos.size());
     	

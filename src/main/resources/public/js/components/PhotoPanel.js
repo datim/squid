@@ -4,38 +4,35 @@ import React from "react";
 import ActionButton from "./ActionButton"
 import PhotoDisplay from "./PhotoDisplay"
 import SearchStatus from "./SearchStatus"
+import FilterBar from "./FilterBar"
+import SearchBar from "./SearchBar"
 
-/*
- * Display all of the buttons and the photo panel
- */
+ /*
+  * Responsible for displaying the panel of all status and results
+  * related to images
+  */
 export default class PhotoPanel extends React.Component {
 
-  constructor() {
-    super();
-    this.state = { isSearchInProgress: false };
+  constructor(props) {
+    super(props);
+    this.state = { isSearchInProgress: false, filter: '', searchValue: ''};
   }
 
   /*
    * Begin the search for new pages
    */
-  startPageCrawl() {
-    const startSearchURL = 'http://localhost:8080/crawl/go';
+  startPageCrawl(searchInput) {
+    const startSearchURL = 'http://localhost:8080/crawl/nodes/search?discoverUrl=' + searchInput;
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", startSearchURL, false);
     xhr.send();
   }
 
-  // Query all of the photos and get results as a JSON list
-  queryPhotos() {
-    const photoResultURL = 'http://localhost:8080/crawl/photos';
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", photoResultURL, false);
-    xhr.send();
-    return JSON.parse(xhr.responseText);
-  }
 
-  // erase all photos
+  /*
+   * Request that server erase all photos
+   */
   clearPhotos() {
     var deletePhotosURL = 'http://localhost:8080/crawl/content';
 
@@ -55,27 +52,47 @@ export default class PhotoPanel extends React.Component {
   /*
    * Trigger a state change after start search has been enabled
    */
-  startSearch() {
+  startSearch(searchInput) {
     console.log("Start Search");
 
     // start search
     this.clearPhotos();
-    this.startPageCrawl();
+    this.startPageCrawl(searchInput);
 
     // update the state to trigger refresh
     this.setState({isSearchInProgress: true})
   }
 
-  render() {
+  /*
+   * Called when user prses 'enter' on a new search
+   */
+   searchKeyEvent(searchInput) {
+     console.log("Searching for " + searchInput);
 
-    // get the latests photos
-    var photoResults = this.queryPhotos();
+     this.startSearch(searchInput);
+
+     // update the state
+     this.setState({searchValue: searchInput, isSearchInProgress: true});
+   }
+  /*
+   * perform key stroke
+   */
+  filterKeyEvent(filterInput) {
+    console.log ("filterCallback called");
+    this.setState({filter: filterInput});
+  }
+
+  render() {
 
     return (
       <div>
+        <SearchBar searchKeyCallback={this.searchKeyEvent.bind(this)} />
+        <br />
+        <FilterBar keyStrokeEventCallback={this.filterKeyEvent.bind(this)} />
+        <br />
         <SearchStatus searchInProgress={this.state.isSearchInProgress} callback={this.searchFinished.bind(this)} start={Date.now()}/>
-        <ActionButton callback={this.startSearch.bind(this)} message='Search' />
-        <PhotoDisplay photos={photoResults} />
+        <br /> <br />
+        <PhotoDisplay filter={this.state.filter} />
       </div>
     )
   }
