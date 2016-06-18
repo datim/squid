@@ -6,13 +6,14 @@ import PhotoDisplay from "./PhotoDisplay"
 import SearchStatus from "./SearchStatus"
 import FilterBar from "./FilterBar"
 
-/*
- * Display all of the buttons and the photo panel
- */
+ /*
+  * Responsible for displaying the panel of all status and results
+  * related to images
+  */
 export default class PhotoPanel extends React.Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = { isSearchInProgress: false, filter: '' };
   }
 
@@ -27,17 +28,10 @@ export default class PhotoPanel extends React.Component {
     xhr.send();
   }
 
-  // Query all of the photos and get results as a JSON list
-  queryPhotos() {
-    const photoResultURL = 'http://localhost:8080/crawl/photos?filter=' + this.state.filter;
-    console.log("Making query" + photoResultURL);
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", photoResultURL, false);
-    xhr.send();
-    return JSON.parse(xhr.responseText);
-  }
 
-  // erase all photos
+  /*
+   * Request that server erase all photos
+   */
   clearPhotos() {
     var deletePhotosURL = 'http://localhost:8080/crawl/content';
 
@@ -78,16 +72,13 @@ export default class PhotoPanel extends React.Component {
 
   render() {
 
-    // get the latests photos
-    var photoResults = this.queryPhotos();
-
     return (
       <div>
         <SearchStatus searchInProgress={this.state.isSearchInProgress} callback={this.searchFinished.bind(this)} start={Date.now()}/>
         <FilterBar keyStrokeEventCallback={this.filterCallback.bind(this)} />
         <br /> <br />
         <ActionButton callback={this.startSearch.bind(this)} message='Search' />
-        <PhotoDisplay photos={photoResults} filter={this.state.filter} />
+        <PhotoDisplay filter={this.state.filter} />
       </div>
     )
   }

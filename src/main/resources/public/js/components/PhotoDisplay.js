@@ -9,13 +9,26 @@ import PhotoCell from "./PhotoDisplay/PhotoCell"
  * Render the table display of photos
  */
 export default class PhotoDisplay extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+    this.state = {filter: ''};
     this.imageWidth = 300;
     this.imageHeight = 300;
     this.cellWidth = 300;
     this.cellHeight = 300;
     this.numColumns = 4;
+  }
+
+  /*
+   * Query all of the photos and get results as a JSON list
+   */
+  queryPhotos() {
+    const photoResultURL = 'http://localhost:8080/crawl/photos?filter=' + this.props.filter;
+    console.log("Making query" + photoResultURL);
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", photoResultURL, false);
+    xhr.send();
+    return JSON.parse(xhr.responseText);
   }
 
   /*
@@ -44,7 +57,8 @@ export default class PhotoDisplay extends React.Component {
 
   render() {
 
-    const rows = this.createPhotoColumns(this.props.photos);
+    const photoResults = this.queryPhotos();
+    const rows = this.createPhotoColumns(photoResults);
 
     return(
       <Table

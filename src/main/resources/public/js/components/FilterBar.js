@@ -19,7 +19,7 @@ export default class FilterBar extends React.Component {
 
     return(
       <div id='filterBar'>
-        filter: <input type='text' name='firstname' onKeyUp={this.keyUp.bind(this)}></input>
+        <input type='text' name='filter' onKeyUp={this.keyUp.bind(this)}></input>
       </div>
     )
   }
