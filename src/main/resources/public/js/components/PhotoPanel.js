@@ -4,6 +4,7 @@ import React from "react";
 import ActionButton from "./ActionButton"
 import PhotoDisplay from "./PhotoDisplay"
 import SearchStatus from "./SearchStatus"
+import FilterBar from "./FilterBar"
 
 /*
  * Display all of the buttons and the photo panel
@@ -12,7 +13,7 @@ export default class PhotoPanel extends React.Component {
 
   constructor() {
     super();
-    this.state = { isSearchInProgress: false };
+    this.state = { isSearchInProgress: false, filter: '' };
   }
 
   /*
@@ -28,7 +29,8 @@ export default class PhotoPanel extends React.Component {
 
   // Query all of the photos and get results as a JSON list
   queryPhotos() {
-    const photoResultURL = 'http://localhost:8080/crawl/photos';
+    const photoResultURL = 'http://localhost:8080/crawl/photos?filter=' + this.state.filter;
+    console.log("Making query" + photoResultURL);
     var xhr = new XMLHttpRequest();
     xhr.open("GET", photoResultURL, false);
     xhr.send();
@@ -66,6 +68,14 @@ export default class PhotoPanel extends React.Component {
     this.setState({isSearchInProgress: true})
   }
 
+  /*
+   * perform key stroke
+   */
+  filterCallback(filterInput) {
+    console.log ("filterCallback called");
+    this.setState({filter: filterInput});
+  }
+
   render() {
 
     // get the latests photos
@@ -74,8 +84,10 @@ export default class PhotoPanel extends React.Component {
     return (
       <div>
         <SearchStatus searchInProgress={this.state.isSearchInProgress} callback={this.searchFinished.bind(this)} start={Date.now()}/>
+        <FilterBar keyStrokeEventCallback={this.filterCallback.bind(this)} />
+        <br /> <br />
         <ActionButton callback={this.startSearch.bind(this)} message='Search' />
-        <PhotoDisplay photos={photoResults} />
+        <PhotoDisplay photos={photoResults} filter={this.state.filter} />
       </div>
     )
   }
