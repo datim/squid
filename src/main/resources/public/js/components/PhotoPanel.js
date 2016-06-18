@@ -5,6 +5,7 @@ import ActionButton from "./ActionButton"
 import PhotoDisplay from "./PhotoDisplay"
 import SearchStatus from "./SearchStatus"
 import FilterBar from "./FilterBar"
+import SearchBar from "./SearchBar"
 
  /*
   * Responsible for displaying the panel of all status and results
@@ -14,14 +15,14 @@ export default class PhotoPanel extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { isSearchInProgress: false, filter: '' };
+    this.state = { isSearchInProgress: false, filter: '', searchValue: ''};
   }
 
   /*
    * Begin the search for new pages
    */
-  startPageCrawl() {
-    const startSearchURL = 'http://localhost:8080/crawl/go';
+  startPageCrawl(searchInput) {
+    const startSearchURL = 'http://localhost:8080/crawl/go?search=' + searchInput;
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", startSearchURL, false);
@@ -51,21 +52,32 @@ export default class PhotoPanel extends React.Component {
   /*
    * Trigger a state change after start search has been enabled
    */
-  startSearch() {
+  startSearch(searchInput) {
     console.log("Start Search");
 
     // start search
     this.clearPhotos();
-    this.startPageCrawl();
+    this.startPageCrawl(searchInput);
 
     // update the state to trigger refresh
     this.setState({isSearchInProgress: true})
   }
 
   /*
+   * Called when user prses 'enter' on a new search
+   */
+   searchKeyEvent(searchInput) {
+     console.log("Searching for " + searchInput);
+
+     this.startSearch(searchInput);
+
+     // update the state
+     this.setState({searchValue: searchInput, isSearchInProgress: true});
+   }
+  /*
    * perform key stroke
    */
-  filterCallback(filterInput) {
+  filterKeyEvent(filterInput) {
     console.log ("filterCallback called");
     this.setState({filter: filterInput});
   }
@@ -74,10 +86,12 @@ export default class PhotoPanel extends React.Component {
 
     return (
       <div>
+        <SearchBar searchKeyCallback={this.searchKeyEvent.bind(this)} />
+        <br />
+        <FilterBar keyStrokeEventCallback={this.filterKeyEvent.bind(this)} />
+        <br />
         <SearchStatus searchInProgress={this.state.isSearchInProgress} callback={this.searchFinished.bind(this)} start={Date.now()}/>
-        <FilterBar keyStrokeEventCallback={this.filterCallback.bind(this)} />
         <br /> <br />
-        <ActionButton callback={this.startSearch.bind(this)} message='Search' />
         <PhotoDisplay filter={this.state.filter} />
       </div>
     )

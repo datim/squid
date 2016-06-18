@@ -1,10 +1,16 @@
 'use-strict'
 import React from "react";
 
+/*
+* Provide a text input that triggers a result filter for its value
+* when any key is pressed
+*/
 export default class FilterBar extends React.Component {
 
   constructor(props) {
     super(props);
+    this.inputSize = 100;
+    this.inputMaxLength = 1000;
   }
 
   /**
@@ -18,8 +24,8 @@ export default class FilterBar extends React.Component {
   render() {
 
     return(
-      <div id='filterBar'>
-        <input type='text' name='filter' onKeyUp={this.keyUp.bind(this)}></input>
+      <div id='filterBarDiv'>
+        FILTER: <input type='text' id='filterBarInput' name='filter' maxlength={this.inputMaxLength} size={this.inputSize} onKeyUp={this.keyUp.bind(this)}></input>
       </div>
     )
   }
