@@ -18,7 +18,7 @@ export default class SearchBar extends React.Component {
   onKeyDown(event) {
 
     // send value to caller only when enter key is pressed and there is a search text
-    if (event.target.value && event.key === 'Enter') {
+    if (event.key === 'Enter') {
       this.props.searchKeyCallback(event.target.value);
     }
   }
