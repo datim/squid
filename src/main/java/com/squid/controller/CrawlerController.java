@@ -1,7 +1,6 @@
 package com.squid.controller;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -17,10 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.squid.config.SquidProperties;
 import com.squid.controller.rest.NodeDTO;
 import com.squid.controller.rest.PhotoDTO;
-import com.squid.controller.rest.SearchStatusDTO;
 import com.squid.data.NodeData;
 import com.squid.data.PhotoData;
-import com.squid.data.SearchStatusData;
 import com.squid.service.WebCrawler;
 
 @RestController
