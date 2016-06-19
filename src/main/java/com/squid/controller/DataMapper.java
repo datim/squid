@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 import com.squid.controller.rest.NodeDTO;
 import com.squid.controller.rest.PhotoDTO;
 import com.squid.controller.rest.SearchStatusDTO;
+import com.squid.controller.rest.UserParameterDTO;
 import com.squid.data.NodeData;
 import com.squid.data.PhotoData;
 import com.squid.data.SearchStatusData;
+import com.squid.data.UserParameterData;
 
 /**
  * Map DTO to DAO objects and vice-versa
@@ -74,6 +76,22 @@ public class DataMapper {
 		dto.setMaxDepth(dao.getMaxDepth());
 		dto.setId(dao.getId());
 		dto.setImageCount(dao.getImageCount());
+		
+		return dto;
+	}
+	
+	// convert dao to dto
+	public UserParameterDTO daoToDto(final UserParameterData dao) {
+		
+		final UserParameterDTO dto = new UserParameterDTO();
+		dto.setId(dao.getId());
+		dto.setUserId(dao.getUserId());
+		dto.setLogPath(dao.getLogPath());
+		dto.setSavePath(dao.getSavePath());
+		dto.setMaxImageCount(dao.getMaxImageCount());
+		dto.setMaxPageCount(dao.getMaxPageCount());
+		dto.setSearchFilter(dao.getSearchFilter());
+		dto.setSearchURL(dao.getSearchURL());
 		
 		return dto;
 	}

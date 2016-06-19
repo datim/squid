@@ -22,7 +22,7 @@ export default class PhotoPanel extends React.Component {
    * Begin the search for new pages
    */
   startPageCrawl(searchInput) {
-    const startSearchURL = 'http://localhost:8080/crawl/nodes/search?discoverUrl=' + searchInput;
+    const startSearchURL = 'http://localhost:8080/crawl/search/search?discoverUrl=' + searchInput;
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", startSearchURL, false);

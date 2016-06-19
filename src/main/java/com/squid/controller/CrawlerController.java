@@ -38,20 +38,7 @@ public class CrawlerController {
 	@Autowired
 	private SquidProperties squidProps;
 	
-    @RequestMapping(path = "/nodes/search", method = RequestMethod.GET)
-    public void index(@RequestParam(value="discoverUrl", defaultValue = "") String inUrl) throws IOException {
-    	
-    	// initialize with default
-		URL huntUrl = new URL(squidProps.getBaseUrl());
 
-    	if (inUrl != null && !inUrl.isEmpty()) {
-    		// search url provided. use it
-    		log.info("No URL specified. Using default URL: " + squidProps.getBaseUrl());
-    		huntUrl = new URL(inUrl);
-    	}
-    	
-    	crawler.startCrawl(huntUrl);
-    }
     
     /**
      * Obtain a list of all discovered photos
@@ -136,23 +123,5 @@ public class CrawlerController {
     public void deletePhotos() {
     	crawler.deletePhotos();
     	crawler.deleteNodes();    	
-    }
-    
-    /**
-     * Get search status
-     */
-    @RequestMapping(path="/url/search/status", method = RequestMethod.GET)
-    public SearchStatusDTO getSearchStatus() {
-    	
-    	final SearchStatusData dao = crawler.getSearchStatus(squidProps.getBaseUrl());
-    	
-    	if (dao == null) {
-    		// no status yet, report no status
-    		SearchStatusDTO dto = new SearchStatusDTO();
-    		dto.setStatus("no status");
-    		return dto;
-    	} 
-    	
-    	return dataMapper.daoToDto(dao);    	
     }
 }
