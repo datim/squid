@@ -23,6 +23,7 @@ import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
+import com.squid.data.UserParameterData;
 import com.squid.search.SearchNodes;
 
 /**
@@ -45,6 +46,8 @@ public class WebCrawler {
 	@Autowired
 	private SearchStatusRepository searchStatusRepo;
 
+	@Autowired
+	private UserParameterService userParamService;
 	
 	/**
 	 * Start the crawl through a tree of pages starting with the base url
@@ -52,6 +55,9 @@ public class WebCrawler {
 	 * @throws IOException
 	 */
 	public void startCrawl(final URL baseUrl) throws IOException {
+		
+		// save search parameter
+		userParamService.setUserSearchString(UserParameterService.DEFAULT_USER_ID, baseUrl.toString());
 		
 		// begin a search in a new thread and return
 		final SearchNodes searchThread = new SearchNodes(baseUrl, photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
@@ -66,6 +72,8 @@ public class WebCrawler {
 			return getAllPhotos();
 			
 		} else {
+			// save filter and return photos
+			userParamService.setUserFilter(UserParameterService.DEFAULT_USER_ID, filter);
 			return getPhotosWithFilter(filter);
 		}
 	}
