@@ -1,0 +1,12 @@
+language: java
+
+# compile javascript
+before_script:
+ - npm install
+ - webpack
+
+# package UI and run 
+script:
+ - webpack
+ - ./gradlew test
+ - ./gradlew build
