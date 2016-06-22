@@ -18,7 +18,7 @@ export default class SearchStatus extends React.Component {
    * Query the status of the search
    */
   getStatus() {
-    const statusURL = 'http://localhost:8080/crawl/url/search/status';
+    const statusURL = 'http://localhost:8080/crawl/search/status';
     var xhr = new XMLHttpRequest();
     xhr.open("GET", statusURL, false);
     xhr.send();

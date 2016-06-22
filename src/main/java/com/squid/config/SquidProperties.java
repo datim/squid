@@ -20,17 +20,18 @@ import org.apache.commons.discovery.tools.ResourceUtils;
 @Service
 public class SquidProperties {
 	
-	static final String PROPERTIES_FILE = "application.properties";
-
-	int maxNodes;
-	int maxImages;
-	String baseUrl;
-	String squidVersion;
-	String proxyHost;
-	String proxyPort;
-	
 	static Logger log = Logger.getLogger(SquidProperties.class.getName());
 
+	static final String PROPERTIES_FILE = "application.properties";
+
+	private int maxNodes;
+	private int maxImages;
+	private String baseUrl;
+	private String squidVersion;
+	private String proxyHost;
+	private String proxyPort;
+	private String logPath;
+	private String imageSavePath;
 	
 	@Autowired
 	Environment env;
@@ -51,6 +52,8 @@ public class SquidProperties {
 		this.squidVersion = props.getProperty("server.version");
 		this.proxyHost = props.getProperty("server.proxy.host");
 		this.proxyPort = props.getProperty("server.proxy.port");
+		this.imageSavePath = props.getProperty("server.imagesavepath");
+		this.logPath = props.getProperty("server.logpath");
 		
 		setProxy(this.proxyHost, this.proxyPort);
 	}
@@ -111,5 +114,21 @@ public class SquidProperties {
 
 	public String getProxyPort() {
 		return proxyPort;
+	}
+
+	public static String getPropertiesFile() {
+		return PROPERTIES_FILE;
+	}
+
+	public String getLogPath() {
+		return logPath;
+	}
+
+	public String getImageSavePath() {
+		return imageSavePath;
+	}
+
+	public Environment getEnv() {
+		return env;
 	}
 }

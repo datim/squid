@@ -46,8 +46,22 @@ create table search_status (
     node_count int not null,
     max_depth int not null,
     image_count int not null,
-    status varchar(20)
+    status varchar(20),
 );
 
 /* add constraints to search_status */
 alter table search_status add UNIQUE (search_url);
+
+/* contains all users parameters. There will only be one record per user */
+create table user_parameters (
+  id int not null primary key auto_increment,
+  user_id int not null,
+  search_url varchar(255),
+  search_filter varchar(100),
+  max_node_count int not null,
+  max_image_count int not null,
+  log_path varchar(255),
+  save_path varchar (255)
+);
+
+alter table user_parameters add UNIQUE (user_id);
