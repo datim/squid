@@ -9,6 +9,8 @@ before_script:
 
 # package UI and run
 script:
- - webpack
  - ./gradlew test
  - ./gradlew build
+
+# upload new build
+after_success:
