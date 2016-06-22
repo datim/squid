@@ -1,23 +1,8 @@
-# Usage
 
-## Dev Setup and Usage
+[![Build Status](https://travis-ci.org/datim/squid.svg?branch=develop)](https://travis-ci.org/datim/squid)
 
-### Database Setup
-./gradlew flywayclean
-./gradlew flywaymigrate
+# About
+Web crawler that extracts images and presents in a table implemented in React.  Backend in Java using Spring-Boot.
 
-### Software Setup
-
-Install all npm based packages:
-
-./gradlew npmInstall    
-./gradlew build
-
-### Execute From the Command Line
-./run.sh
-
-
-### Execute from Eclipse
-./gradlew eclipse
-
-Open eclipse. Build Project. Run Project
+# Build Instructions
+[Instructions for Building](docs/BUILDINSTRUCTIONS.md)

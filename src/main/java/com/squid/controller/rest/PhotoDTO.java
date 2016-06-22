@@ -7,15 +7,17 @@ public class PhotoDTO {
 
 	public String url;
 	public String name;
-	public int id;
+	public long id;
 	public String nodeUrl;
 	public int height;
 	public int width;
-	
-	public int getId() {
+	public boolean saved;
+	public String baseUrl;
+
+	public long getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	public String getUrl() {
@@ -47,5 +49,18 @@ public class PhotoDTO {
 	}
 	public void setWidth(int width) {
 		this.width = width;
+	}
+	
+	public boolean isSaved() {
+		return saved;
+	}
+	public void setSaved(boolean saved) {
+		this.saved = saved;
+	}
+	public String getBaseUrl() {
+		return baseUrl;
+	}
+	public void setBaseUrl(String baseUrl) {
+		this.baseUrl = baseUrl;
 	}
 }

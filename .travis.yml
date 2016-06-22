@@ -1,0 +1,16 @@
+language: java
+jdk:
+  - oraclejdk8
+
+# compile javascript
+before_script:
+ - npm install
+ - webpack
+
+# package UI and run
+script:
+ - ./gradlew test
+ - ./gradlew build
+
+# upload new build
+after_success:

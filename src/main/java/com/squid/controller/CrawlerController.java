@@ -1,22 +1,24 @@
-package com.squid.controller.crawler;
+package com.squid.controller;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.squid.config.SquidProperties;
 import com.squid.controller.rest.NodeDTO;
 import com.squid.controller.rest.PhotoDTO;
 import com.squid.data.NodeData;
 import com.squid.data.PhotoData;
-import com.squid.service.crawler.WebCrawler;
+import com.squid.service.WebCrawler;
 
 @RestController
 @RequestMapping("/crawl")
@@ -24,46 +26,51 @@ public class CrawlerController {
 	
 	static Logger log = Logger.getLogger(WebCrawler.class.getName());
 
-	private String version = "0.1";
-	private String urlString = "http://www.stampinup.com/ECWeb/ItemList.aspx?categoryid=102401";
-
 	@Autowired 
 	private WebCrawler crawler;
 	
-    @RequestMapping("/go")
-    public void index() throws IOException {
-		URL huntUrl = new URL(urlString);
-    	crawler.startCrawl(huntUrl);
-    }
+	@Autowired
+	private DataMapper dataMapper;
+	
+	@Autowired
+	private SquidProperties squidProps;
+	
+
     
     /**
      * Obtain a list of all discovered photos
      */
     @RequestMapping(path="/photos", method = RequestMethod.GET)
-    public List<PhotoDTO> getPhotos(@RequestParam(value="PageNum", defaultValue = "1") int pageNum,
-    		                        @RequestParam(value="PageSize", defaultValue = "100") int pageSize) {
+    public List<PhotoDTO> getPhotos(@RequestParam(value="filter", defaultValue = "") String filter) {
     	
     	// retrieve a stored list of photos
-    	final List<PhotoData> photos = crawler.getPhotos(pageNum, pageSize);
+    	final List<PhotoData> photos = crawler.getPhotos(filter);
     	
     	final List<PhotoDTO> photoDTOs = new ArrayList<>(photos.size());
     	
     	// convert DAO to DTO
     	for (PhotoData dao: photos) {
-    		PhotoDTO dto = new PhotoDTO();
-    		dto.setName(dao.getName());
-    		dto.setUrl(dao.getUrl().toString());
-    		dto.setNodeUrl(dao.getNodeUrl().toString());
-    		dto.setHeight(dao.getHeigth());
-    		dto.setWidth(dao.getWidth());
-    		
-    		photoDTOs.add(dto);
+    		photoDTOs.add(dataMapper.daoToDto(dao));
     	}
     	
     	// return list of photos
     	return photoDTOs;
     }
     
+    /**
+     * Download a photo
+     */
+    @RequestMapping(path="/photos/download", method = RequestMethod.POST) 
+    public @ResponseBody PhotoDTO downloadPhoto(@RequestBody PhotoDTO dto) throws IOException {
+    	
+    	// save the photo
+    	final PhotoData savedPhoto = crawler.savePhoto(dataMapper.dtoToDao(dto));
+    	
+    	final PhotoDTO returnDTO = dataMapper.daoToDto(savedPhoto);
+    	return returnDTO;
+    }
+   
+   
     /**
      * Obtain the number of discovered photos
      * @return
@@ -80,6 +87,7 @@ public class CrawlerController {
     public String getVersion() {
     	System.out.println("Getting version");
     	log.info("Version requested");
+    	final String version = squidProps.getSquidVersion();
     	return version;
     }
     
@@ -91,15 +99,7 @@ public class CrawlerController {
     	
     	// convert to DTO
     	for (NodeData dao: nodes) {
-    		final NodeDTO dto = new NodeDTO();
-    		dto.setUrl(dao.getUrl().toString());
-
-    		// add parent, if it exists
-    		if (dao.getParent() != null) {
-        		dto.setParentUrl(dao.getParent().toString());
-    		}
-
-    		dtoList.add(dto);
+    		dtoList.add(dataMapper.daoToDto(dao));
     	}
     	
     	return dtoList;
