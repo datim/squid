@@ -4,7 +4,7 @@ jdk:
 
 # compile javascript
 before_script:
- - npm install
+ - npm install -g npm@2
  - webpack
 
 # package UI and run
