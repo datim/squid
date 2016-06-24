@@ -4,7 +4,7 @@ jdk:
 
 # compile javascript
 before_script:
- - npm install -g npm@2
+ - travis_retry npm install 
  - webpack
 
 # package UI and run
