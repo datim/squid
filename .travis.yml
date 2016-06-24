@@ -1,3 +1,10 @@
+#-------------------------------------------------------------------------
+# Travis CI configuration file
+#-------------------------------------------------------------------------
+#    Pre-build step installs packages for reactjs dependencies
+#    Build generates the packed javascript and builds the WAR
+#-------------------------------------------------------------------------
+#
 language: java
 jdk:
   - oraclejdk8
