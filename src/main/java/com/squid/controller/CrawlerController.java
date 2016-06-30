@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +19,8 @@ import com.squid.controller.rest.PhotoDTO;
 import com.squid.data.NodeData;
 import com.squid.data.PhotoData;
 import com.squid.service.WebCrawler;
+
+import javassist.NotFoundException;
 
 @RestController
 @RequestMapping("/crawl")
@@ -59,12 +61,15 @@ public class CrawlerController {
     
     /**
      * Download a photo
+     * @throws NotFoundException 
      */
-    @RequestMapping(path="/photos/download", method = RequestMethod.POST) 
-    public @ResponseBody PhotoDTO downloadPhoto(@RequestBody PhotoDTO dto) throws IOException {
+    @RequestMapping(path="/photos/{id}/download", method = RequestMethod.GET) 
+    public @ResponseBody PhotoDTO downloadPhoto(@PathVariable("id") long photoId) throws IOException, NotFoundException {
+    	
+    	// download photo by id
     	
     	// save the photo
-    	final PhotoData savedPhoto = crawler.savePhoto(dataMapper.dtoToDao(dto));
+    	final PhotoData savedPhoto = crawler.savePhoto(photoId);
     	
     	final PhotoDTO returnDTO = dataMapper.daoToDto(savedPhoto);
     	return returnDTO;
@@ -116,7 +121,7 @@ public class CrawlerController {
     /**
      * Delete all photo and node content
      */
-    @RequestMapping(path="/content", method = RequestMethod.DELETE)
+    @RequestMapping(path="/nodes", method = RequestMethod.DELETE)
     public void deletePhotos() {
     	crawler.deletePhotos();
     	crawler.deleteNodes();    	

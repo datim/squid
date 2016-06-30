@@ -52,14 +52,14 @@ export default class DownloadButton extends React.Component {
     * Make rest call to download an image
     */
    performImageDownload() {
-     const DOWNLOAD_URL = 'http://localhost:8080/crawl/photos/download'
+     const DOWNLOAD_URL = 'http://localhost:8080/crawl/photos/' + this.props.photoData.id + '/download';
      var xhr = new XMLHttpRequest();
-     xhr.open('POST', DOWNLOAD_URL, false);
+     xhr.open('GET', DOWNLOAD_URL, false);
      xhr.setRequestHeader("Content-type", "application/json");
 
      var param = JSON.stringify(this.props.photoData)
      console.log(param)
-     xhr.send(param);
+     xhr.send();
    }
 
    /*
@@ -72,7 +72,7 @@ export default class DownloadButton extends React.Component {
 
    render() {
      var button = this.setButton();
-     
+
      return(
         button
      )

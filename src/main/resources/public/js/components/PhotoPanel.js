@@ -34,7 +34,7 @@ export default class PhotoPanel extends React.Component {
    * Request that server erase all photos
    */
   clearPhotos() {
-    var deletePhotosURL = 'http://localhost:8080/crawl/content';
+    var deletePhotosURL = 'http://localhost:8080/crawl/nodes';
 
     var xhr = new XMLHttpRequest();
     xhr.open("DELETE", deletePhotosURL, false);

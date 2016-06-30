@@ -7,8 +7,6 @@ import com.squid.config.SquidProperties;
 import com.squid.data.UserParameterData;
 import com.squid.data.UserParameterRepository;
 
-import javassist.NotFoundException;
-
 /**
  * Service for interfacing with user parameter data
  * @author roecks

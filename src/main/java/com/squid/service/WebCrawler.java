@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.squid.config.SquidConstants;
 import com.squid.config.SquidProperties;
 import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
@@ -23,8 +22,9 @@ import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
-import com.squid.data.UserParameterData;
 import com.squid.search.SearchNodes;
+
+import javassist.NotFoundException;
 
 /**
  * TODO: Breadth first search instead of depth-first search
@@ -144,17 +144,25 @@ public class WebCrawler {
 	 * Download a Photo to the default directory. Overwrite photo if it exists
 	 * @param Download a photo to the default directory. Save the updated photo
 	 * @throws IOException
+	 * @throws NotFoundException 
 	 */
-	public PhotoData savePhoto(PhotoData photo) throws IOException {
+	public PhotoData savePhoto(long photoId) throws IOException, NotFoundException {
 		
 		// get download directory
-		Path downloadDirPath = SquidConstants.getDownloadDirectory();
+		Path downloadDirPath = squidProps.getDownloadDirectory();
 		
 		// create it if it doesn't exist
 		final File downloadDir = new File(downloadDirPath.toString());
 		
 		if (!downloadDir.exists()) {
 			downloadDir.mkdirs();
+		}
+		
+		// get photo by id
+		final PhotoData photo = photoRepo.findById(photoId);
+		
+		if (photo == null) {
+			throw new NotFoundException(Long.toString(photoId));
 		}
 		
 		// construct the path to the file

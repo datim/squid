@@ -2,6 +2,8 @@ package com.squid.config;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -32,6 +34,7 @@ public class SquidProperties {
 	private String proxyPort;
 	private String logPath;
 	private String imageSavePath;
+	private Path downloadDirectory;
 	
 	@Autowired
 	Environment env;
@@ -54,6 +57,9 @@ public class SquidProperties {
 		this.proxyPort = props.getProperty("server.proxy.port");
 		this.imageSavePath = props.getProperty("server.imagesavepath");
 		this.logPath = props.getProperty("server.logpath");
+		
+		// set the property
+		this.downloadDirectory = Paths.get(System.getProperty("user.home"), "squid", "photos");
 		
 		setProxy(this.proxyHost, this.proxyPort);
 	}
@@ -130,5 +136,9 @@ public class SquidProperties {
 
 	public Environment getEnv() {
 		return env;
+	}
+
+	public Path getDownloadDirectory() {
+		return downloadDirectory;
 	}
 }
