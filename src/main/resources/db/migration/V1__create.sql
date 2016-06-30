@@ -2,8 +2,8 @@
 /* table for nodes */
 create table node (
   id int not null primary key auto_increment,
-  url varchar(255) not null,
-  parent_url varchar(255),
+  url varchar(500) not null,
+  parent_url varchar(500),
   visited boolean default false
 );
 
@@ -13,10 +13,10 @@ alter table node add UNIQUE (url);
 /*discovered photos for a node */
 create table node_photo (
   id int not null primary key auto_increment,
-  url varchar(255) not null ,
-  node_url varchar(255) not null,
+  url varchar(500) not null ,
+  node_url varchar(500) not null,
   name varchar(255),
-  base_url varchar(255),
+  base_url varchar(500),
   width int,
   heigth int,
   pinned boolean default false,
@@ -33,7 +33,7 @@ alter table node_photo add UNIQUE (name, base_url);
 create table downloaded_photos (
   file_path varchar(255) not null primary key,
   name varchar(255),
-  photo_url varchar(255),
+  photo_url varchar(500),
   width int,
   height int,
   type varchar(20)
@@ -42,7 +42,7 @@ create table downloaded_photos (
 /* Represent the status of a search */
 create table search_status (
     id int not null primary key auto_increment,
-    search_url varchar(255) not null,
+    search_url varchar(500) not null,
     node_count int not null,
     max_depth int not null,
     image_count int not null,
@@ -56,7 +56,7 @@ alter table search_status add UNIQUE (search_url);
 create table user_parameters (
   id int not null primary key auto_increment,
   user_id int not null,
-  search_url varchar(255),
+  search_url varchar(500),
   search_filter varchar(100),
   max_node_count int not null,
   max_image_count int not null,
