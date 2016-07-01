@@ -30,7 +30,7 @@ export default class SearchStatus extends React.Component {
    /*
     * Update the state of the display
     */
-  setDisplay() {
+  setProgress() {
     var display =  "Pages: " + String(this.statusResults.nodeCount) + " Images: " + String(this.statusResults.imageCount);
 
     if (this.statusResults.status !== "Complete") {
@@ -39,7 +39,6 @@ export default class SearchStatus extends React.Component {
 
     return display;
   }
-
 
   checkSearchStatus() {
 
@@ -104,11 +103,11 @@ export default class SearchStatus extends React.Component {
   }
 
   render() {
-    var display = this.setDisplay();
+    var progress = this.setProgress();
 
     return(
       <div>
-        <p>{display}</p>
+        <p>{progress}</p>
       </div>
     )
   }
