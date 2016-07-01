@@ -73,7 +73,6 @@ public class WebCrawler {
 			
 		} else {
 			// save filter and return photos
-			userParamService.setUserFilter(UserParameterService.DEFAULT_USER_ID, filter);
 			return getPhotosWithFilter(filter);
 		}
 	}
@@ -90,7 +89,12 @@ public class WebCrawler {
 	 */
 	public List<PhotoData> getPhotosWithFilter(String filter) {
 		log.info("Requesting photos with filter '" + filter + "'");
-		return photoRepo.findFilteredPhotos(filter);
+		
+		
+		List<PhotoData> results = photoRepo.findFilteredPhotos(filter.toLowerCase());
+		log.info("found " + results.size() + " results");
+		
+		return photoRepo.findFilteredPhotos(filter.toLowerCase());
 	}
 
 	/**

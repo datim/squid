@@ -17,6 +17,6 @@ public interface PhotoDataRepository extends PagingAndSortingRepository<PhotoDat
 	
 	PhotoData findByNameAndBaseUrl(String name, String baseUrl);
 	
-	@Query("Select p from PhotoData p where p.name like %?1%")
-	List<PhotoData> findFilteredPhotos(String name);
+	@Query(value = "Select p from PhotoData p where p.name like %?1%")
+	List<PhotoData> findFilteredPhotos(String filter);
 }
