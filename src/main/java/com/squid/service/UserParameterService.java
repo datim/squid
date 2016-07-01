@@ -25,6 +25,14 @@ public class UserParameterService {
 	private SquidProperties squidProps;
 	
 	/**
+	 * get the user parameters for the default user
+	 * @return
+	 */
+	public UserParameterData getDefaultUserParameters() {
+		return getUserParameters(DEFAULT_USER_ID);
+	}
+	
+	/**
 	 * Fetch user parameter data by id. Create it if it doesn't exist
 	 * @param userId
 	 * @return

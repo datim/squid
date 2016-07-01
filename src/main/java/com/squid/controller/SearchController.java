@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.squid.config.SquidProperties;
+import com.squid.controller.exceptions.ResourceNotFoundException;
 import com.squid.controller.rest.SearchStatusDTO;
 import com.squid.controller.rest.UserParameterDTO;
 import com.squid.data.SearchStatusData;
@@ -48,15 +50,16 @@ public class SearchController {
 	 * @throws IOException
 	 */
     @RequestMapping(path = "/search", method = RequestMethod.GET)
+    
     public void search(@RequestParam(value="discoverUrl", defaultValue = "") String inUrl) throws IOException {
     	
     	// initialize with default
-		URL huntUrl = new URL(squidProps.getBaseUrl());
+		URL huntUrl = new URL(inUrl);
 
-    	if (inUrl != null && !inUrl.isEmpty()) {
-    		// search url provided. use it
+    	if (inUrl == null || inUrl.isEmpty()) {
+    		// search URL not provided.  Use default
     		log.info("No URL specified. Using default URL: " + squidProps.getBaseUrl());
-    		huntUrl = new URL(inUrl);
+    		huntUrl = new URL(squidProps.getBaseUrl());
     	}
     	
     	log.info("Performing search on url: " + huntUrl);
@@ -65,13 +68,22 @@ public class SearchController {
     }
     
     /**
-     * Get search status
+     * Get search status for a specific URL
      */
     @RequestMapping(path = "/status", method = RequestMethod.GET)
-    public SearchStatusDTO getSearchStatus() {
+    @ExceptionHandler({ResourceNotFoundException.class})
+    public SearchStatusDTO getSearchStatus(@RequestParam(value="searchURL", defaultValue = "") String inUrl) {
     	
-    	log.info("Fetching status");
-    	final SearchStatusData dao = crawler.getSearchStatus(squidProps.getBaseUrl());
+    	String searchURL = inUrl;
+    	
+    	if (inUrl.isEmpty()) {
+        	//FIXME TODO remove default status during search
+    		searchURL = userParamService.getDefaultUserParameters().getSearchURL();
+    		log.warning("We're getting status based on default URL!");
+    		//throw new ResourceNotFoundException("searchURL");
+    	}
+    	
+    	final SearchStatusData dao = crawler.getSearchStatus(searchURL);
     	
     	if (dao == null) {
     		log.info("No status to report yet");
@@ -79,7 +91,9 @@ public class SearchController {
     		SearchStatusDTO dto = new SearchStatusDTO();
     		dto.setStatus("no status");
     		return dto;
-    	} 
+    	} else {
+    		log.info("Request status: page count: " + dao.getNodeCount() + ", image count: " + dao.getImageCount());
+    	}
     	
     	return dataMapper.daoToDto(dao);    	
     }

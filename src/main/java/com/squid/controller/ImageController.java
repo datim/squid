@@ -13,41 +13,38 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.squid.config.SquidProperties;
-import com.squid.controller.rest.NodeDTO;
 import com.squid.controller.rest.PhotoDTO;
-import com.squid.data.NodeData;
 import com.squid.data.PhotoData;
 import com.squid.service.WebCrawler;
 
 import javassist.NotFoundException;
 
+/**
+ * Controller for image retrieval APIs
+ * @author Datim
+ */
 @RestController
 @RequestMapping("/crawl")
-public class CrawlerController {
+public class ImageController {
 	
-	static Logger log = Logger.getLogger(WebCrawler.class.getName());
-
+	static Logger log = Logger.getLogger(ImageController.class.getName());
+	
 	@Autowired 
 	private WebCrawler crawler;
 	
 	@Autowired
 	private DataMapper dataMapper;
 	
-	@Autowired
-	private SquidProperties squidProps;
-	
-
-    
-    /**
+	 /**
      * Obtain a list of all discovered photos
      */
     @RequestMapping(path="/photos", method = RequestMethod.GET)
     public List<PhotoDTO> getPhotos(@RequestParam(value="filter", defaultValue = "") String filter) {
     	
+    	log.info("Request all photos");
+    	
     	// retrieve a stored list of photos
     	final List<PhotoData> photos = crawler.getPhotos(filter);
-    	
     	final List<PhotoDTO> photoDTOs = new ArrayList<>(photos.size());
     	
     	// convert DAO to DTO
@@ -67,14 +64,9 @@ public class CrawlerController {
     public @ResponseBody PhotoDTO downloadPhoto(@PathVariable("id") long photoId) throws IOException, NotFoundException {
     	
     	// download photo by id
-    	
-    	// save the photo
-    	final PhotoData savedPhoto = crawler.savePhoto(photoId);
-    	
-    	final PhotoDTO returnDTO = dataMapper.daoToDto(savedPhoto);
-    	return returnDTO;
+    	log.info("request to download photo");
+    	return dataMapper.daoToDto(crawler.savePhoto(photoId));
     }
-   
    
     /**
      * Obtain the number of discovered photos
@@ -82,48 +74,7 @@ public class CrawlerController {
      */
     @RequestMapping(path="/photos/count", method = RequestMethod.GET)
     public long getPhotoCount() {
+    	log.info("request for all photos");
     	return crawler.getPhotosCount();
-    }
-    
-    /**
-     * Get the product version
-     */
-    @RequestMapping(path="/version", method = RequestMethod.GET)
-    public String getVersion() {
-    	System.out.println("Getting version");
-    	log.info("Version requested");
-    	final String version = squidProps.getSquidVersion();
-    	return version;
-    }
-    
-    @RequestMapping(path="/nodes", method = RequestMethod.GET)
-    public List<NodeDTO> getNodes() {
-    	final List<NodeData> nodes = crawler.getNodes();
-    	
-    	final List<NodeDTO> dtoList = new ArrayList<>(nodes.size());
-    	
-    	// convert to DTO
-    	for (NodeData dao: nodes) {
-    		dtoList.add(dataMapper.daoToDto(dao));
-    	}
-    	
-    	return dtoList;
-    }
-    
-    /**
-     * Report the number of nodes
-     */
-    @RequestMapping(path="/nodes/count", method = RequestMethod.GET)
-    public long getNodeCount() {
-    	return crawler.getNodeCount();
-    }
-    
-    /**
-     * Delete all photo and node content
-     */
-    @RequestMapping(path="/nodes", method = RequestMethod.DELETE)
-    public void deletePhotos() {
-    	crawler.deletePhotos();
-    	crawler.deleteNodes();    	
     }
 }

@@ -82,7 +82,6 @@ public class WebCrawler {
 	 * Query all photos
 	 */
 	public List<PhotoData> getAllPhotos() {
-		log.info("Requesting all photos");
 		return photoRepo.findAll(new Sort(Sort.Direction.ASC, "id"));
 	}
 	
@@ -139,7 +138,7 @@ public class WebCrawler {
 			nodeRepo.delete(n);
 		}
 	}
-
+	
 	/**
 	 * Download a Photo to the default directory. Overwrite photo if it exists
 	 * @param Download a photo to the default directory. Save the updated photo
@@ -148,16 +147,12 @@ public class WebCrawler {
 	 */
 	public PhotoData savePhoto(long photoId) throws IOException, NotFoundException {
 		
-		// get download directory
+		// get download path
 		Path downloadDirPath = squidProps.getDownloadDirectory();
 		
-		// create it if it doesn't exist
-		final File downloadDir = new File(downloadDirPath.toString());
-		
-		if (!downloadDir.exists()) {
-			downloadDir.mkdirs();
-		}
-		
+		// check the download path and download if needed
+		checkAndCreateDownloadDirectory(downloadDirPath);
+
 		// get photo by id
 		final PhotoData photo = photoRepo.findById(photoId);
 		
@@ -167,6 +162,8 @@ public class WebCrawler {
 		
 		// construct the path to the file
 		final Path downloadFilePath = Paths.get(downloadDirPath.toString(), photo.getName()); 
+		
+		log.info("Downloading photo " + photo.getUrl() + " from url: " + photo.getNodeUrl());
 		
 		// download the picture
 		try (InputStream in = photo.getUrl().openStream()) {
@@ -178,6 +175,21 @@ public class WebCrawler {
 		
 		// return the updated record
 		return photoRepo.save(photo);
+	}
+	
+	/**
+	 * Create the download directory if it doesn't exist
+	 */
+	private void checkAndCreateDownloadDirectory(final Path downloadDirPath) {
+		
+		// get download directory
+		
+		// create it if it doesn't exist
+		final File downloadDir = new File(downloadDirPath.toString());
+		
+		if (!downloadDir.exists()) {
+			downloadDir.mkdirs();
+		}
 	}
 	
 	/**

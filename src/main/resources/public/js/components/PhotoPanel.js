@@ -15,7 +15,7 @@ export default class PhotoPanel extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { isSearchInProgress: false, filter: '', searchValue: ''};
+    this.state = { isSearchInProgress: false, filter: '', searchURL: ''};
   }
 
   /*
@@ -58,9 +58,6 @@ export default class PhotoPanel extends React.Component {
     // start search
     this.clearPhotos();
     this.startPageCrawl(searchInput);
-
-    // update the state to trigger refresh
-    this.setState({isSearchInProgress: true})
   }
 
   /*
@@ -71,8 +68,8 @@ export default class PhotoPanel extends React.Component {
 
      this.startSearch(searchInput);
 
-     // update the state
-     this.setState({searchValue: searchInput, isSearchInProgress: true});
+     // update the state to trigger refresh
+     this.setState({searchURL: searchInput, isSearchInProgress: true});
    }
   /*
    * perform key stroke
@@ -90,7 +87,7 @@ export default class PhotoPanel extends React.Component {
         <br />
         <FilterBar keyStrokeEventCallback={this.filterKeyEvent.bind(this)} />
         <br />
-        <SearchStatus searchInProgress={this.state.isSearchInProgress} callback={this.searchFinished.bind(this)} start={Date.now()}/>
+        <SearchStatus searchInProgress={this.state.isSearchInProgress} searchURL={this.state.searchURL} callback={this.searchFinished.bind(this)} start={Date.now()}/>
         <br /> <br />
         <PhotoDisplay filter={this.state.filter} />
       </div>

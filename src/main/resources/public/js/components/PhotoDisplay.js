@@ -24,7 +24,6 @@ export default class PhotoDisplay extends React.Component {
    */
   queryPhotos() {
     const photoResultURL = 'http://localhost:8080/crawl/photos?filter=' + this.props.filter;
-    console.log("Making query" + photoResultURL);
     var xhr = new XMLHttpRequest();
     xhr.open("GET", photoResultURL, false);
     xhr.send();
