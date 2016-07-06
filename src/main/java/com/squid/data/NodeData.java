@@ -30,6 +30,9 @@ public class NodeData {
 	@Column (name = "visited")
 	private boolean visited;
 	
+	@Column (name = "etag")
+	private String etag;
+	
 	public boolean isVisited() {
 		return visited;
 	}
@@ -57,5 +60,11 @@ public class NodeData {
 	}
 	public URL getParentUrl() {
 		return parentUrl;
+	}
+	public String getEtag() {
+		return etag;
+	}
+	public void setEtag(String etag) {
+		this.etag = etag;
 	}
 }

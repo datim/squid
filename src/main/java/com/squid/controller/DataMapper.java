@@ -86,7 +86,6 @@ public class DataMapper {
 		final UserParameterDTO dto = new UserParameterDTO();
 		dto.setId(dao.getId());
 		dto.setUserId(dao.getUserId());
-		dto.setLogPath(dao.getLogPath());
 		dto.setSavePath(dao.getSavePath());
 		dto.setMaxImageCount(dao.getMaxImageCount());
 		dto.setMaxPageCount(dao.getMaxPageCount());

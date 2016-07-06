@@ -3,6 +3,7 @@
 create table node (
   id int not null primary key auto_increment,
   url varchar(500) not null,
+  etag varchar(50),
   parent_url varchar(500),
   visited boolean default false
 );
@@ -13,8 +14,9 @@ alter table node add UNIQUE (url);
 /*discovered photos for a node */
 create table node_photo (
   id int not null primary key auto_increment,
-  url varchar(500) not null ,
+  url varchar(500) not null,
   node_url varchar(500) not null,
+  etag varchar(50),
   name varchar(255),
   base_url varchar(500),
   width int,
@@ -60,7 +62,6 @@ create table user_parameters (
   search_filter varchar(100),
   max_node_count int not null,
   max_image_count int not null,
-  log_path varchar(255),
   save_path varchar (255)
 );
 

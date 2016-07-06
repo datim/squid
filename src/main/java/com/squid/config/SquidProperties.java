@@ -32,7 +32,6 @@ public class SquidProperties {
 	private String squidVersion;
 	private String proxyHost;
 	private String proxyPort;
-	private String logPath;
 	private String imageSavePath;
 	private Path downloadDirectory;
 	
@@ -40,7 +39,7 @@ public class SquidProperties {
 	Environment env;
 	
 	/**
-	 * Read the properties file and save all of the values
+	 * Read the properties file and save all of the values. These properties will be used for initial values
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
@@ -56,18 +55,18 @@ public class SquidProperties {
 		this.proxyHost = props.getProperty("server.proxy.host");
 		this.proxyPort = props.getProperty("server.proxy.port");
 		this.imageSavePath = props.getProperty("server.imagesavepath");
-		this.logPath = props.getProperty("server.logpath");
 		
 		// set the property
-		this.downloadDirectory = Paths.get(System.getProperty("user.home"), "squid", "photos");
+		this.downloadDirectory = Paths.get(props.getProperty("server.imagesavepath"));
 		
+		// set proxy
 		setProxy(this.proxyHost, this.proxyPort);
 	}
 	
 	/**
 	 * Set the proxy for the system, if defined
-	 * @param host
-	 * @param port
+	 * @param host The proxy host
+	 * @param port The proxy port
 	 */
 	private void setProxy(String host, String port) {
 		
@@ -124,10 +123,6 @@ public class SquidProperties {
 
 	public static String getPropertiesFile() {
 		return PROPERTIES_FILE;
-	}
-
-	public String getLogPath() {
-		return logPath;
 	}
 
 	public String getImageSavePath() {

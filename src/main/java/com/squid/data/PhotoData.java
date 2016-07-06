@@ -42,6 +42,9 @@ public class PhotoData {
 	@Column (name = "saved")
 	private boolean saved;
 	
+	@Column (name = "etag")
+	private String etag;
+	
 	@Column (name = "pinned")
 	private boolean pinned;
 	
@@ -115,5 +118,13 @@ public class PhotoData {
 
 	public void setBaseUrl(String baseUrl) {
 		this.baseUrl = baseUrl;
+	}
+
+	public String getEtag() {
+		return etag;
+	}
+
+	public void setEtag(String etag) {
+		this.etag = etag;
 	}
 }

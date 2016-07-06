@@ -61,7 +61,6 @@ public class UserParameterService {
 		userData.setMaxImageCount(squidProps.getMaxImages());
 		userData.setMaxPageCount(squidProps.getMaxNodes());
 		userData.setUserId(userId);
-		userData.setLogPath(squidProps.getLogPath());
 		userData.setSavePath(squidProps.getImageSavePath());
 		userData.setSearchFilter("");
 		
