@@ -8,7 +8,6 @@ buildscript {
 }
 
 plugins {
-    id "org.flywaydb.flyway" version "4.0"
     id "com.moowork.node" version "0.12"
 }
 
@@ -16,15 +15,6 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'spring-boot'
-
-// flyway configuration
-flyway {
-    user = 'user'
-    password = 'pass'
-    //url = 'jdbc:hsqldb:file:~/squid/db/databasefiles'
-    url = 'jdbc:h2:file:~/squid/db/databasefiles'
-
-}
 
 jar {
     baseName = 'squid'
@@ -41,9 +31,13 @@ targetCompatibility = 1.8
 dependencies {
 	 compile("org.springframework.boot:spring-boot-starter-data-jpa")
 
+   // exclude starter-tomcat to use embedded servlet.
+   // exclude starter-logging to use log4j instead of tomcat logging
    compile("org.springframework.boot:spring-boot-starter-web") {
         exclude module: "spring-boot-starter-tomcat"
+        exclude module : 'spring-boot-starter-logging'
     }
+
     compile("org.springframework:spring-jdbc")
     compile("org.springframework.boot:spring-boot-starter-jetty")
     compile("org.springframework.boot:spring-boot-starter-actuator")
@@ -54,6 +48,7 @@ dependencies {
     compile group: 'commons-discovery', name: 'commons-discovery', version: '0.5'
     compile group: 'org.jsoup', name: 'jsoup', version: '1.8.3'
     compile group: 'log4j', name: 'log4j', version: '1.2.17'
+    compile group: 'org.flywaydb', name: 'flyway-core', version: '4.0.3'
 
     // https://mvnrepository.com/artifact/junit/junit
     testCompile group: 'junit', name: 'junit', version: '4.12'
