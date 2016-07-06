@@ -25,7 +25,7 @@ export default class FilterBar extends React.Component {
 
     return(
       <div id='filterBarDiv'>
-        FILTER: <input type='text' id='filterBarInput' name='filter' maxlength={this.inputMaxLength} size={this.inputSize} onKeyUp={this.keyUp.bind(this)}></input>
+        FILTER: <input type='text' id='filterBarInput' name='filter' maxLength={this.inputMaxLength} size={this.inputSize} onKeyUp={this.keyUp.bind(this)}></input>
       </div>
     )
   }

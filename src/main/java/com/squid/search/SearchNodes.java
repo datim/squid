@@ -295,6 +295,8 @@ public class SearchNodes extends Thread {
 	 */
 	private void discoverPhotosAssociatedWithURL(final Document doc, Set<String> imageList, String baseUrl, URL nodeURL) {
         
+		baseUrl = baseUrl.toLowerCase();
+		
 		final Elements images = doc.select("img");
         
         for (Element image: images) {
@@ -331,7 +333,10 @@ public class SearchNodes extends Thread {
         		continue;
         	}
         	
-        	photo.setName(source.substring(source.lastIndexOf("/") + 1));
+        	String photoName = source.substring(source.lastIndexOf("/") + 1);
+        	photoName = photoName.toLowerCase();
+        	
+        	photo.setName(photoName);
         	photo.setNodeUrl(nodeURL);
         	photo.setBaseUrl(baseUrl);
         	

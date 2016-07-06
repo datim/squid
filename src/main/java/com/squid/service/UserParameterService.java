@@ -7,8 +7,6 @@ import com.squid.config.SquidProperties;
 import com.squid.data.UserParameterData;
 import com.squid.data.UserParameterRepository;
 
-import javassist.NotFoundException;
-
 /**
  * Service for interfacing with user parameter data
  * @author roecks
@@ -25,6 +23,14 @@ public class UserParameterService {
 	
 	@Autowired
 	private SquidProperties squidProps;
+	
+	/**
+	 * get the user parameters for the default user
+	 * @return
+	 */
+	public UserParameterData getDefaultUserParameters() {
+		return getUserParameters(DEFAULT_USER_ID);
+	}
 	
 	/**
 	 * Fetch user parameter data by id. Create it if it doesn't exist
@@ -55,7 +61,6 @@ public class UserParameterService {
 		userData.setMaxImageCount(squidProps.getMaxImages());
 		userData.setMaxPageCount(squidProps.getMaxNodes());
 		userData.setUserId(userId);
-		userData.setLogPath(squidProps.getLogPath());
 		userData.setSavePath(squidProps.getImageSavePath());
 		userData.setSearchFilter("");
 		

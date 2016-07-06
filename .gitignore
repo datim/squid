@@ -5,3 +5,5 @@ build
 .classpath
 .settings
 gradle.properties
+node_modules
+target

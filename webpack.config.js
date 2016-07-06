@@ -7,13 +7,13 @@ var rootPath = path.join(__dirname, "src", "main", "resources", "public");
 
 module.exports = {
   context: rootPath,
-  entry: './js/initreact.js',
+  entry: './js/SquidUI.js',
   //devtool: debug ? "inline-sourcemap" : null,
   devtool: debug ? "eval-source-map" : null,
   output: {
     path: rootPath,
-    filename: 'initreact.min.js',
-    sourceMapFileName: 'initreact.min.js.map'
+    filename: 'squidui.min.js',
+    sourceMapFileName: 'squidui.min.js.map'
   },
 
   module: {

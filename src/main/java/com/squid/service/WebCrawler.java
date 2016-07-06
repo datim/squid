@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.squid.config.SquidConstants;
 import com.squid.config.SquidProperties;
 import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
@@ -23,8 +22,9 @@ import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
-import com.squid.data.UserParameterData;
 import com.squid.search.SearchNodes;
+
+import javassist.NotFoundException;
 
 /**
  * TODO: Breadth first search instead of depth-first search
@@ -73,7 +73,6 @@ public class WebCrawler {
 			
 		} else {
 			// save filter and return photos
-			userParamService.setUserFilter(UserParameterService.DEFAULT_USER_ID, filter);
 			return getPhotosWithFilter(filter);
 		}
 	}
@@ -82,7 +81,6 @@ public class WebCrawler {
 	 * Query all photos
 	 */
 	public List<PhotoData> getAllPhotos() {
-		log.info("Requesting all photos");
 		return photoRepo.findAll(new Sort(Sort.Direction.ASC, "id"));
 	}
 	
@@ -91,7 +89,12 @@ public class WebCrawler {
 	 */
 	public List<PhotoData> getPhotosWithFilter(String filter) {
 		log.info("Requesting photos with filter '" + filter + "'");
-		return photoRepo.findFilteredPhotos(filter);
+		
+		
+		List<PhotoData> results = photoRepo.findFilteredPhotos(filter.toLowerCase());
+		log.info("found " + results.size() + " results");
+		
+		return photoRepo.findFilteredPhotos(filter.toLowerCase());
 	}
 
 	/**
@@ -139,26 +142,32 @@ public class WebCrawler {
 			nodeRepo.delete(n);
 		}
 	}
-
+	
 	/**
 	 * Download a Photo to the default directory. Overwrite photo if it exists
 	 * @param Download a photo to the default directory. Save the updated photo
 	 * @throws IOException
+	 * @throws NotFoundException 
 	 */
-	public PhotoData savePhoto(PhotoData photo) throws IOException {
+	public PhotoData savePhoto(long photoId) throws IOException, NotFoundException {
 		
-		// get download directory
-		Path downloadDirPath = SquidConstants.getDownloadDirectory();
+		// get download path
+		Path downloadDirPath = squidProps.getDownloadDirectory();
 		
-		// create it if it doesn't exist
-		final File downloadDir = new File(downloadDirPath.toString());
+		// check the download path and download if needed
+		checkAndCreateDownloadDirectory(downloadDirPath);
+
+		// get photo by id
+		final PhotoData photo = photoRepo.findById(photoId);
 		
-		if (!downloadDir.exists()) {
-			downloadDir.mkdirs();
+		if (photo == null) {
+			throw new NotFoundException(Long.toString(photoId));
 		}
 		
 		// construct the path to the file
 		final Path downloadFilePath = Paths.get(downloadDirPath.toString(), photo.getName()); 
+		
+		log.info("Downloading photo " + photo.getUrl() + " from url: " + photo.getNodeUrl());
 		
 		// download the picture
 		try (InputStream in = photo.getUrl().openStream()) {
@@ -170,6 +179,21 @@ public class WebCrawler {
 		
 		// return the updated record
 		return photoRepo.save(photo);
+	}
+	
+	/**
+	 * Create the download directory if it doesn't exist
+	 */
+	private void checkAndCreateDownloadDirectory(final Path downloadDirPath) {
+		
+		// get download directory
+		
+		// create it if it doesn't exist
+		final File downloadDir = new File(downloadDirPath.toString());
+		
+		if (!downloadDir.exists()) {
+			downloadDir.mkdirs();
+		}
 	}
 	
 	/**
