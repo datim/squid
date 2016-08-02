@@ -12,16 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.squid.config.SquidProperties;
 import com.squid.controller.rest.NodeDTO;
 import com.squid.data.NodeData;
-import com.squid.service.WebCrawler;
+import com.squid.service.SearchService;
 
 @RestController
 @RequestMapping("/crawl")
 public class NodeController {
 	
-	static Logger log = Logger.getLogger(WebCrawler.class.getName());
+	static Logger log = Logger.getLogger(SearchService.class.getName());
 
 	@Autowired 
-	private WebCrawler crawler;
+	private SearchService crawler;
 	
 	@Autowired
 	private DataMapper dataMapper;

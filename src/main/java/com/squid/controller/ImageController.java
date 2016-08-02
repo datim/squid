@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.squid.controller.rest.PhotoDTO;
 import com.squid.data.PhotoData;
-import com.squid.service.WebCrawler;
+import com.squid.service.SearchService;
 
 import javassist.NotFoundException;
 
@@ -30,7 +30,7 @@ public class ImageController {
 	static Logger log = Logger.getLogger(ImageController.class.getName());
 	
 	@Autowired 
-	private WebCrawler crawler;
+	private SearchService crawler;
 	
 	@Autowired
 	private DataMapper dataMapper;

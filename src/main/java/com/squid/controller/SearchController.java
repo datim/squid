@@ -19,7 +19,7 @@ import com.squid.controller.rest.UserParameterDTO;
 import com.squid.data.SearchStatusData;
 import com.squid.data.UserParameterData;
 import com.squid.service.UserParameterService;
-import com.squid.service.WebCrawler;
+import com.squid.service.SearchService;
 
 /**
  * Controller for search related functionality
@@ -33,7 +33,7 @@ public class SearchController {
 	static Logger log = Logger.getLogger(SearchController.class.getName());
 
 	@Autowired 
-	private WebCrawler crawler;
+	private SearchService crawler;
 	
 	@Autowired
 	private DataMapper dataMapper;

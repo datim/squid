@@ -11,6 +11,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,9 @@ import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
+import com.squid.search.PageSearchRequest;
+import com.squid.search.SearchConstants;
+import com.squid.search.SearchExecutor;
 import com.squid.search.SearchNodes;
 
 import javassist.NotFoundException;
@@ -30,9 +35,9 @@ import javassist.NotFoundException;
  * TODO: Breadth first search instead of depth-first search
  */
 @Service
-public class WebCrawler {
+public class SearchService {
 	
-	static Logger log = Logger.getLogger(WebCrawler.class.getName());
+	static Logger log = Logger.getLogger(SearchService.class.getName());
 	
 	@Autowired
 	private SquidProperties squidProps;
@@ -49,6 +54,21 @@ public class WebCrawler {
 	@Autowired
 	private UserParameterService userParamService;
 	
+	private SearchExecutor searchListener;
+	
+	
+	/**
+	 * After the service starts, launch the listening thread
+	 * that will execute page searches
+	 */
+	@PostConstruct
+	public void startThreadPolling() {
+		
+		// create a new search listener
+		searchListener = new SearchExecutor(photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
+		searchListener.start();
+	}
+	
 	/**
 	 * Start the crawl through a tree of pages starting with the base url
 	 * @param huntUrl
@@ -56,12 +76,20 @@ public class WebCrawler {
 	 */
 	public void startCrawl(final URL baseUrl) throws IOException {
 		
-		// save search parameter
+		// update user search parameters
 		userParamService.setUserSearchString(UserParameterService.DEFAULT_USER_ID, baseUrl.toString());
 		
-		// begin a search in a new thread and return
-		final SearchNodes searchThread = new SearchNodes(baseUrl, photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
-		searchThread.start();
+		// initialize the status for a new search
+		SearchConstants.setSearchStatus(baseUrl, new Long(0), new Long(0), new Long(squidProps.getMaxNodes()), SearchStatusData.SearchStatus.NoResults, searchStatusRepo);
+		
+		try {
+			// submit a new request to be searched
+			searchListener.getPageRequestsQueue().put(new PageSearchRequest(baseUrl, baseUrl, null));
+			
+		} catch (InterruptedException e) {
+			// submission request failed. Throw an error
+			log.severe("Unable to invoke a search for page: " + baseUrl + ". Exception: " + e);
+		}
 	}
 
 	/**

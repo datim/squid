@@ -5,12 +5,12 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,6 +20,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.data.domain.PageRequest;
 
 import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
@@ -32,142 +33,65 @@ import com.squid.data.SearchStatusRepository;
  * Search nodes in a new thread
  *
  */
-public class SearchNodes extends Thread {
+public class SearchNodes implements Runnable {
 		
 	static Logger log = Logger.getLogger(SearchNodes.class.getName());
-
-	static String URL_INLINE_TAG = "#";
 	
-	private List<String> nodeSuffixExclusions = null;	
-	private int vistedNodes = 0;
 	private URL searchUrl;
+	private URL parentUrl;
+	private URL rootUrl;
 	private long maxNodes;
 	private long maxImages;
 	private PhotoDataRepository photoRepo;
 	private NodeDataRepository nodeRepo;
 	private SearchStatusRepository searchStatusRepo;
-	private SearchStatusData searchStatus;
 	private List<String> imageBoundaryTags;
 	private List<String> invalidSuffixes;
 	private List<String> pageBoundaryTags;
 	private List<String> validImageExtensions;
-	
-	/**
-	 * Private class to store information for nodes that
-	 * have not yet been traversed
-	 */
-	private class PageDetails {
-		
-		// constructor
-		public PageDetails(final URL url, final URL parentURL) {
-			this.url = url;
-			this.parentUrl = parentURL;
-		}
-		
-		public URL url;
-		public URL parentUrl;
-	}
-	
+	private List<String> nodeSuffixExclusions = null;	
+	private BlockingQueue<PageSearchRequest> requestQueue;
+
 	/**
 	 * Constructor
 	 * @param huntUrl
+	 * @param pageRequestsQueue 
 	 * @param searchStatusRepo 
 	 * @param nodeRepo 
 	 * @param photoRepo 
 	 */
-	public SearchNodes(final URL huntUrl, final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
-					   final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes) {
+	public SearchNodes(final URL huntUrl, final URL parentUrl, final URL rootUrl, final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
+					   final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes, 
+					   final BlockingQueue<PageSearchRequest> pageRequestsQueue) {
 		this.searchUrl = huntUrl;
-		this.vistedNodes = 0;
+		this.rootUrl = rootUrl;
+		this.parentUrl = parentUrl;
 		this.photoRepo = photoRepoIn;
 		this.nodeRepo = nodeRepoIn;
 		this.searchStatusRepo = inSearchRepo;
 		this.maxImages = maxImages;
 		this.maxNodes = maxNodes;
+		this.requestQueue = pageRequestsQueue;
+		
+		// define constants
 		this.imageBoundaryTags = SearchConstants.getImageBoundaryKeyWords();
 		this.invalidSuffixes = SearchConstants.getInvalidImageSuffixs();
 		this.pageBoundaryTags = SearchConstants.getPageURLBoundaryKeyWords();
 		this.validImageExtensions = SearchConstants.getValidImageExtensions();
-		
-		// create exclusions
-		nodeSuffixExclusions = new ArrayList<>();
-		pageSuffixExclusions();
+		this.nodeSuffixExclusions = SearchConstants.getInvalidPageExtensions();
 	}
 	
-	/**
-	 * Define extensions to pages that we want to avoid
-	 */
-	private void pageSuffixExclusions() {
-		nodeSuffixExclusions.add("css");
-		nodeSuffixExclusions.add("pdf");
-	}
-
 	/**
 	 * Execute a new thread
 	 */
 	@Override
 	public void run() {
 		try {
-			startSearch(this.searchUrl);
+			startSearch();
+			
 		} catch (IOException e) {
-			log.severe("An error occurred while searching sub-pages: " + e);
+			log.severe("An error occurred while searching page: " + this.searchUrl + ". Exception: " + e);
 		}
-	}
-	
-	/**
-	 * Start a recursive, breadth-first search
-	 * @param huntUrl
-	 * @return
-	 * @throws IOException 
-	 */
-	private void startSearch(final URL huntUrl) throws IOException {
-		
-		log.info("Starting search for page " + huntUrl);
-		
-		final long imageCount = 0;
-		final Set<URL> vistedURLs = new HashSet<>();
-		final Queue<PageDetails> toVisitUrls = new LinkedList<>();
-		
-		final PageDetails currentPage = new PageDetails(huntUrl, null);
-		
-		// initialize status
-		updateSearchStatus(new Long(0), new Long(0), SearchStatusData.SearchStatus.NoResults);
-
-		// begin the search
-		discoverPages(currentPage, imageCount, toVisitUrls, vistedURLs);
-		
-		// update the search status with complete results
-		updateSearchStatus(nodeRepo.count(), photoRepo.count(), SearchStatusData.SearchStatus.Complete);
-	}
-	
-
-	/**
-	 * Update the search status
-	 * 
-	 * @param huntUrl The url being searched
-	 * @param nodeCount The number of pages that have been discovered
-	 * @param imageCount The number of images that have been discovered
-	 * @param status The status of the search
-	 */
-	private void updateSearchStatus(Long nodeCount, Long imageCount, SearchStatusData.SearchStatus status) {
-		
-		// maintain one record for status. If the record already exists, update it
-		searchStatus = searchStatusRepo.findByUrl(searchUrl.toString());
-		
-		if (searchStatus == null) {
-			// record doesn't exist, create a new one
-			searchStatus = new SearchStatusData();
-		}
-		
-		// update the status results
-		searchStatus.setUrl(this.searchUrl.toString());
-		searchStatus.setMaxDepth(maxNodes);
-		searchStatus.setNodeCount(nodeCount);
-		searchStatus.setImageCount(imageCount);
-		searchStatus.setStatus(status);
-		
-		// save the status
-		searchStatusRepo.save(searchStatus);
 	}
 	
 	/**
@@ -176,76 +100,73 @@ public class SearchNodes extends Thread {
 	 * @return
 	 * @throws IOException 
 	 */
-	private void discoverPages(final PageDetails currentPage, Long imageCount, Queue<PageDetails> toVisitUrls, Set<URL> vistedURLs) throws IOException {
+	private void startSearch() throws IOException {
 		
-		// update status
-		updateSearchStatus(nodeRepo.count(), photoRepo.count(), SearchStatusData.SearchStatus.InProgress);
-		
-		log.fine("Discovered content loop count" + vistedNodes++);
-		
-		// don't exceed the max number of nodes
-		if (vistedNodes >= maxNodes) {
+		log.info("Starting search for page " + this.searchUrl);
+	
+		if (nodeRepo.count() >= maxNodes) {
+			
+			// max number of nodes reached. Update status and quit
 			log.info("Reached maximum visited pages: " + maxNodes + ". Ending search");
+			
+			if (!searchStatusRepo.findByUrl(searchUrl.toString()).getStatus().equals(SearchStatusData.SearchStatus.Complete)) {
+				// status not yet set to complete. Set it
+				SearchConstants.setSearchStatus(this.rootUrl, nodeRepo.count(), photoRepo.count(), new Long(maxNodes), SearchStatusData.SearchStatus.Complete, searchStatusRepo);
+			}
+			
 			return;
 		}
+
+		// update the search status
+		SearchConstants.setSearchStatus(this.rootUrl, nodeRepo.count(), photoRepo.count(), new Long(maxNodes), SearchStatusData.SearchStatus.InProgress, searchStatusRepo);
+
+		log.fine("Discovered content loop count" + nodeRepo.count());
 		
 		//
 		// Use JSoup to identify the URL and its sub pages
 		//
-		
-		final URL currentPageUrl = currentPage.url;
-		
+				
 		// only search this page if it has not yet been searched
-		if (nodeRepo.findByUrl(currentPageUrl) == null) {
+		if (nodeRepo.findByUrl(this.searchUrl) == null) {
 			
 			Document currentPageDoc = null;
 			
-			log.info("Searching page " + currentPageUrl.toString());
+			log.info("Searching page " + this.searchUrl.toString());
 			
 			try {
-				currentPageDoc = Jsoup.connect(currentPageUrl.toString()).get();
+				currentPageDoc = Jsoup.connect(this.searchUrl.toString()).get();
 			
 			} catch (SocketTimeoutException | HttpStatusException e) {
 				// catch the exception and exist the search for this page
-				log.severe ("Unable to fetch URL: " + currentPageUrl.toString() + ". Exception: " + e);
+				log.severe ("Unable to fetch URL: " + this.searchUrl.toString() + ". Exception: " + e);
 				return;
 			} 
 			
-			final String baseUrl = currentPageUrl.getProtocol() + "://" + currentPageUrl.getHost();
+			final String baseUrl = this.searchUrl.getProtocol() + "://" + this.searchUrl.getHost();
 			
 			// save a record of this page
 			NodeData pageRecord = new NodeData();
-			pageRecord.setUrl(currentPageUrl);
+			pageRecord.setUrl(this.searchUrl);
 			pageRecord.setVisited((currentPageDoc != null));
-			pageRecord.setParentUrl((currentPage.parentUrl != null) ? currentPage.parentUrl : null); // set parent node if it exists
+			pageRecord.setParentUrl((this.parentUrl != null) ? this.parentUrl : null); // set parent node if it exists
 
 			log.fine("saving page, url: " + pageRecord.getUrl() + ", parent: " + pageRecord.getParent());
 			
-			// save the node
-			pageRecord = nodeRepo.save(pageRecord);
+			// save the node if it doesn't exist
+			if (nodeRepo.findByUrl(pageRecord.getUrl()) == null) {
+				pageRecord = nodeRepo.save(pageRecord);
+			}
 			
 			if (currentPageDoc != null) {
 				// find all photos associated with this URL
-				discoverImages(currentPageDoc, imageCount, baseUrl, currentPageUrl);
+				discoverImages(currentPageDoc, baseUrl, this.searchUrl);
 				
 				// find all links referenced by this URL
-				discoverSubNodes(currentPageDoc, currentPageUrl, toVisitUrls, vistedURLs);	
+				discoverSubPages(currentPageDoc, this.searchUrl);	
 			}
 			
 		} else {
-			log.info("Node " + currentPageUrl.toString() + " has previously been visited. Skipping");
-		}
-		
-		while (!toVisitUrls.isEmpty()) {
-			
-			final PageDetails childNode = toVisitUrls.remove();
-			
-			discoverPages(childNode, imageCount, toVisitUrls, vistedURLs);
-			
-			// check gate parameters
-			if (imageCount > maxImages || vistedNodes >= maxNodes) {
-				break;
-			}
+			log.info("Node " + this.searchUrl.toString() + " has previously been visited. Skipping");
 		}
 	}
 	
@@ -255,7 +176,7 @@ public class SearchNodes extends Thread {
 	 * @param Document
 	 * @return
 	 */
-	private void discoverSubNodes(final Document doc, URL parentURL, Queue<PageDetails> toVistUrls, Set<URL> discoveredUrls) {
+	private void discoverSubPages(final Document doc, URL parentURL) {
 				
 		final Elements urlElements = doc.select("a[href]");
 		final String parentHost = parentURL.getHost();
@@ -266,24 +187,13 @@ public class SearchNodes extends Thread {
 			String urlString = urlElement.attr("abs:href");
 			
 			// Strip off in-page tags from URL
-			if (urlString.contains(URL_INLINE_TAG)) {
-				urlString = urlString.substring(0, urlString.indexOf(URL_INLINE_TAG));
-			}			
-			boolean notHtmlPage = false;
-			
-			// Exclude URLs with particular suffixes
-			for (String suffix: nodeSuffixExclusions) {
-				
-				if (urlString.endsWith(suffix)) {
-					notHtmlPage = true;
-					continue;
-				} 
-			}
-			
-			if (notHtmlPage) {
+			urlString = stripBoundaryTags(urlString, this.pageBoundaryTags);
+						
+			// if node has an invalid suffix, skip it
+			if (checkInvalidSuffixName(urlString, this.nodeSuffixExclusions)) {
 				continue;
 			}
-			
+				
 			URL childUrl = null;
 			
 			try {
@@ -294,13 +204,14 @@ public class SearchNodes extends Thread {
 				continue;
 			}
 			
-			// ignore links that don't have the same base as the parent
+			// ignore links that do not the same root page as the parent
+			// This allows us to skip links that reference third party pages
 			if (!childUrl.getHost().equals(parentHost)) {
 				continue;
 			}
 				
 			// don't visit a URL that has already been seen
-			if (discoveredUrls.contains(childUrl)) {
+			if (nodeRepo.findByUrl(childUrl) != null) {
 				continue;
 			}
 			
@@ -308,10 +219,14 @@ public class SearchNodes extends Thread {
 			log.info("Found new URL: " + urlString);
 			System.out.println("found new URL: " + urlString);
 			
-			toVistUrls.add(new PageDetails(childUrl, parentURL));
-			
-			// record this URL as having been seen
-			discoveredUrls.add(childUrl);
+			// submit this page for search
+			try {
+				requestQueue.put(new PageSearchRequest(childUrl, rootUrl, parentUrl));
+				
+			} catch (InterruptedException e) {
+				// catch the exception and move on
+				log.severe("Unable to submit url " + childUrl + " for search. Exception: " + e);
+			}
 		}
 	}
 	
@@ -320,7 +235,7 @@ public class SearchNodes extends Thread {
 	 * @param doc
 	 * @return
 	 */
-	private void discoverImages(final Document doc, Long imageCount, String baseUrl, URL nodeURL) {
+	private void discoverImages(final Document doc, String baseUrl, URL nodeURL) {
         
 		baseUrl = baseUrl.toLowerCase();
 		
@@ -352,12 +267,16 @@ public class SearchNodes extends Thread {
         		continue;
         	}
         	
+        	if (photoRepo.count() >= this.maxImages) {
+        		// don't exceed the maximum image count
+        		log.info("Max image count of " + this.maxImages + " reached");
+        		return;
+        	}
+        	
         	//
         	// Save the image
         	//
-        	
-        	imageCount++; // increment image count
-        	
+        	        	
         	PhotoData photo = new PhotoData();
         	photo.setName(imageName);
         	photo.setNodeUrl(nodeURL);
@@ -377,36 +296,7 @@ public class SearchNodes extends Thread {
 		}
 	}
 	
-	/**
-	 * Validate whether a URL exists. Returns true if the URL can be validated
-	 * @param url the URL to be validated
-	 * @return True if the URL is valid, False if it is not
-	 */
-	private Boolean validateUrl(String url) {
-		
-		Boolean valid = false;
-		
-		HttpURLConnection.setFollowRedirects(false);
-		
-		HttpURLConnection con;
-		try {
-			con = (HttpURLConnection) new URL(url).openConnection();
-			con.setRequestMethod("HEAD");
-			
-			if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
-				valid = true;
-			} else {
-				log.info("Unable to validate that image url " + url + " exists. Skipping");
-
-			}
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			log.warning("Error occurred attempting to validate image " + url);
-		}
-
-		return valid;
-	}
+	
 	
 	/**
 	 * Discover URLs for images embedded directly in HTML
@@ -432,12 +322,12 @@ public class SearchNodes extends Thread {
         	}
         	
     		// ignore images with invalid suffixes
-        	if (checkInvalidSuffixName(source)) {
+        	if (checkInvalidSuffixName(source, this.invalidSuffixes)) {
         		continue;
         	}
         	
         	// remove invalid 
-        	source = stripBoundaryTags(source);
+        	source = stripBoundaryTags(source, this.imageBoundaryTags);
         	
         	// validate whether the image extension is valid
         	if (!isValidImageExtension(source)) {
@@ -459,57 +349,6 @@ public class SearchNodes extends Thread {
 		}
 		
 		return imageResults;
-	}
-		
-	/**
-	 * Return true if the image name has an invalid suffix
-	 */
-	private boolean checkInvalidSuffixName(String imageName) {
-		
-    	for (String suffix: invalidSuffixes) {
-    		
-    		if (imageName.endsWith(suffix)) {
-    			return true;
-    		}
-    	}
-    	
-    	return false;
-	}
-	
-	/**
-	 * Validate whether an image as a valid extension
-	 */
-	private boolean isValidImageExtension(String imageName) {
-		boolean valid = false;
-		
-		for(String extension: this.validImageExtensions) {
-			if (imageName.endsWith(extension)) {
-				valid = true;
-				break;
-			}
-		}
-		
-		return valid;
-	}
-	
-	/**
-	 * Remove sub strings from an image name after
-	 * a boundary tag such as '#' or '?'
-	 */
-	private String stripBoundaryTags(String imageName) {
-		
-		String strippedName = imageName;
-		
-		for (String boundaryTag: imageBoundaryTags) {
-			
-			if (imageName.contains(boundaryTag)) {
-				// image contains a boundar tag. Strip off sub-string
-				strippedName = imageName.substring(0, imageName.indexOf(boundaryTag));
-				break;
-			}
-		}
-		
-		return strippedName;
 	}
 	
 	/**
@@ -568,4 +407,87 @@ public class SearchNodes extends Thread {
 			}
 		}
 	}
+	
+	/**
+	 * Validate whether a URL exists. Returns true if the URL can be validated
+	 * @param url the URL to be validated
+	 * @return True if the URL is valid, False if it is not
+	 */
+	private Boolean validateUrl(String url) {
+		
+		Boolean valid = false;
+		
+		HttpURLConnection.setFollowRedirects(false);
+		
+		HttpURLConnection con;
+		try {
+			con = (HttpURLConnection) new URL(url).openConnection();
+			con.setRequestMethod("HEAD");
+			
+			if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+				valid = true;
+			} else {
+				log.info("Unable to validate that image url " + url + " exists. Skipping");
+
+			}
+			
+		} catch (IOException e) {
+			log.warning("Error occurred attempting to validate image " + url);
+		}
+
+		return valid;
+	}
+		
+	/**
+	 * Return true if a name contains an invalid suffix
+	 */
+	private boolean checkInvalidSuffixName(String name, final List<String> suffixList) {
+		
+    	for (String suffix: suffixList) {
+    		
+    		if (name.endsWith(suffix)) {
+    			return true;
+    		}
+    	}
+    	
+    	return false;
+	}
+	
+	/**
+	 * Validate whether an image as a valid extension
+	 */
+	private boolean isValidImageExtension(String imageName) {
+		boolean valid = false;
+		
+		for(String extension: this.validImageExtensions) {
+			if (imageName.endsWith(extension)) {
+				valid = true;
+				break;
+			}
+		}
+		
+		return valid;
+	}
+	
+	/**
+	 * Remove sub strings from an image name after
+	 * a boundary tag such as '#' or '?'
+	 */
+	private String stripBoundaryTags(String name, List<String> boundaryTags) {
+		
+		String strippedName = name;
+		
+		for (String boundaryTag: boundaryTags) {
+			
+			if (name.contains(boundaryTag)) {
+				// remove trailing substring off name
+				strippedName = name.substring(0, name.indexOf(boundaryTag));
+				break;
+			}
+		}
+		
+		return strippedName;
+	}
+	
+	
 }
