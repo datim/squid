@@ -13,6 +13,7 @@ import com.squid.data.SearchStatusRepository;
 
 /**
  * Execute searches using a thread pool.
+ * Responsible for handling search requests from a queue.  Delgate work traverse 
  * @author Datim
  *
  */
@@ -60,7 +61,8 @@ public class SearchExecutor extends Thread {
 	}
 	
 	/**
-	 * Thread based method to continually check for new page requests
+	 * Simple thread to check for new requests.  Block on thread queue until a 
+	 * a new request has been added.  Delegate request to new parse thread.
 	 * @throws InterruptedException 
 	 */
 	private void monitorPageRequests()  {
@@ -76,14 +78,17 @@ public class SearchExecutor extends Thread {
 				
 				log.info("Size of search queue is " + pageRequestsQueue.size());
 				
+				ParseNodeThread searchTask = new ParseNodeThread(request.getUrl(), this.photoRepo, this.nodeRepo, 
+																 this.searchStatusRepo, maxImages, maxNodes);
+				
+				executor.execute(searchTask);
+				
 				/*
+				 * TODO: Refactor this
 				// push request onto a new processing thread
 				SearchNodes searchTask = new SearchNodes(request.url, request.parentUrl, request.rootUrl, photoRepo, nodeRepo, 
 														 searchStatusRepo, maxImages, maxNodes, pageRequestsQueue);
 				*/
-				SearchNodes searchTask = null; // FIXME DELETE
-				executor.execute(searchTask);
-			
 			} catch (InterruptedException e) {
 				// interrupt exception occurred.  Quit requests
 				log.severe("Exception occured blocking on thread queue: " + e);
@@ -93,5 +98,13 @@ public class SearchExecutor extends Thread {
 		
 		// we're done. Shutdown thread pool
 		executor.shutdown();
+	}
+	
+	public BlockingQueue<PageSearchRequest> getPageRequestsQueue() {
+		return pageRequestsQueue;
+	}
+
+	public void setPageRequestsQueue(BlockingQueue<PageSearchRequest> pageRequestsQueue) {
+		this.pageRequestsQueue = pageRequestsQueue;
 	}
 }

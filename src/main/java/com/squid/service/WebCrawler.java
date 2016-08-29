@@ -11,6 +11,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,8 @@ import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
-import com.squid.search.SearchNodes;
+import com.squid.search.PageSearchRequest;
+import com.squid.search.SearchExecutor;
 
 import javassist.NotFoundException;
 
@@ -49,6 +52,20 @@ public class WebCrawler {
 	@Autowired
 	private UserParameterService userParamService;
 	
+	private SearchExecutor delgator;
+	
+	/**
+	 * After the service starts, launch the listening thread
+	 * that will execute page searches
+	 */
+	@PostConstruct
+	public void startThreadPolling() {
+		
+		// create a new search delgator
+		delgator = new SearchExecutor(photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
+		delgator.start();
+	}
+	
 	/**
 	 * Start the crawl through a tree of pages starting with the base url
 	 * @param huntUrl
@@ -56,12 +73,23 @@ public class WebCrawler {
 	 */
 	public void startCrawl(final URL baseUrl) throws IOException {
 		
-		// save search parameter
+		// save search parameter for UI feedback
 		userParamService.setUserSearchString(UserParameterService.DEFAULT_USER_ID, baseUrl.toString());
 		
+		// create new search request for this URL
+		try {
+			
+			delgator.getPageRequestsQueue().put(new PageSearchRequest(baseUrl));
+			
+		} catch (InterruptedException e) {
+			log.severe("Unable to invoke a search for page: " + baseUrl + ". Exception: " + e);
+		}
+
+		/*
 		// begin a search in a new thread and return
-		final SearchNodes searchThread = new SearchNodes(baseUrl, photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
+		final SearchNodes searchThread = new ParseNodeThread(baseUrl, photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
 		searchThread.start();
+		*/
 	}
 
 	/**

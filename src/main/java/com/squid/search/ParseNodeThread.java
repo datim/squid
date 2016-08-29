@@ -29,12 +29,12 @@ import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
 
 /**
- * Search nodes in a new thread
+ * Traverse a list of nodes.  Delegate node parsing to thread queue.
  *
  */
-public class SearchNodes extends Thread {
+public class ParseNodeThread extends Thread {
 		
-	static Logger log = Logger.getLogger(SearchNodes.class.getName());
+	static Logger log = Logger.getLogger(ParseNodeThread.class.getName());
 
 	static String URL_INLINE_TAG = "#";
 	
@@ -75,8 +75,9 @@ public class SearchNodes extends Thread {
 	 * @param nodeRepo 
 	 * @param photoRepo 
 	 */
-	public SearchNodes(final URL huntUrl, final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
-					   final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes) {
+	public ParseNodeThread(final URL huntUrl, final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
+					       final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes) {
+		
 		this.searchUrl = huntUrl;
 		this.vistedNodes = 0;
 		this.photoRepo = photoRepoIn;
@@ -336,15 +337,26 @@ public class SearchNodes extends Thread {
 		imageUrls.addAll(extraImageUrls);
 		
 		// create records out of each image URL
-		for (String imgUrl: imageUrls) {
+		for (String imgUrlString: imageUrls) {
 			
 			// validate if the image actually exists by requesting the URL header
-			if (!validateUrl(imgUrl)) {
+			if (!validateUrl(imgUrlString)) {
+				continue;
+			}
+			
+			URL imgUrl = null;
+			
+    		try {
+    			// attempt to generate a URL for the image record
+				imgUrl = new URL(imgUrlString);
+				
+			} catch (MalformedURLException e) {
+				log.warning("Unable to construct URL for image " + imgUrlString + ". Skipping");
 				continue;
 			}
 			
         	// get the name of the image
-        	final String imageName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
+        	final String imageName = imgUrlString.substring(imgUrlString.lastIndexOf("/") + 1);
         	
         	// don't save the photo if it has already been saved for this URL
         	if (photoRepo.findByNameAndBaseUrl(imageName, baseUrl) != null) {
@@ -352,6 +364,11 @@ public class SearchNodes extends Thread {
         		continue;
         	}
         	
+        	if (photoRepo.findByUrl(imgUrl) != null) {
+        		log.fine("Image with url " + imgUrl + " already discovered. Will not save");
+        		continue;
+        	}
+
         	//
         	// Save the image
         	//
@@ -363,16 +380,11 @@ public class SearchNodes extends Thread {
         	photo.setNodeUrl(nodeURL);
         	photo.setBaseUrl(baseUrl);
         	
-    		try {
-    			// attempt to generate a URL for the image record
-				photo.setUrl(new URL(imgUrl));
-				
-			} catch (MalformedURLException e) {
-				log.warning("Unable to construct URL for image " + imgUrl + ". Skipping");
-				continue;
-			}
-
+			// attempt to generate a URL for the image record
+			photo.setUrl(imgUrl);
+        	
         	// save it
+    		log.info("Saving new photo: " + photo);
         	photoRepo.save(photo);
 		}
 	}
