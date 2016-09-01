@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,12 +30,12 @@ import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
 
 /**
- * Traverse a list of nodes.  Delegate node parsing to thread queue.
- *
+ * Parse a page. Search for all images and sub pages. Sub pages parsing
+ * will be delegated to threads on the thread queue.
  */
-public class ParseNodeThread extends Thread {
+public class PageParser extends Thread {
 		
-	static Logger log = Logger.getLogger(ParseNodeThread.class.getName());
+	static Logger log = Logger.getLogger(PageParser.class.getName());
 
 	static String URL_INLINE_TAG = "#";
 	
@@ -51,6 +52,7 @@ public class ParseNodeThread extends Thread {
 	private List<String> invalidSuffixes;
 	private List<String> pageBoundaryTags;
 	private List<String> validImageExtensions;
+	private BlockingQueue<PageSearchRequest> newPageRequestQueue;
 	
 	/**
 	 * Private class to store information for nodes that
@@ -71,12 +73,14 @@ public class ParseNodeThread extends Thread {
 	/**
 	 * Constructor
 	 * @param huntUrl
+	 * @param pageRequestsQueue 
 	 * @param searchStatusRepo 
 	 * @param nodeRepo 
 	 * @param photoRepo 
 	 */
-	public ParseNodeThread(final URL huntUrl, final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
-					       final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes) {
+	public PageParser(final URL huntUrl, final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
+					       final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes, 
+					       final BlockingQueue<PageSearchRequest> pageRequestsQueue) {
 		
 		this.searchUrl = huntUrl;
 		this.vistedNodes = 0;
@@ -89,6 +93,7 @@ public class ParseNodeThread extends Thread {
 		this.invalidSuffixes = SearchConstants.getInvalidImageSuffixs();
 		this.pageBoundaryTags = SearchConstants.getPageURLBoundaryKeyWords();
 		this.validImageExtensions = SearchConstants.getValidImageExtensions();
+		this.newPageRequestQueue = pageRequestsQueue;
 		
 		// create exclusions
 		nodeSuffixExclusions = new ArrayList<>();
@@ -220,7 +225,7 @@ public class ParseNodeThread extends Thread {
 			pageRecord.setVisited((currentPageDoc != null));
 			pageRecord.setParentUrl((currentPage.parentUrl != null) ? currentPage.parentUrl : null); // set parent node if it exists
 
-			log.fine("saving page, url: " + pageRecord.getUrl() + ", parent: " + pageRecord.getParent());
+			log.fine("Saving page " + pageRecord);
 			
 			// save the node
 			pageRecord = nodeRepo.save(pageRecord);
@@ -358,12 +363,13 @@ public class ParseNodeThread extends Thread {
         	// get the name of the image
         	final String imageName = imgUrlString.substring(imgUrlString.lastIndexOf("/") + 1);
         	
-        	// don't save the photo if it has already been saved for this URL
+        	// name and base URL must be unique
         	if (photoRepo.findByNameAndBaseUrl(imageName, baseUrl) != null) {
         		log.fine("Photo " + imageName + " already discovered for url " + baseUrl + ". Will not save");
         		continue;
         	}
         	
+        	// URL must be unique
         	if (photoRepo.findByUrl(imgUrl) != null) {
         		log.fine("Image with url " + imgUrl + " already discovered. Will not save");
         		continue;

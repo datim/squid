@@ -33,6 +33,10 @@ public class NodeData {
 	@Column (name = "etag")
 	private String etag;
 	
+	public String toString() {
+		return "Page, url: " + this.url + ", parent: " + this.parentUrl;
+	}
+	
 	public boolean isVisited() {
 		return visited;
 	}

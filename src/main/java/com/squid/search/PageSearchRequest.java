@@ -3,7 +3,7 @@ package com.squid.search;
 import java.net.URL;
 
 /**
- * Class representing a new page to search
+ * A request object containing information about a new search page to search
  * @author Datim
  *
  */

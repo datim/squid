@@ -12,10 +12,8 @@ import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusRepository;
 
 /**
- * Execute searches using a thread pool.
- * Responsible for handling search requests from a queue.  Delgate work traverse 
+ * Poll for new search requests from an incoming request queue. Delegate requests to a thread pool.
  * @author Datim
- *
  */
 public class SearchExecutor extends Thread {
 	
@@ -78,13 +76,13 @@ public class SearchExecutor extends Thread {
 				
 				log.info("Size of search queue is " + pageRequestsQueue.size());
 				
-				ParseNodeThread searchTask = new ParseNodeThread(request.getUrl(), this.photoRepo, this.nodeRepo, 
+				PageParser searchTask = new PageParser(request.getUrl(), this.photoRepo, this.nodeRepo, 
 																 this.searchStatusRepo, maxImages, maxNodes);
 				
 				executor.execute(searchTask);
 				
 				/*
-				 * TODO: Refactor this
+				 * TODO: Refactor search node request
 				// push request onto a new processing thread
 				SearchNodes searchTask = new SearchNodes(request.url, request.parentUrl, request.rootUrl, photoRepo, nodeRepo, 
 														 searchStatusRepo, maxImages, maxNodes, pageRequestsQueue);
