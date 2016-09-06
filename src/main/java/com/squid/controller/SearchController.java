@@ -92,7 +92,7 @@ public class SearchController {
     		dto.setStatus("no status");
     		return dto;
     	} else {
-    		log.info("Request status: page count: " + dao.getNodeCount() + ", image count: " + dao.getImageCount());
+    		log.fine("Request status: page count: " + dao.getNodeCount() + ", image count: " + dao.getImageCount());
     	}
     	
     	return dataMapper.daoToDto(dao);    	

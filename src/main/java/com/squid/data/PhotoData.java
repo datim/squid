@@ -48,6 +48,11 @@ public class PhotoData {
 	@Column (name = "pinned")
 	private boolean pinned;
 	
+	public String toString() {
+		return "id " + this.id + ", img url: " + this.url + ", page url " + this.nodeUrl + ", base url: " + this.baseUrl +
+				", name: " + this.name + ", saved: " + this.saved + ", etag: " + this.etag;
+	}
+	
 	public int getWidth() {
 		return width;
 	}

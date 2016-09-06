@@ -40,9 +40,7 @@ public class ImageController {
      */
     @RequestMapping(path="/photos", method = RequestMethod.GET)
     public List<PhotoDTO> getPhotos(@RequestParam(value="filter", defaultValue = "") String filter) {
-    	
-    	log.info("Request all photos");
-    	
+    	    	
     	// retrieve a stored list of photos
     	final List<PhotoData> photos = crawler.getPhotos(filter);
     	final List<PhotoDTO> photoDTOs = new ArrayList<>(photos.size());

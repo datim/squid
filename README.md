@@ -1,4 +1,3 @@
-
 **Master Branch:**  [![Build Status](https://travis-ci.org/datim/squid.svg?branch=master)](https://travis-ci.org/datim/squid) **Develop Branch:** [![Build Status](https://travis-ci.org/datim/squid.svg?branch=develop)](https://travis-ci.org/datim/squid)
 
 # About

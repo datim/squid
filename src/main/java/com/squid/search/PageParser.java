@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,13 +29,15 @@ import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
 
+// TODO: Refactor and split into multiple classes
+
 /**
- * Search nodes in a new thread
- *
+ * Parse a page. Search for all images and sub pages. Sub pages parsing
+ * will be delegated to threads on the thread queue.
  */
-public class SearchNodes extends Thread {
+public class PageParser extends Thread {
 		
-	static Logger log = Logger.getLogger(SearchNodes.class.getName());
+	static Logger log = Logger.getLogger(PageParser.class.getName());
 
 	static String URL_INLINE_TAG = "#";
 	
@@ -51,6 +54,7 @@ public class SearchNodes extends Thread {
 	private List<String> invalidSuffixes;
 	private List<String> pageBoundaryTags;
 	private List<String> validImageExtensions;
+	private BlockingQueue<PageSearchRequest> newPageRequestQueue;
 	
 	/**
 	 * Private class to store information for nodes that
@@ -71,12 +75,15 @@ public class SearchNodes extends Thread {
 	/**
 	 * Constructor
 	 * @param huntUrl
+	 * @param pageRequestsQueue 
 	 * @param searchStatusRepo 
 	 * @param nodeRepo 
 	 * @param photoRepo 
 	 */
-	public SearchNodes(final URL huntUrl, final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
-					   final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes) {
+	public PageParser(final URL huntUrl, final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
+					       final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes, 
+					        BlockingQueue<PageSearchRequest> pageRequestsQueue) {
+		
 		this.searchUrl = huntUrl;
 		this.vistedNodes = 0;
 		this.photoRepo = photoRepoIn;
@@ -88,12 +95,13 @@ public class SearchNodes extends Thread {
 		this.invalidSuffixes = SearchConstants.getInvalidImageSuffixs();
 		this.pageBoundaryTags = SearchConstants.getPageURLBoundaryKeyWords();
 		this.validImageExtensions = SearchConstants.getValidImageExtensions();
+		this.newPageRequestQueue = pageRequestsQueue;
 		
 		// create exclusions
 		nodeSuffixExclusions = new ArrayList<>();
 		pageSuffixExclusions();
 	}
-	
+
 	/**
 	 * Define extensions to pages that we want to avoid
 	 */
@@ -122,22 +130,22 @@ public class SearchNodes extends Thread {
 	 */
 	private void startSearch(final URL huntUrl) throws IOException {
 		
-		log.info("Starting search for page " + huntUrl);
+		// don't exceed the max number of nodes
+		if (isPageOrImageLimitReached()) {
+			markSearchComplete();
+			return;
+		}
 		
+		log.info("Search page " + huntUrl);
+
 		final long imageCount = 0;
 		final Set<URL> vistedURLs = new HashSet<>();
 		final Queue<PageDetails> toVisitUrls = new LinkedList<>();
 		
 		final PageDetails currentPage = new PageDetails(huntUrl, null);
 		
-		// initialize status
-		updateSearchStatus(new Long(0), new Long(0), SearchStatusData.SearchStatus.NoResults);
-
 		// begin the search
 		discoverPages(currentPage, imageCount, toVisitUrls, vistedURLs);
-		
-		// update the search status with complete results
-		updateSearchStatus(nodeRepo.count(), photoRepo.count(), SearchStatusData.SearchStatus.Complete);
 	}
 	
 
@@ -154,20 +162,53 @@ public class SearchNodes extends Thread {
 		// maintain one record for status. If the record already exists, update it
 		searchStatus = searchStatusRepo.findByUrl(searchUrl.toString());
 		
+		// FIXME TODO - don't update the counts, just the status
+		
 		if (searchStatus == null) {
 			// record doesn't exist, create a new one
 			searchStatus = new SearchStatusData();
+			
+		} else if (searchStatus.getStatus() == status) {
+			// this status is already up to date. Don't continue
+			return;
 		}
 		
 		// update the status results
 		searchStatus.setUrl(this.searchUrl.toString());
 		searchStatus.setMaxDepth(maxNodes);
-		searchStatus.setNodeCount(nodeCount);
-		searchStatus.setImageCount(imageCount);
+		//searchStatus.setNodeCount(nodeCount);  FIXME TODO DELETE
+		//searchStatus.setImageCount(imageCount); FIXME TODO DELETE
 		searchStatus.setStatus(status);
 		
 		// save the status
 		searchStatusRepo.save(searchStatus);
+	}
+	
+	/**
+	 * Check whether the maximum pages or images have been reached
+	 * @return
+	 */
+	private boolean isPageOrImageLimitReached() {
+		
+		boolean limitReached = false;
+		
+		long numImages = photoRepo.count();
+		long numPages = nodeRepo.count();
+		if (numImages >= maxImages || numPages >= maxNodes) {
+			log.info("We've reached the maximum threashold for photos(" + numImages + ") or pages(" + numPages + ")");
+			limitReached = true;
+		}
+		
+		return limitReached;
+	}
+	
+	/**
+	 * update the search status to mark the search complete
+	 * @return
+	 */
+	private void markSearchComplete() {
+		// update the search status with complete results
+		updateSearchStatus(nodeRepo.count(), photoRepo.count(), SearchStatusData.SearchStatus.Complete);
 	}
 	
 	/**
@@ -180,14 +221,18 @@ public class SearchNodes extends Thread {
 		
 		// update status
 		updateSearchStatus(nodeRepo.count(), photoRepo.count(), SearchStatusData.SearchStatus.InProgress);
+		log.info("page count " + nodeRepo.count() + ", image count " + photoRepo.count());
 		
 		log.fine("Discovered content loop count" + vistedNodes++);
 		
 		// don't exceed the max number of nodes
+		/*
+		 * FIXME DELETE
 		if (vistedNodes >= maxNodes) {
 			log.info("Reached maximum visited pages: " + maxNodes + ". Ending search");
 			return;
 		}
+		*/
 		
 		//
 		// Use JSoup to identify the URL and its sub pages
@@ -219,7 +264,7 @@ public class SearchNodes extends Thread {
 			pageRecord.setVisited((currentPageDoc != null));
 			pageRecord.setParentUrl((currentPage.parentUrl != null) ? currentPage.parentUrl : null); // set parent node if it exists
 
-			log.fine("saving page, url: " + pageRecord.getUrl() + ", parent: " + pageRecord.getParent());
+			log.fine("Saving page " + pageRecord);
 			
 			// save the node
 			pageRecord = nodeRepo.save(pageRecord);
@@ -236,6 +281,10 @@ public class SearchNodes extends Thread {
 			log.info("Node " + currentPageUrl.toString() + " has previously been visited. Skipping");
 		}
 		
+
+		
+/*
+        FIXME DELETE;
 		while (!toVisitUrls.isEmpty()) {
 			
 			final PageDetails childNode = toVisitUrls.remove();
@@ -247,6 +296,7 @@ public class SearchNodes extends Thread {
 				break;
 			}
 		}
+*/
 	}
 	
 
@@ -290,7 +340,7 @@ public class SearchNodes extends Thread {
 				childUrl = new URL(urlString);
 				
 			} catch (MalformedURLException e) {
-				System.out.println("Malformed url for " + urlString);
+				log.warning("Cannot process malformed url " + urlString);
 				continue;
 			}
 			
@@ -298,20 +348,35 @@ public class SearchNodes extends Thread {
 			if (!childUrl.getHost().equals(parentHost)) {
 				continue;
 			}
-				
+			
+			/*
 			// don't visit a URL that has already been seen
 			if (discoveredUrls.contains(childUrl)) {
 				continue;
 			}
+			*/
 			
-			// add this URL to the queue to be visited
-			log.info("Found new URL: " + urlString);
-			System.out.println("found new URL: " + urlString);
+			// don't visit a URL that has already been seen
+			if (nodeRepo.findByUrl(childUrl) != null) {
+				continue;
+			}
 			
-			toVistUrls.add(new PageDetails(childUrl, parentURL));
+			log.info("Discovered new URL: " + urlString);
+			
+			// Add a new search request for this page
+			try {
+				this.newPageRequestQueue.put(new PageSearchRequest(childUrl, parentURL, this.searchUrl));
+				
+			} catch (InterruptedException e) {
+				// log an error and continue
+				log.severe("Unable to place new search record on queue " + e);
+			}
+			
+			// FIXME DELETE
+			//toVistUrls.add(new PageDetails(childUrl, parentURL));
 			
 			// record this URL as having been seen
-			discoveredUrls.add(childUrl);
+			//discoveredUrls.add(childUrl);
 		}
 	}
 	
@@ -336,22 +401,39 @@ public class SearchNodes extends Thread {
 		imageUrls.addAll(extraImageUrls);
 		
 		// create records out of each image URL
-		for (String imgUrl: imageUrls) {
+		for (String imgUrlString: imageUrls) {
 			
 			// validate if the image actually exists by requesting the URL header
-			if (!validateUrl(imgUrl)) {
+			if (!validateUrl(imgUrlString)) {
+				continue;
+			}
+			
+			URL imgUrl = null;
+			
+    		try {
+    			// attempt to generate a URL for the image record
+				imgUrl = new URL(imgUrlString);
+				
+			} catch (MalformedURLException e) {
+				log.warning("Unable to construct URL for image " + imgUrlString + ". Skipping");
 				continue;
 			}
 			
         	// get the name of the image
-        	final String imageName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
+        	final String imageName = imgUrlString.substring(imgUrlString.lastIndexOf("/") + 1);
         	
-        	// don't save the photo if it has already been saved for this URL
+        	// name and base URL must be unique
         	if (photoRepo.findByNameAndBaseUrl(imageName, baseUrl) != null) {
         		log.fine("Photo " + imageName + " already discovered for url " + baseUrl + ". Will not save");
         		continue;
         	}
         	
+        	// URL must be unique
+        	if (photoRepo.findByUrl(imgUrl) != null) {
+        		log.fine("Image with url " + imgUrl + " already discovered. Will not save");
+        		continue;
+        	}
+
         	//
         	// Save the image
         	//
@@ -363,16 +445,11 @@ public class SearchNodes extends Thread {
         	photo.setNodeUrl(nodeURL);
         	photo.setBaseUrl(baseUrl);
         	
-    		try {
-    			// attempt to generate a URL for the image record
-				photo.setUrl(new URL(imgUrl));
-				
-			} catch (MalformedURLException e) {
-				log.warning("Unable to construct URL for image " + imgUrl + ". Skipping");
-				continue;
-			}
-
+			// attempt to generate a URL for the image record
+			photo.setUrl(imgUrl);
+        	
         	// save it
+    		log.info("Saving new photo: " + photo);
         	photoRepo.save(photo);
 		}
 	}
