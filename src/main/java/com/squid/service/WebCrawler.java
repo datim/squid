@@ -26,6 +26,7 @@ import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
 import com.squid.search.PageSearchRequest;
 import com.squid.search.SearchExecutor;
+import com.squid.search.SearchStatusService;
 
 import javassist.NotFoundException;
 
@@ -52,6 +53,9 @@ public class WebCrawler {
 	@Autowired
 	private UserParameterService userParamService;
 	
+	@Autowired
+	private SearchStatusService searchStatus;
+	
 	private SearchExecutor delgator;
 	
 	/**
@@ -76,9 +80,13 @@ public class WebCrawler {
 		// save search parameter for UI feedback
 		userParamService.setUserSearchString(UserParameterService.DEFAULT_USER_ID, baseUrl.toString());
 		
-		// create new search request for this URL
+		// initialize the search status
+		searchStatus.updateSearchStatus(new Long(0), new Long(0), squidProps.getMaxNodes(), baseUrl, 
+										SearchStatusData.SearchStatus.NoResults);
+		
 		try {
 			
+			// push a new search request onto the processing queue
 			delgator.getPageRequestsQueue().put(new PageSearchRequest(baseUrl));
 			
 		} catch (InterruptedException e) {
@@ -230,6 +238,15 @@ public class WebCrawler {
 	 */
 	public SearchStatusData getSearchStatus(String url) {
 		// it is expected that there will only be one record
+		
+		// TODO - remove counts from status
+		SearchStatusData data = searchStatusRepo.findByUrl(url);
+		
+		if (data != null) {
+			data.setImageCount(photoRepo.count());
+			data.setNodeCount(nodeRepo.count());
+		}
+
 		return searchStatusRepo.findByUrl(url);
 	}
 }

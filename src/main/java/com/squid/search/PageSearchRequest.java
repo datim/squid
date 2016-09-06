@@ -3,18 +3,18 @@ package com.squid.search;
 import java.net.URL;
 
 /**
- * A request object containing information about a new search page to search
+ * Object for defining search page requests
  * @author Datim
  *
  */
 public class PageSearchRequest {
 	
-	URL url;
-	URL parentUrl;
-	URL rootUrl;
+	private URL url;
+	private URL parentUrl;
+	private URL rootUrl;
 	
 	/**
-	 * Constructor with url and its base
+	 * Constructor with url and its base for pages derived from a root search page
 	 */
 	public PageSearchRequest(final URL url, final URL rootUrl, final URL parentURL) {
 		this.url = url;
@@ -23,7 +23,7 @@ public class PageSearchRequest {
 	}
 	
 	/**
-	 * Constructor with just the root url
+	 * Search request for a root search page
 	 * @return
 	 */
 	public PageSearchRequest(final URL url) {

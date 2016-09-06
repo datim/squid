@@ -4,12 +4,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusRepository;
+
+// TODO: Externalize thread count THREAD_POOL_SIZE
 
 /**
  * Poll for new search requests from an incoming request queue. Delegate requests to a thread pool.
@@ -19,16 +21,15 @@ public class SearchExecutor extends Thread {
 	
 	static Logger log = Logger.getLogger(SearchExecutor.class.getName());
 
-	static final int THREAD_POOL_SIZE = 1;
+	static final int THREAD_POOL_SIZE = 5;
 	
-	private long maxNodes;
+	private long maxPages;
 	private long maxImages;
 	private PhotoDataRepository photoRepo;
 	private NodeDataRepository nodeRepo;
 	private SearchStatusRepository searchStatusRepo;
 	private BlockingQueue<PageSearchRequest> pageRequestsQueue = null;
 	ThreadPoolExecutor executor;
-
 
 	/**
 	 * Constructor
@@ -42,12 +43,13 @@ public class SearchExecutor extends Thread {
 		this.nodeRepo = nodeRepoIn;
 		this.searchStatusRepo = inSearchRepo;
 		this.maxImages = maxImages;
-		this.maxNodes = maxNodes;
+		this.maxPages = maxNodes;
+		
+		// create the queue for all page requests
 		this.pageRequestsQueue = new LinkedBlockingQueue<>();
 		
 		// create new thread pool
-		executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-		executor.setMaximumPoolSize(THREAD_POOL_SIZE);
+		executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 	}
 	
 	/**
@@ -74,28 +76,36 @@ public class SearchExecutor extends Thread {
 				// block waiting for page requests
 				final PageSearchRequest request = pageRequestsQueue.take();
 				
-				log.info("Size of search queue is " + pageRequestsQueue.size());
+				if (photoRepo.count() >= maxImages || nodeRepo.count() >= maxPages) {
+					
+					// reached the search limit. Remove all remaining items to be processed. Do not process any more
+					log.info("Maximum threshold for images or pages reached. Clearing queue");
+					pageRequestsQueue.clear();
+					continue;
+				}					
 				
-				PageParser searchTask = new PageParser(request.getUrl(), this.photoRepo, this.nodeRepo, 
-																 this.searchStatusRepo, maxImages, maxNodes);
+				log.info("New request for url " + request.getUrl().toString() + ". Queue size is " + pageRequestsQueue.size());
+				
+				final PageParser searchTask = new PageParser(request.getUrl(), this.photoRepo, this.nodeRepo, 
+													         this.searchStatusRepo, maxImages, maxPages, pageRequestsQueue);
 				
 				executor.execute(searchTask);
-				
-				/*
-				 * TODO: Refactor search node request
-				// push request onto a new processing thread
-				SearchNodes searchTask = new SearchNodes(request.url, request.parentUrl, request.rootUrl, photoRepo, nodeRepo, 
-														 searchStatusRepo, maxImages, maxNodes, pageRequestsQueue);
-				*/
+								
 			} catch (InterruptedException e) {
 				// interrupt exception occurred.  Quit requests
-				log.severe("Exception occured blocking on thread queue: " + e);
+				log.severe("The thread was interrupted. Quiting all future searches. " + e);
 				break;
 			}
 		}
 		
-		// we're done. Shutdown thread pool
-		executor.shutdown();
+		try {
+			// shutdown the thread pool.  This should never be reached unless there was an interruption exception
+			executor.shutdown();
+			executor.awaitTermination(5, TimeUnit.SECONDS);
+			
+		} catch (InterruptedException e) {
+			log.severe("Unable to shutdown thread executor pool: " + e);
+		}
 	}
 	
 	public BlockingQueue<PageSearchRequest> getPageRequestsQueue() {
