@@ -3,7 +3,8 @@ package com.squid.controller;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,7 +28,7 @@ import javassist.NotFoundException;
 @RequestMapping("/crawl")
 public class ImageController {
 	
-	static Logger log = Logger.getLogger(ImageController.class.getName());
+	static Logger log = LoggerFactory.getLogger(ImageController.class.getName());
 	
 	@Autowired 
 	private WebCrawler crawler;

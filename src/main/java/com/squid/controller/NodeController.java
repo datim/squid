@@ -2,7 +2,8 @@ package com.squid.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +19,7 @@ import com.squid.service.WebCrawler;
 @RequestMapping("/crawl")
 public class NodeController {
 	
-	static Logger log = Logger.getLogger(WebCrawler.class.getName());
+	static Logger log = LoggerFactory.getLogger(WebCrawler.class);
 
 	@Autowired 
 	private WebCrawler crawler;

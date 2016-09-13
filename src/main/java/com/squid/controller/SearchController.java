@@ -2,7 +2,8 @@ package com.squid.controller;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -30,7 +31,7 @@ import com.squid.service.WebCrawler;
 @RequestMapping("/crawl/search")
 public class SearchController {
 	
-	static Logger log = Logger.getLogger(SearchController.class.getName());
+	static Logger log = LoggerFactory.getLogger(SearchController.class);
 
 	@Autowired 
 	private WebCrawler crawler;
@@ -79,8 +80,8 @@ public class SearchController {
     	if (inUrl.isEmpty()) {
         	//FIXME TODO remove default status during search
     		searchURL = userParamService.getDefaultUserParameters().getSearchURL();
-    		log.warning("We're getting status based on default URL!");
-    		//throw new ResourceNotFoundException("searchURL");
+    		log.warn("We're getting status based on default URL!");
+    		//TODO FIXME throw new ResourceNotFoundException("searchURL");
     	}
     	
     	final SearchStatusData dao = crawler.getSearchStatus(searchURL);
@@ -92,7 +93,7 @@ public class SearchController {
     		dto.setStatus("no status");
     		return dto;
     	} else {
-    		log.fine("Request status: page count: " + dao.getNodeCount() + ", image count: " + dao.getImageCount());
+    		log.debug("Request status: page count: " + dao.getNodeCount() + ", image count: " + dao.getImageCount());
     	}
     	
     	return dataMapper.daoToDto(dao);    	

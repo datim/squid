@@ -5,7 +5,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoDataRepository;
@@ -18,11 +20,11 @@ import com.squid.data.SearchStatusRepository;
  * @author Datim
  */
 public class SearchExecutor extends Thread {
-	
-	static Logger log = Logger.getLogger(SearchExecutor.class.getName());
+
+	static Logger log = LoggerFactory.getLogger(SearchExecutor.class);
 
 	static final int THREAD_POOL_SIZE = 5;
-	
+
 	private long maxPages;
 	private long maxImages;
 	private PhotoDataRepository photoRepo;
@@ -34,24 +36,26 @@ public class SearchExecutor extends Thread {
 	/**
 	 * Constructor
 	 */
-	public SearchExecutor(final PhotoDataRepository photoRepoIn, 
-						  final NodeDataRepository nodeRepoIn, 
-						  final SearchStatusRepository inSearchRepo, 
+	public SearchExecutor(final PhotoDataRepository photoRepoIn,
+						  final NodeDataRepository nodeRepoIn,
+						  final SearchStatusRepository inSearchRepo,
 						  long maxImages, long maxNodes) {
-		
-		this.photoRepo = photoRepoIn;
-		this.nodeRepo = nodeRepoIn;
-		this.searchStatusRepo = inSearchRepo;
+
+		photoRepo = photoRepoIn;
+		nodeRepo = nodeRepoIn;
+		searchStatusRepo = inSearchRepo;
 		this.maxImages = maxImages;
-		this.maxPages = maxNodes;
-		
+		maxPages = maxNodes;
+
 		// create the queue for all page requests
-		this.pageRequestsQueue = new LinkedBlockingQueue<>();
-		
+		pageRequestsQueue = new LinkedBlockingQueue<>();
+
+		log.debug("Test Debug");
+
 		// create new thread pool
 		executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 	}
-	
+
 	/**
 	 * Execute in a thread
 	 */
@@ -59,55 +63,55 @@ public class SearchExecutor extends Thread {
 	public void run() {
 		monitorPageRequests();
 	}
-	
+
 	/**
-	 * Simple thread to check for new requests.  Block on thread queue until a 
+	 * Simple thread to check for new requests.  Block on thread queue until a
 	 * a new request has been added.  Delegate request to new parse thread.
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
 	private void monitorPageRequests()  {
-		
+
 		// looping forever is not usually good practice.  In this case,
-		// this thread should never go away.  It blocks until 
+		// this thread should never go away.  It blocks until
 		// a new page request is available
-		while(true) { 
-			
+		while(true) {
+
 			try {
 				// block waiting for page requests
 				final PageSearchRequest request = pageRequestsQueue.take();
-				
-				if (photoRepo.count() >= maxImages || nodeRepo.count() >= maxPages) {
-					
+
+				if ((photoRepo.count() >= maxImages) || (nodeRepo.count() >= maxPages)) {
+
 					// reached the search limit. Remove all remaining items to be processed. Do not process any more
 					log.info("Maximum threshold for images or pages reached. Clearing queue");
 					pageRequestsQueue.clear();
 					continue;
-				}					
-				
+				}
+
 				log.info("New request for url " + request.getUrl().toString() + ". Queue size is " + pageRequestsQueue.size());
-				
-				final PageParser searchTask = new PageParser(request.getUrl(), this.photoRepo, this.nodeRepo, 
-													         this.searchStatusRepo, maxImages, maxPages, pageRequestsQueue);
-				
+
+				final PageParser searchTask = new PageParser(request.getUrl(), photoRepo, nodeRepo,
+													         searchStatusRepo, maxImages, maxPages, pageRequestsQueue);
+
 				executor.execute(searchTask);
-								
+
 			} catch (InterruptedException e) {
 				// interrupt exception occurred.  Quit requests
-				log.severe("The thread was interrupted. Quiting all future searches. " + e);
+				log.error("The thread was interrupted. Quiting all future searches. " + e);
 				break;
 			}
 		}
-		
+
 		try {
 			// shutdown the thread pool.  This should never be reached unless there was an interruption exception
 			executor.shutdown();
 			executor.awaitTermination(5, TimeUnit.SECONDS);
-			
+
 		} catch (InterruptedException e) {
-			log.severe("Unable to shutdown thread executor pool: " + e);
+			log.error("Unable to shutdown thread executor pool: " + e);
 		}
 	}
-	
+
 	public BlockingQueue<PageSearchRequest> getPageRequestsQueue() {
 		return pageRequestsQueue;
 	}
