@@ -25,11 +25,11 @@ public class SearchExecutor extends Thread {
 
 	static final int THREAD_POOL_SIZE = 5;
 
-	private long maxPages;
-	private long maxImages;
-	private PhotoDataRepository photoRepo;
-	private NodeDataRepository nodeRepo;
-	private SearchStatusRepository searchStatusRepo;
+	private final long maxPages;
+	private final long maxImages;
+	private final PhotoDataRepository photoRepo;
+	private final NodeDataRepository nodeRepo;
+	private final SearchStatusRepository searchStatusRepo;
 	private BlockingQueue<PageSearchRequest> pageRequestsQueue = null;
 	ThreadPoolExecutor executor;
 
@@ -90,12 +90,13 @@ public class SearchExecutor extends Thread {
 
 				log.info("New request for url " + request.getUrl().toString() + ". Queue size is " + pageRequestsQueue.size());
 
-				final PageParser searchTask = new PageParser(request.getUrl(), photoRepo, nodeRepo,
-													         searchStatusRepo, maxImages, maxPages, pageRequestsQueue);
+				final PageParser searchTask = new PageParser(request.getUrl(), request.getParentUrl(), request.getRootUrl(),
+															 photoRepo, nodeRepo, searchStatusRepo, maxImages, maxPages,
+													         pageRequestsQueue);
 
 				executor.execute(searchTask);
 
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				// interrupt exception occurred.  Quit requests
 				log.error("The thread was interrupted. Quiting all future searches. " + e);
 				break;
@@ -107,7 +108,7 @@ public class SearchExecutor extends Thread {
 			executor.shutdown();
 			executor.awaitTermination(5, TimeUnit.SECONDS);
 
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			log.error("Unable to shutdown thread executor pool: " + e);
 		}
 	}
