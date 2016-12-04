@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
-import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
@@ -14,7 +13,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import org.apache.commons.discovery.tools.ResourceUtils;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Read all properties for Squid from a file
@@ -22,7 +22,7 @@ import org.apache.commons.discovery.tools.ResourceUtils;
 @Service
 public class SquidProperties {
 	
-	static Logger log = Logger.getLogger(SquidProperties.class.getName());
+	static Logger log = LoggerFactory.getLogger(SquidProperties.class);
 
 	static final String PROPERTIES_FILE = "application.properties";
 
