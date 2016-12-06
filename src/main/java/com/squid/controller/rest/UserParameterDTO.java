@@ -13,7 +13,6 @@ public class UserParameterDTO {
 	public String searchFilter;
 	public long maxPageCount;
 	public long maxImageCount;
-	public String logPath;
 	public String savePath;
 	
 	public long getId() {
@@ -52,12 +51,7 @@ public class UserParameterDTO {
 	public void setMaxImageCount(long maxImageCount) {
 		this.maxImageCount = maxImageCount;
 	}
-	public String getLogPath() {
-		return logPath;
-	}
-	public void setLogPath(String logPath) {
-		this.logPath = logPath;
-	}
+
 	public String getSavePath() {
 		return savePath;
 	}

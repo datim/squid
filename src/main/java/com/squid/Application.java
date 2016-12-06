@@ -11,17 +11,11 @@ import org.springframework.context.annotation.Configuration;
 @EnableAutoConfiguration
 public class Application {
 
+	/**
+	 * The main application!
+	 * @param args Command line arguments
+	 */
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-    
-    /*
-    @Bean
-    public CommandLineRunner forceSave(BoxRepository repo) {
-    	return (args) -> {
-    	repo.save(new BoxData(1, 12, 5, 10));
-    	};
-    }
-    */
-    
 }

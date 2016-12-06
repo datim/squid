@@ -4,13 +4,14 @@ import React from "react";
 import {Table, Column, Cell} from 'fixed-data-table';
 
 import DownloadButton from "./DownloadButton"
+import ImageData from "./ImageData"
 
 /*
  * Render a cell within the photo data table
  */
-export default class PhotoCell extends React.Component {
-  constructor() {
-    super();
+export default class ImageCell extends React.Component {
+  constructor(props) {
+    super(props);
   }
 
   render() {
@@ -24,10 +25,9 @@ export default class PhotoCell extends React.Component {
     return(
       <Cell {...props}>
         <div>
-        <DownloadButton photoData={photoData} />
-        {photoData.name}
-        <img src={photoData.url} style={imgStyle} label={photoData.name}></img>
-
+          <DownloadButton photoData={photoData} />
+          {photoData.name}
+          <ImageData source={photoData} sourceWidth={width}/>
         </div>
       </Cell>
     )

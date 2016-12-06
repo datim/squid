@@ -42,8 +42,16 @@ public class PhotoData {
 	@Column (name = "saved")
 	private boolean saved;
 	
+	@Column (name = "etag")
+	private String etag;
+	
 	@Column (name = "pinned")
 	private boolean pinned;
+	
+	public String toString() {
+		return "id " + this.id + ", img url: " + this.url + ", page url " + this.nodeUrl + ", base url: " + this.baseUrl +
+				", name: " + this.name + ", saved: " + this.saved + ", etag: " + this.etag;
+	}
 	
 	public int getWidth() {
 		return width;
@@ -115,5 +123,13 @@ public class PhotoData {
 
 	public void setBaseUrl(String baseUrl) {
 		this.baseUrl = baseUrl;
+	}
+
+	public String getEtag() {
+		return etag;
+	}
+
+	public void setEtag(String etag) {
+		this.etag = etag;
 	}
 }

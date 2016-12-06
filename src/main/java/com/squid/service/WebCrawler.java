@@ -11,11 +11,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.squid.config.SquidConstants;
 import com.squid.config.SquidProperties;
 import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
@@ -23,8 +24,11 @@ import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
-import com.squid.data.UserParameterData;
-import com.squid.search.SearchNodes;
+import com.squid.search.PageSearchRequest;
+import com.squid.search.SearchExecutor;
+import com.squid.search.SearchStatusService;
+
+import javassist.NotFoundException;
 
 /**
  * TODO: Breadth first search instead of depth-first search
@@ -49,6 +53,23 @@ public class WebCrawler {
 	@Autowired
 	private UserParameterService userParamService;
 	
+	@Autowired
+	private SearchStatusService searchStatus;
+	
+	private SearchExecutor delgator;
+	
+	/**
+	 * After the service starts, launch the listening thread
+	 * that will execute page searches
+	 */
+	@PostConstruct
+	public void startThreadPolling() {
+		
+		// create a new search delgator
+		delgator = new SearchExecutor(photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
+		delgator.start();
+	}
+	
 	/**
 	 * Start the crawl through a tree of pages starting with the base url
 	 * @param huntUrl
@@ -56,12 +77,27 @@ public class WebCrawler {
 	 */
 	public void startCrawl(final URL baseUrl) throws IOException {
 		
-		// save search parameter
+		// save search parameter for UI feedback
 		userParamService.setUserSearchString(UserParameterService.DEFAULT_USER_ID, baseUrl.toString());
 		
+		// initialize the search status
+		searchStatus.updateSearchStatus(new Long(0), new Long(0), squidProps.getMaxNodes(), baseUrl, 
+										SearchStatusData.SearchStatus.NoResults);
+		
+		try {
+			
+			// push a new search request onto the processing queue
+			delgator.getPageRequestsQueue().put(new PageSearchRequest(baseUrl));
+			
+		} catch (InterruptedException e) {
+			log.severe("Unable to invoke a search for page: " + baseUrl + ". Exception: " + e);
+		}
+
+		/*
 		// begin a search in a new thread and return
-		final SearchNodes searchThread = new SearchNodes(baseUrl, photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
+		final SearchNodes searchThread = new ParseNodeThread(baseUrl, photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
 		searchThread.start();
+		*/
 	}
 
 	/**
@@ -73,7 +109,6 @@ public class WebCrawler {
 			
 		} else {
 			// save filter and return photos
-			userParamService.setUserFilter(UserParameterService.DEFAULT_USER_ID, filter);
 			return getPhotosWithFilter(filter);
 		}
 	}
@@ -82,7 +117,6 @@ public class WebCrawler {
 	 * Query all photos
 	 */
 	public List<PhotoData> getAllPhotos() {
-		log.info("Requesting all photos");
 		return photoRepo.findAll(new Sort(Sort.Direction.ASC, "id"));
 	}
 	
@@ -91,7 +125,12 @@ public class WebCrawler {
 	 */
 	public List<PhotoData> getPhotosWithFilter(String filter) {
 		log.info("Requesting photos with filter '" + filter + "'");
-		return photoRepo.findFilteredPhotos(filter);
+		
+		
+		List<PhotoData> results = photoRepo.findFilteredPhotos(filter.toLowerCase());
+		log.info("found " + results.size() + " results");
+		
+		return photoRepo.findFilteredPhotos(filter.toLowerCase());
 	}
 
 	/**
@@ -139,26 +178,32 @@ public class WebCrawler {
 			nodeRepo.delete(n);
 		}
 	}
-
+	
 	/**
 	 * Download a Photo to the default directory. Overwrite photo if it exists
 	 * @param Download a photo to the default directory. Save the updated photo
 	 * @throws IOException
+	 * @throws NotFoundException 
 	 */
-	public PhotoData savePhoto(PhotoData photo) throws IOException {
+	public PhotoData savePhoto(long photoId) throws IOException, NotFoundException {
 		
-		// get download directory
-		Path downloadDirPath = SquidConstants.getDownloadDirectory();
+		// get download path
+		Path downloadDirPath = squidProps.getDownloadDirectory();
 		
-		// create it if it doesn't exist
-		final File downloadDir = new File(downloadDirPath.toString());
+		// check the download path and download if needed
+		checkAndCreateDownloadDirectory(downloadDirPath);
+
+		// get photo by id
+		final PhotoData photo = photoRepo.findById(photoId);
 		
-		if (!downloadDir.exists()) {
-			downloadDir.mkdirs();
+		if (photo == null) {
+			throw new NotFoundException(Long.toString(photoId));
 		}
 		
 		// construct the path to the file
 		final Path downloadFilePath = Paths.get(downloadDirPath.toString(), photo.getName()); 
+		
+		log.info("Downloading photo " + photo.getUrl() + " from url: " + photo.getNodeUrl());
 		
 		// download the picture
 		try (InputStream in = photo.getUrl().openStream()) {
@@ -173,11 +218,35 @@ public class WebCrawler {
 	}
 	
 	/**
+	 * Create the download directory if it doesn't exist
+	 */
+	private void checkAndCreateDownloadDirectory(final Path downloadDirPath) {
+		
+		// get download directory
+		
+		// create it if it doesn't exist
+		final File downloadDir = new File(downloadDirPath.toString());
+		
+		if (!downloadDir.exists()) {
+			downloadDir.mkdirs();
+		}
+	}
+	
+	/**
 	 * Return the last search status
 	 * @return
 	 */
 	public SearchStatusData getSearchStatus(String url) {
 		// it is expected that there will only be one record
+		
+		// TODO - remove counts from status
+		SearchStatusData data = searchStatusRepo.findByUrl(url);
+		
+		if (data != null) {
+			data.setImageCount(photoRepo.count());
+			data.setNodeCount(nodeRepo.count());
+		}
+
 		return searchStatusRepo.findByUrl(url);
 	}
 }

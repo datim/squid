@@ -18,7 +18,7 @@ export default class SearchStatus extends React.Component {
    * Query the status of the search
    */
   getStatus() {
-    const statusURL = 'http://localhost:8080/crawl/search/status';
+    const statusURL = 'http://localhost:8080/crawl/search/status?searchURL=' + this.props.searchURL;
     var xhr = new XMLHttpRequest();
     xhr.open("GET", statusURL, false);
     xhr.send();
@@ -30,7 +30,7 @@ export default class SearchStatus extends React.Component {
    /*
     * Update the state of the display
     */
-  setDisplay() {
+  setProgress() {
     var display =  "Pages: " + String(this.statusResults.nodeCount) + " Images: " + String(this.statusResults.imageCount);
 
     if (this.statusResults.status !== "Complete") {
@@ -39,7 +39,6 @@ export default class SearchStatus extends React.Component {
 
     return display;
   }
-
 
   checkSearchStatus() {
 
@@ -78,8 +77,6 @@ export default class SearchStatus extends React.Component {
 
   componentWillMount() {
     // Called the first time the component is loaded right before the component is added to the page
-
-    // perform first status check
     this.statusResults = this.getStatus();
   }
 
@@ -106,11 +103,11 @@ export default class SearchStatus extends React.Component {
   }
 
   render() {
-    var display = this.setDisplay();
+    var progress = this.setProgress();
 
     return(
       <div>
-        <p>{display}</p>
+        <p>{progress}</p>
       </div>
     )
   }

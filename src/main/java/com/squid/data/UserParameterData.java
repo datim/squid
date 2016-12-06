@@ -36,9 +36,6 @@ public class UserParameterData {
 	@Column (name = "max_image_count")
 	long maxImageCount;
 	
-	@Column (name = "log_path")
-	String logPath;
-	
 	@Column (name = "save_path")
 	String savePath;
 
@@ -80,14 +77,6 @@ public class UserParameterData {
 
 	public void setMaxImageCount(long maxImageCount) {
 		this.maxImageCount = maxImageCount;
-	}
-
-	public String getLogPath() {
-		return logPath;
-	}
-
-	public void setLogPath(String logPath) {
-		this.logPath = logPath;
 	}
 
 	public String getSavePath() {
