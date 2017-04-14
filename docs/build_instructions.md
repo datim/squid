@@ -1,30 +1,36 @@
-#Dev Setup and Usage
+#Dev Usage
+Compiling and debugging project
 
-## Database Setup
-`./gradlew flywayclean`
-`./gradlew flywaymigrate`
+## Frontend
 
-## UI 
-#### Compile
-`npm install`
-`webpack`
+#### Build
+`webpack --config webpack.config.js` or `npm run build`
 
 #### Debug
 `npm run dev`
-This launches a nodejs express server and runs webpack.  Code is auto-updated
+This launches a nodejs express server using webpack-run-dev and runs webpack.  Code is hot-swapped on the fly.
 
-open http://localhost:7777
+Open url 'http://localhost:7777'
 
-## Server 
+* Make sure there is a backend server running. Either run the entire program, or start the project through eclipse.
+* Debug in chrome.
+
+## Backend 
+
 #### Compile
 `./gradlew clean`   
 `./gradlew build`
 
 #### Debug
 `./gradlew eclipse`
-Open eclipse. Build Project. Run Project
+Run project through debug mode in eclipse
 
-## Execute
+## Execute Project
 #### Execute Back-End the Command Line
 `./run.sh`
 Open http://localhost:8080
+
+## Migrate Database
+`./gradlew flywayclean`
+`./gradlew flywaymigrate`
+

@@ -1,4 +1,7 @@
 "use strict";
+// webpack configuration module
+// To run, execute 'webpack --conf [THIS FILE]' from the top level directory
+// Javascript packed into 'squidui.min.js'
 
 var debug = true;
 var webpack = require('webpack');
@@ -11,11 +14,11 @@ module.exports = {
   //devtool: debug ? "inline-sourcemap" : null,
   devtool: debug ? "eval-source-map" : null,
   output: {
-    path: rootPath,
     filename: 'squidui.min.js',
-    sourceMapFileName: 'squidui.min.js.map'
+    path: path.resolve(__dirname, 'src', 'main', 'resources', 'public')
   },
 
+  // Add Babel compiler
   module: {
     loaders: [
       {
