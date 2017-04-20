@@ -4,7 +4,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoDataRepository;
@@ -13,39 +15,39 @@ import com.squid.data.SearchStatusRepository;
 // main thread to constantly pull work off of a thread
 /**
  * Single thread to pull page search requests off a of a thread safe queue
- * and delegate them to threads to crawl. 
+ * and delegate them to threads to crawl.
  */
 public class SearchExecutor extends Thread {
-	
-	static Logger log = Logger.getLogger(SearchExecutor.class.getName());
-	
+
+    private static final Logger log = LoggerFactory.getLogger(SearchExecutor.class);
+
 	static final int THREAD_POOL_SIZE = 10;
 
-	private long maxNodes;
-	private long maxImages;
-	private PhotoDataRepository photoRepo;
-	private NodeDataRepository nodeRepo;
-	private SearchStatusRepository searchStatusRepo;
+	private final long maxNodes;
+	private final long maxImages;
+	private final PhotoDataRepository photoRepo;
+	private final NodeDataRepository nodeRepo;
+	private final SearchStatusRepository searchStatusRepo;
 	private BlockingQueue<PageSearchRequest> pageRequestsQueue = null;
 	ThreadPoolExecutor executor;
-	
+
 	/**
 	 * Constructor
 	 */
-	public SearchExecutor(final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn, 
+	public SearchExecutor(final PhotoDataRepository photoRepoIn, final NodeDataRepository nodeRepoIn,
 			   			  final SearchStatusRepository inSearchRepo, long maxImages, long maxNodes) {
-		this.photoRepo = photoRepoIn;
-		this.nodeRepo = nodeRepoIn;
-		this.searchStatusRepo = inSearchRepo;
+		photoRepo = photoRepoIn;
+		nodeRepo = nodeRepoIn;
+		searchStatusRepo = inSearchRepo;
 		this.maxImages = maxImages;
 		this.maxNodes = maxNodes;
-		this.pageRequestsQueue = new LinkedBlockingQueue<>();
-		
+		pageRequestsQueue = new LinkedBlockingQueue<>();
+
 		// create new thread pool
 		executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 		executor.setMaximumPoolSize(THREAD_POOL_SIZE);
 	}
-	
+
 	/**
 	 * Execute in a thread
 	 */
@@ -53,36 +55,36 @@ public class SearchExecutor extends Thread {
 	public void run() {
 		monitorPageRequests();
 	}
-	
+
 	/**
 	 * Thread based method to continually check for new page requests
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
 	private void monitorPageRequests()  {
-		
+
 		// looping forever is not usually good practice.  In this case,
-		// this thread should never go away.  It blocks until 
+		// this thread should never go away.  It blocks until
 		// a new page request is available
-		while(true) { 
-			
+		while(true) {
+
 			try {
 				// block waiting for page requests
 				final PageSearchRequest request = pageRequestsQueue.take();
-				
+
 				log.info("Size of search queue is " + pageRequestsQueue.size());
-				
+
 				// push request onto a new processing thread
-				SearchNodes searchTask = new SearchNodes(request.url, request.parentUrl, request.rootUrl, photoRepo, nodeRepo, 
+				final SearchNodes searchTask = new SearchNodes(request.url, request.parentUrl, request.rootUrl, photoRepo, nodeRepo,
 														 searchStatusRepo, maxImages, maxNodes, pageRequestsQueue);
 				executor.execute(searchTask);
-			
-			} catch (InterruptedException e) {
+
+			} catch (final InterruptedException e) {
 				// interrupt exception occurred.  Quit requests
-				log.severe("Exception occured blocking on thread queue: " + e);
+				log.error("Exception occured blocking on thread queue: {}", e);
 				break;
 			}
 		}
-		
+
 		// we're done. Shutdown thread pool
 		executor.shutdown();
 	}

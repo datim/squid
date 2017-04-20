@@ -9,10 +9,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ import javassist.NotFoundException;
 @Service
 public class SearchService {
 
-	static Logger log = Logger.getLogger(SearchService.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(SearchService.class);
 
 	@Autowired
 	private SquidProperties squidProps;
@@ -87,7 +88,7 @@ public class SearchService {
 
 		} catch (final InterruptedException e) {
 			// submission request failed. Throw an error
-			log.severe("Unable to invoke a search for page: " + baseUrl + ". Exception: " + e);
+			log.error("Unable to invoke a search for page: {}. Exception {}", baseUrl, e);
 		}
 	}
 

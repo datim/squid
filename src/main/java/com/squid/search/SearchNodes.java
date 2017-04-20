@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,6 +17,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
@@ -32,7 +33,7 @@ import com.squid.data.SearchStatusRepository;
  */
 public class SearchNodes implements Runnable {
 
-	static Logger log = Logger.getLogger(SearchNodes.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(SearchNodes.class);
 
 	private final URL searchUrl;
 	private final URL parentUrl;
@@ -87,7 +88,7 @@ public class SearchNodes implements Runnable {
 			startSearch();
 
 		} catch (final IOException e) {
-			log.severe("An error occurred while searching page: " + searchUrl + ". Exception: " + e);
+			log.error("An error occurred while searching page: " + searchUrl + ". Exception: " + e);
 		}
 	}
 
@@ -117,7 +118,7 @@ public class SearchNodes implements Runnable {
 		// update the search status
 		SearchConstants.setSearchStatus(rootUrl, nodeRepo.count(), photoRepo.count(), new Long(maxNodes), SearchStatusData.SearchStatus.InProgress, searchStatusRepo);
 
-		log.fine("Discovered content loop count" + nodeRepo.count());
+		log.debug("Discovered content loop count" + nodeRepo.count());
 
 		//
 		// Use JSoup to identify the URL and its sub pages
@@ -135,7 +136,7 @@ public class SearchNodes implements Runnable {
 
 			} catch (SocketTimeoutException | HttpStatusException e) {
 				// catch the exception and exist the search for this page
-				log.severe ("Unable to fetch URL: " + searchUrl.toString() + ". Exception: " + e);
+				log.error ("Unable to fetch URL: " + searchUrl.toString() + ". Exception: " + e);
 				return;
 			}
 
@@ -147,7 +148,7 @@ public class SearchNodes implements Runnable {
 			pageRecord.setVisited((currentPageDoc != null));
 			pageRecord.setParentUrl((parentUrl != null) ? parentUrl : null); // set parent node if it exists
 
-			log.fine("saving page, url: " + pageRecord.getUrl() + ", parent: " + pageRecord.getParent());
+			log.debug("saving page, url: " + pageRecord.getUrl() + ", parent: " + pageRecord.getParent());
 
 			// save the node if it doesn't exist
 			if (nodeRepo.findByUrl(pageRecord.getUrl()) == null) {
@@ -222,7 +223,7 @@ public class SearchNodes implements Runnable {
 
 			} catch (final InterruptedException e) {
 				// catch the exception and move on
-				log.severe("Unable to submit url " + childUrl + " for search. Exception: " + e);
+				log.error("Unable to submit url " + childUrl + " for search. Exception: " + e);
 			}
 		}
 	}
@@ -242,7 +243,7 @@ public class SearchNodes implements Runnable {
 		// find additional images using custom algorithms
 		final Set<String> extraImageUrls = customAlgorithms(doc, baseUrl);
 
-		log.fine("Discovered " + imageUrls.size() + " img urls and " + extraImageUrls.size() + " extra img urls" );
+		log.debug("Discovered " + imageUrls.size() + " img urls and " + extraImageUrls.size() + " extra img urls" );
 
 		// combine the results
 		imageUrls.addAll(extraImageUrls);
@@ -260,7 +261,7 @@ public class SearchNodes implements Runnable {
 
         	// don't save the photo if it has already been saved for this URL
         	if (photoRepo.findByNameAndBaseUrl(imageName, baseUrl) != null) {
-        		log.fine("Photo " + imageName + " already discovered for url " + baseUrl + ". Will not save");
+        		log.debug("Photo " + imageName + " already discovered for url " + baseUrl + ". Will not save");
         		continue;
         	}
 
@@ -284,7 +285,7 @@ public class SearchNodes implements Runnable {
 				photo.setUrl(new URL(imgUrl));
 
 			} catch (final MalformedURLException e) {
-				log.warning("Unable to construct URL for image " + imgUrl + ". Skipping");
+				log.warn("Unable to construct URL for image " + imgUrl + ". Skipping");
 				continue;
 			}
 
@@ -429,7 +430,7 @@ public class SearchNodes implements Runnable {
 			}
 
 		} catch (final IOException e) {
-			log.warning("Error occurred attempting to validate image " + url);
+			log.warn("Error occurred attempting to validate image " + url);
 		}
 
 		return valid;
