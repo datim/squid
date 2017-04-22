@@ -10,12 +10,14 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- * Data Access object for a traversed URL node
+ * Data Access for page table. Represent URL pages discovered during search.
+ *
+ * @author Datim
+ *
  */
-@Deprecated
 @Entity
-@Table(name = "node")
-public class NodeData {
+@Table(name = "page")
+public class Page {
 
 	@Id
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -25,46 +27,33 @@ public class NodeData {
 	@Column (name = "url")
 	private URL url;
 
-	@Column (name = "parent_url")
-	private URL parentUrl;
-
-	@Column (name = "visited")
-	private boolean visited;
-
 	@Column (name = "etag")
 	private String etag;
 
-	public boolean isVisited() {
-		return visited;
-	}
-	public void setVisited(boolean visited) {
-		this.visited = visited;
+	@Column (name = "hoho")
+	private String ho;
+
+	// constructor
+	public Page() {}
+
+	// constructor
+	public Page(final URL url, final String etag) {
+		this.url = url;
+		this.etag = etag;
 	}
 
-	public URL getParent() {
-		return parentUrl;
-	}
-	public void setParentUrl(URL parent) {
-		parentUrl = parent;
-	}
 	public URL getUrl() {
 		return url;
 	}
+
 	public void setUrl(URL url) {
 		this.url = url;
 	}
-	public long getId() {
-		return id;
-	}
-	public void setId(long id) {
-		this.id = id;
-	}
-	public URL getParentUrl() {
-		return parentUrl;
-	}
+
 	public String getEtag() {
 		return etag;
 	}
+
 	public void setEtag(String etag) {
 		this.etag = etag;
 	}

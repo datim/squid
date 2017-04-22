@@ -12,30 +12,31 @@ import javax.persistence.Table;
  * @author roecks
  *
  */
+@Deprecated
 @Entity
 @Table(name = "user_parameters")
 public class UserParameterData {
-	
+
 	@Id
     @GeneratedValue(strategy=GenerationType.AUTO)
 	@Column (name = "id")
 	private long id;
-	
+
 	@Column (name = "user_id")
 	private long userId;
-	
+
 	@Column (name = "search_url")
 	String searchURL;
-	
+
 	@Column (name = "search_filter")
 	String searchFilter;
-	
+
 	@Column (name = "max_node_count")
 	long maxPageCount;
-	
+
 	@Column (name = "max_image_count")
 	long maxImageCount;
-	
+
 	@Column (name = "save_path")
 	String savePath;
 

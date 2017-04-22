@@ -12,42 +12,44 @@ import javax.persistence.Table;
 /**
  * Data Access class for photos
  */
+@Deprecated
+
 @Entity
 @Table(name = "node_photo")
 public class PhotoData {
-	
+
 	@Id
     @GeneratedValue(strategy=GenerationType.AUTO)
 	@Column (name = "id")
 	private long id;
-	
+
 	@Column (name = "url")
 	private URL url;
-	
+
 	@Column (name = "node_url")
 	private URL nodeUrl;
-	
+
 	@Column (name = "base_url")
 	private String baseUrl;
-	
+
 	@Column (name = "name")
 	private String name;
-	
+
 	@Column (name = "width")
 	private int width;
-	
+
 	@Column (name = "heigth")
 	private int heigth;
-	
+
 	@Column (name = "saved")
 	private boolean saved;
-	
+
 	@Column (name = "etag")
 	private String etag;
-	
+
 	@Column (name = "pinned")
 	private boolean pinned;
-	
+
 	public int getWidth() {
 		return width;
 	}

@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
  * @author roecks
  *
  */
+@Deprecated
 public interface UserParameterRepository extends CrudRepository<UserParameterData, Long>{
 
 	public UserParameterData findByUserId(long userId);
