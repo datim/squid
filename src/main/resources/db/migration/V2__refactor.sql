@@ -23,3 +23,12 @@ CREATE TABLE page (
 
 /* Make image fields unique */
 ALTER TABLE page add UNIQUE(url);
+
+/* Queries requested by the user */
+CREATE TABLE query (
+  id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  url VARCHAR(2048) NOT NULL,
+  name VARCHAR(255),
+  max_pages INT NOT NULL,
+  max_images INT NOT NULL
+);

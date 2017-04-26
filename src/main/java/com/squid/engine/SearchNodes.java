@@ -1,4 +1,4 @@
-package com.squid.search;
+package com.squid.engine;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

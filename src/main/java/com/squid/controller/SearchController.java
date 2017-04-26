@@ -2,6 +2,8 @@ package com.squid.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.squid.config.SquidProperties;
 import com.squid.controller.exceptions.ResourceNotFoundException;
+import com.squid.controller.rest.QueryDTO;
 import com.squid.controller.rest.SearchStatusDTO;
 import com.squid.controller.rest.UserParameterDTO;
+import com.squid.data.Query;
 import com.squid.data.SearchStatusData;
 import com.squid.data.UserParameterData;
-import com.squid.service.UserParameterService;
-import com.squid.service.SearchService;
+import com.squid.parser.SearchService;
+import com.squid.parser.UserParameterService;
 
 /**
  * Controller for search related functionality
@@ -29,75 +33,89 @@ import com.squid.service.SearchService;
 @RestController
 @RequestMapping("/crawl/search")
 public class SearchController {
-	
+
 	static Logger log = Logger.getLogger(SearchController.class.getName());
 
-	@Autowired 
+	@Autowired
 	private SearchService crawler;
-	
+
 	@Autowired
 	private DataMapper dataMapper;
-	
+
 	@Autowired
 	private SquidProperties squidProps;
-	
+
 	@Autowired
 	private UserParameterService userParamService;
-	
+
+	@RequestMapping(path = "/queries", method = RequestMethod.GET)
+	public List<QueryDTO> getQueries() {
+
+		final List<Query> queries = crawler.getQueries();
+
+		final List<QueryDTO> dtos = new ArrayList<>(queries.size());
+
+		for (final Query dao: queries) {
+			dtos.add(dataMapper.daoToDto(dao));
+		}
+
+		return dtos;
+	}
+
 	/**
 	 * Perform search on a URL
 	 * @param inUrl
 	 * @throws IOException
 	 */
     @RequestMapping(path = "/search", method = RequestMethod.GET)
-    
+
     public void search(@RequestParam(value="discoverUrl", defaultValue = "") String inUrl) throws IOException {
-    	
+
     	// initialize with default
 		URL huntUrl = new URL(inUrl);
 
-    	if (inUrl == null || inUrl.isEmpty()) {
+    	if ((inUrl == null) || inUrl.isEmpty()) {
     		// search URL not provided.  Use default
     		log.info("No URL specified. Using default URL: " + squidProps.getBaseUrl());
     		huntUrl = new URL(squidProps.getBaseUrl());
     	}
-    	
+
     	log.info("Performing search on url: " + huntUrl);
 
-    	crawler.startCrawl(huntUrl);
+    	crawler.startSearch(huntUrl);
     }
-    
+
     /**
      * Get search status for a specific URL
      */
     @RequestMapping(path = "/status", method = RequestMethod.GET)
     @ExceptionHandler({ResourceNotFoundException.class})
     public SearchStatusDTO getSearchStatus(@RequestParam(value="searchURL", defaultValue = "") String inUrl) {
-    	
+
     	String searchURL = inUrl;
-    	
+
     	if (inUrl.isEmpty()) {
         	//FIXME TODO remove default status during search
     		searchURL = userParamService.getDefaultUserParameters().getSearchURL();
     		log.warning("We're getting status based on default URL!");
     		//throw new ResourceNotFoundException("searchURL");
     	}
-    	
+
     	final SearchStatusData dao = crawler.getSearchStatus(searchURL);
-    	
+
     	if (dao == null) {
     		log.info("No status to report yet");
     		// no status yet, report no status
-    		SearchStatusDTO dto = new SearchStatusDTO();
+    		final SearchStatusDTO dto = new SearchStatusDTO();
     		dto.setStatus("no status");
     		return dto;
     	} else {
     		log.info("Request status: page count: " + dao.getNodeCount() + ", image count: " + dao.getImageCount());
     	}
-    	
-    	return dataMapper.daoToDto(dao);    	
+
+    	return dataMapper.daoToDto(dao);
     }
-    
+
     /**
      * Fetch user parameters for a particular user id
      * @param id
@@ -105,12 +123,12 @@ public class SearchController {
      */
     @RequestMapping(path = "/parameters/{id}", method = RequestMethod.GET)
     public UserParameterDTO getUserParameters(@PathVariable("id") long userId) {
-    	
+
     	log.info("Fetching parameters for user " + userId);
-    	UserParameterData dao = userParamService.getUserParameters(userId);
-    	
-    	UserParameterDTO dto = dataMapper.daoToDto(dao);
-    	
-    	return dto;    	
+    	final UserParameterData dao = userParamService.getUserParameters(userId);
+
+    	final UserParameterDTO dto = dataMapper.daoToDto(dao);
+
+    	return dto;
     }
 }

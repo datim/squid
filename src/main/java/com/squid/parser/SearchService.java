@@ -1,4 +1,4 @@
-package com.squid.service;
+package com.squid.parser;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,11 +23,13 @@ import com.squid.data.NodeData;
 import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
+import com.squid.data.Query;
+import com.squid.data.QueryRepository;
 import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
-import com.squid.search.PageSearchRequest;
-import com.squid.search.SearchConstants;
-import com.squid.search.SearchExecutor;
+import com.squid.engine.PageSearchRequest;
+import com.squid.engine.SearchConstants;
+import com.squid.engine.SearchExecutor;
 
 import javassist.NotFoundException;
 
@@ -56,6 +58,9 @@ public class SearchService {
 
 	private SearchExecutor searchListener;
 
+	@Autowired
+	private QueryRepository queryRepo;
+
 
 	/**
 	 * After the service starts, launch the listening thread
@@ -70,11 +75,39 @@ public class SearchService {
 	}
 
 	/**
+	 * Get an existing query object or create a new query object
+	 * @param url The URL to crawl
+	 * @param maxPages The max number of sub pages to crawl for this URL
+	 * @param maxImages The max number of images to crawl for this URL
+	 * @return The new or existing Query object
+	 */
+	private Query getOrCreateSearchQuery(final URL url, int maxPages, int maxImages) {
+
+		Query query = queryRepo.findByUrl(url);
+
+		if (query == null) {
+			// create new query
+			log.debug("Creating new query for URL {}", url);
+
+			// FIXME Use user requested parameters
+			query = queryRepo.save(new Query(url, maxPages, maxImages));
+
+		} else {
+			log.debug("Using existing query for URL {} with id {}", query.getUrl().toString(), query.getId());
+		}
+
+		return query;
+	}
+
+	/**
 	 * Start the crawl through a tree of pages starting with the base url
 	 * @param huntUrl
 	 * @throws IOException
 	 */
-	public void startCrawl(final URL baseUrl) throws IOException {
+	public void startSearch(final URL baseUrl) throws IOException {
+
+		// get or create a new query object
+		final Query query = getOrCreateSearchQuery(baseUrl, squidProps.getMaxNodes(), squidProps.getMaxImages());
 
 		// update user search parameters
 		userParamService.setUserSearchString(UserParameterService.DEFAULT_USER_ID, baseUrl.toString());
@@ -90,6 +123,14 @@ public class SearchService {
 			// submission request failed. Throw an error
 			log.error("Unable to invoke a search for page: {}. Exception {}", baseUrl, e);
 		}
+	}
+
+	/**
+	 * Get all available queries
+	 * @return
+	 */
+	public List<Query> getQueries() {
+		return queryRepo.findAll();
 	}
 
 	/**
@@ -232,4 +273,6 @@ public class SearchService {
 		// it is expected that there will only be one record
 		return searchStatusRepo.findByUrl(url);
 	}
+
+
 }

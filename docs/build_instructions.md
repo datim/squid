@@ -23,7 +23,11 @@ Open url 'http://localhost:7777'
 
 #### Debug
 `./gradlew eclipse`
-Run project through debug mode in eclipse
+Run project through debug mode in eclipse with following settings:
+
+-DROOT=C:/users/datim/Desktop/squid -DLOG_LEVEL=info
+```
+
 
 ## Execute Project
 #### Execute Back-End the Command Line

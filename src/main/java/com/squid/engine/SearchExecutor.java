@@ -1,4 +1,4 @@
-package com.squid.search;
+package com.squid.engine;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
