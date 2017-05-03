@@ -21,8 +21,8 @@ CREATE TABLE page (
   etag VARCHAR(255) NOT NULL
 );
 
-/* Make image fields unique */
-ALTER TABLE page add UNIQUE(url);
+/* page url is unique */
+ALTER TABLE page ADD UNIQUE(url);
 
 /* Queries requested by the user */
 CREATE TABLE query (
@@ -32,3 +32,29 @@ CREATE TABLE query (
   max_pages INT NOT NULL,
   max_images INT NOT NULL
 );
+
+/* url field must be unique */
+ALTER TABLE query ADD UNIQUE(url);
+
+/* Represents a page */
+CREATE TABLE page (
+  id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  url VARCHAR(2048) NOT NULL,
+  etag VARCHAR(255) NOT NULL
+);
+
+/* url field must be unique */
+ALTER TABLE page ADD UNIQUE(url);
+
+/* Create a search topology of pages */
+CREATE TABLE page_topology (
+  id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  query_id INT NOT NULL,
+  page_id INT NOT NULL,
+  parent_id INT,
+  create_time TIMESTAMP default CURRENT_TIME,
+);
+
+ALTER TABLE page_toplogy ADD FOREIGN KEY (query_id) REFERENCES query(id);
+ALTER TABLE page_toplogy ADD FOREIGN KEY (page_id) REFERENCES page(id);
+ALTER TABLE page_toplogy ADD FOREIGN KEY (parent_id) REFERENCES page(id);
