@@ -1,4 +1,4 @@
-package com.squid.parser;
+package com.squid.parser.old;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,17 +19,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.squid.config.SquidProperties;
-import com.squid.data.NodeData;
-import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.Query;
 import com.squid.data.QueryRepository;
-import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
-import com.squid.engine.PageSearchRequest;
-import com.squid.engine.SearchConstants;
-import com.squid.engine.SearchExecutor;
+import com.squid.data.old.NodeData;
+import com.squid.data.old.NodeDataRepository;
+import com.squid.data.old.SearchStatusData;
+import com.squid.engine.old.PageSearchRequest;
+import com.squid.engine.old.SearchConstants;
+import com.squid.engine.old.SearchExecutor;
 
 import javassist.NotFoundException;
 

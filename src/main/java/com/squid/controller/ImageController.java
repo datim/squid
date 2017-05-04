@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.squid.controller.rest.PhotoDTO;
 import com.squid.data.PhotoData;
-import com.squid.parser.SearchService;
+import com.squid.parser.old.SearchService;
 
 import javassist.NotFoundException;
 

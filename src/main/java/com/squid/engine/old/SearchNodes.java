@@ -1,4 +1,4 @@
-package com.squid.engine;
+package com.squid.engine.old;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -20,12 +20,12 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.squid.data.NodeData;
-import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoData;
 import com.squid.data.PhotoDataRepository;
-import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
+import com.squid.data.old.NodeData;
+import com.squid.data.old.NodeDataRepository;
+import com.squid.data.old.SearchStatusData;
 
 /**
  * Search nodes in a new thread

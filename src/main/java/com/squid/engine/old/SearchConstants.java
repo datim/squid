@@ -1,11 +1,11 @@
-package com.squid.engine;
+package com.squid.engine.old;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.squid.data.SearchStatusData;
 import com.squid.data.SearchStatusRepository;
+import com.squid.data.old.SearchStatusData;
 
 /**
  * Contain static methods helpful for facilitating search

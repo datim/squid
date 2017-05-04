@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,13 +21,13 @@ import com.squid.controller.rest.QueryDTO;
 import com.squid.controller.rest.SearchStatusDTO;
 import com.squid.controller.rest.UserParameterDTO;
 import com.squid.data.Query;
-import com.squid.data.SearchStatusData;
 import com.squid.data.UserParameterData;
-import com.squid.parser.SearchService;
-import com.squid.parser.UserParameterService;
+import com.squid.data.old.SearchStatusData;
+import com.squid.parser.old.SearchService;
+import com.squid.parser.old.UserParameterService;
 
 /**
- * Controller for search related functionality
+ * Controller for controlling and monitoring searches
  * @author roecks
  *
  */
@@ -34,7 +35,8 @@ import com.squid.parser.UserParameterService;
 @RequestMapping("/crawl/search")
 public class SearchController {
 
-	static Logger log = Logger.getLogger(SearchController.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(SearchController.class);
+
 
 	@Autowired
 	private SearchService crawler;
@@ -48,6 +50,10 @@ public class SearchController {
 	@Autowired
 	private UserParameterService userParamService;
 
+	/**
+	 * Return list of requested search queries
+	 * @return
+	 */
 	@RequestMapping(path = "/queries", method = RequestMethod.GET)
 	public List<QueryDTO> getQueries() {
 
@@ -97,7 +103,7 @@ public class SearchController {
     	if (inUrl.isEmpty()) {
         	//FIXME TODO remove default status during search
     		searchURL = userParamService.getDefaultUserParameters().getSearchURL();
-    		log.warning("We're getting status based on default URL!");
+    		log.warn("We're getting status based on default URL!");
     		//throw new ResourceNotFoundException("searchURL");
     	}
 

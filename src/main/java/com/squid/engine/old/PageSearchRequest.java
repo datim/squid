@@ -1,4 +1,4 @@
-package com.squid.engine;
+package com.squid.engine.old;
 
 import java.net.URL;
 

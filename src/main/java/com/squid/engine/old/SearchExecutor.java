@@ -1,4 +1,4 @@
-package com.squid.engine;
+package com.squid.engine.old;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -8,9 +8,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.squid.data.NodeDataRepository;
 import com.squid.data.PhotoDataRepository;
 import com.squid.data.SearchStatusRepository;
+import com.squid.data.old.NodeDataRepository;
 
 // main thread to constantly pull work off of a thread
 /**

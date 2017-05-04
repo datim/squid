@@ -1,4 +1,4 @@
-package com.squid.parser;
+package com.squid.parser.old;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

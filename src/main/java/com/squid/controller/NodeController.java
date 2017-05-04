@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.squid.config.SquidProperties;
 import com.squid.controller.rest.NodeDTO;
-import com.squid.data.NodeData;
-import com.squid.parser.SearchService;
+import com.squid.data.old.NodeData;
+import com.squid.parser.old.SearchService;
 
 @RestController
 @RequestMapping("/crawl")

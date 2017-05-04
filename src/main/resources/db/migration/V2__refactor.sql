@@ -36,16 +36,6 @@ CREATE TABLE query (
 /* url field must be unique */
 ALTER TABLE query ADD UNIQUE(url);
 
-/* Represents a page */
-CREATE TABLE page (
-  id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  url VARCHAR(2048) NOT NULL,
-  etag VARCHAR(255) NOT NULL
-);
-
-/* url field must be unique */
-ALTER TABLE page ADD UNIQUE(url);
-
 /* Create a search topology of pages */
 CREATE TABLE page_topology (
   id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -55,6 +45,6 @@ CREATE TABLE page_topology (
   create_time TIMESTAMP default CURRENT_TIME,
 );
 
-ALTER TABLE page_toplogy ADD FOREIGN KEY (query_id) REFERENCES query(id);
-ALTER TABLE page_toplogy ADD FOREIGN KEY (page_id) REFERENCES page(id);
-ALTER TABLE page_toplogy ADD FOREIGN KEY (parent_id) REFERENCES page(id);
+ALTER TABLE page_topology ADD FOREIGN KEY (query_id) REFERENCES query(id);
+ALTER TABLE page_topology ADD FOREIGN KEY (page_id) REFERENCES page(id);
+ALTER TABLE page_topology ADD FOREIGN KEY (parent_id) REFERENCES page(id);
