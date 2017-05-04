@@ -1,4 +1,4 @@
-package com.squid.data;
+package com.squid.data.old;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

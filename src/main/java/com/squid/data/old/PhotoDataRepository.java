@@ -1,4 +1,4 @@
-package com.squid.data;
+package com.squid.data.old;
 
 import java.net.URL;
 import java.util.List;

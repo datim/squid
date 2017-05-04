@@ -20,12 +20,12 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.squid.data.PhotoData;
-import com.squid.data.PhotoDataRepository;
-import com.squid.data.SearchStatusRepository;
 import com.squid.data.old.NodeData;
 import com.squid.data.old.NodeDataRepository;
+import com.squid.data.old.PhotoData;
+import com.squid.data.old.PhotoDataRepository;
 import com.squid.data.old.SearchStatusData;
+import com.squid.data.old.SearchStatusRepository;
 
 /**
  * Search nodes in a new thread

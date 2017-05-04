@@ -19,17 +19,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.squid.config.SquidProperties;
-import com.squid.data.PhotoData;
-import com.squid.data.PhotoDataRepository;
+import com.squid.data.PageRepository;
 import com.squid.data.Query;
 import com.squid.data.QueryRepository;
-import com.squid.data.SearchStatusRepository;
 import com.squid.data.old.NodeData;
 import com.squid.data.old.NodeDataRepository;
+import com.squid.data.old.PhotoData;
+import com.squid.data.old.PhotoDataRepository;
 import com.squid.data.old.SearchStatusData;
+import com.squid.data.old.SearchStatusRepository;
+import com.squid.engine.PageEngine;
 import com.squid.engine.old.PageSearchRequest;
 import com.squid.engine.old.SearchConstants;
 import com.squid.engine.old.SearchExecutor;
+import com.squid.engine.requests.PageRequestMsg;
 
 import javassist.NotFoundException;
 
@@ -39,7 +42,6 @@ import javassist.NotFoundException;
 @Service
 public class SearchService {
 
-    private static final Logger log = LoggerFactory.getLogger(SearchService.class);
 
 	@Autowired
 	private SquidProperties squidProps;
@@ -58,8 +60,17 @@ public class SearchService {
 
 	private SearchExecutor searchListener;
 
+	// -- START of properties to keep
+
+    private static final Logger log = LoggerFactory.getLogger(SearchService.class);
+
 	@Autowired
 	private QueryRepository queryRepo;
+
+	@Autowired
+	private PageRepository pageRepo;
+
+	private PageEngine pEngine;
 
 
 	/**
@@ -69,9 +80,17 @@ public class SearchService {
 	@PostConstruct
 	public void startThreadPolling() {
 
+		// - FIXME DELETE
 		// create a new search listener
 		searchListener = new SearchExecutor(photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
 		searchListener.start();
+
+		// - FIXME DELETE
+
+
+		final int THREADPOOLSIZE = 10;	// FIXME, make configurable
+		pEngine = new PageEngine("PageSearch", THREADPOOLSIZE, pageRepo);
+		pEngine.start();
 	}
 
 	/**
@@ -81,7 +100,7 @@ public class SearchService {
 	 * @param maxImages The max number of images to crawl for this URL
 	 * @return The new or existing Query object
 	 */
-	private Query getOrCreateSearchQuery(final URL url, int maxPages, int maxImages) {
+	private Query getOrCreateQuery(final URL url, int maxPages, int maxImages) {
 
 		Query query = queryRepo.findByUrl(url);
 
@@ -103,12 +122,24 @@ public class SearchService {
 	 * Start the crawl through a tree of pages starting with the base url
 	 * @param huntUrl
 	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	public void startSearch(final URL baseUrl) throws IOException {
+	public boolean startSearch(final URL baseUrl) throws IOException {
+
+		boolean success = true;
 
 		// get or create a new query object
-		final Query query = getOrCreateSearchQuery(baseUrl, squidProps.getMaxNodes(), squidProps.getMaxImages());
+		final Query query = getOrCreateQuery(baseUrl, squidProps.getMaxNodes(), squidProps.getMaxImages());
 
+		try {
+			pEngine.addRequest(new PageRequestMsg(query, baseUrl));
+
+		} catch (final InterruptedException e) {
+			log.error("Unable to invoke a search for url {}. Exception. {}", baseUrl, e);
+			success = false;
+		}
+
+		// FIXME - delete this
 		// update user search parameters
 		userParamService.setUserSearchString(UserParameterService.DEFAULT_USER_ID, baseUrl.toString());
 
@@ -122,7 +153,12 @@ public class SearchService {
 		} catch (final InterruptedException e) {
 			// submission request failed. Throw an error
 			log.error("Unable to invoke a search for page: {}. Exception {}", baseUrl, e);
+			success = false;
 		}
+
+		// FIXME end delete this
+
+		return success;
 	}
 
 	/**

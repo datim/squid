@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.squid.config.SquidProperties;
-import com.squid.data.UserParameterData;
-import com.squid.data.UserParameterRepository;
+import com.squid.data.old.UserParameterData;
+import com.squid.data.old.UserParameterRepository;
 
 /**
  * Service for interfacing with user parameter data

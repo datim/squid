@@ -10,11 +10,11 @@ import com.squid.controller.rest.PhotoDTO;
 import com.squid.controller.rest.QueryDTO;
 import com.squid.controller.rest.SearchStatusDTO;
 import com.squid.controller.rest.UserParameterDTO;
-import com.squid.data.PhotoData;
 import com.squid.data.Query;
-import com.squid.data.UserParameterData;
 import com.squid.data.old.NodeData;
+import com.squid.data.old.PhotoData;
 import com.squid.data.old.SearchStatusData;
+import com.squid.data.old.UserParameterData;
 
 /**
  * Map DTO to DAO objects and vice-versa

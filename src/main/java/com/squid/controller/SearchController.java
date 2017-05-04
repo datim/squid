@@ -3,11 +3,15 @@ package com.squid.controller;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,8 +25,8 @@ import com.squid.controller.rest.QueryDTO;
 import com.squid.controller.rest.SearchStatusDTO;
 import com.squid.controller.rest.UserParameterDTO;
 import com.squid.data.Query;
-import com.squid.data.UserParameterData;
 import com.squid.data.old.SearchStatusData;
+import com.squid.data.old.UserParameterData;
 import com.squid.parser.old.SearchService;
 import com.squid.parser.old.UserParameterService;
 
@@ -74,21 +78,26 @@ public class SearchController {
 	 * @throws IOException
 	 */
     @RequestMapping(path = "/search", method = RequestMethod.GET)
-
-    public void search(@RequestParam(value="discoverUrl", defaultValue = "") String inUrl) throws IOException {
-
-    	// initialize with default
-		URL huntUrl = new URL(inUrl);
+    public ResponseEntity<Object>  search(@RequestParam(value="discoverUrl", defaultValue = "") String inUrl)
+    		throws IOException {
 
     	if ((inUrl == null) || inUrl.isEmpty()) {
-    		// search URL not provided.  Use default
-    		log.info("No URL specified. Using default URL: " + squidProps.getBaseUrl());
-    		huntUrl = new URL(squidProps.getBaseUrl());
+
+    		// search URL not provided.  Throw not found exception
+    		log.error("url not provided");
+    		final Map<String,String> responseBody = new HashMap<>();
+    		responseBody.put("message","URL to search not provided.");
+    		return new ResponseEntity<Object>(responseBody, HttpStatus.BAD_REQUEST);
     	}
 
-    	log.info("Performing search on url: " + huntUrl);
+    	// initialize with default
+		final URL searchUrl = new URL(inUrl);
+    	log.info("Performing search on url '{}'", searchUrl);
 
-    	crawler.startSearch(huntUrl);
+    	// start the search
+    	crawler.startSearch(searchUrl);
+
+    	return new ResponseEntity<Object>(HttpStatus.OK);
     }
 
     /**

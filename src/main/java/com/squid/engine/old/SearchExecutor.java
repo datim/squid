@@ -8,9 +8,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.squid.data.PhotoDataRepository;
-import com.squid.data.SearchStatusRepository;
 import com.squid.data.old.NodeDataRepository;
+import com.squid.data.old.PhotoDataRepository;
+import com.squid.data.old.SearchStatusRepository;
 
 // main thread to constantly pull work off of a thread
 /**

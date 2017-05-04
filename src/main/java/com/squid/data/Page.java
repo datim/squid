@@ -30,9 +30,6 @@ public class Page {
 	@Column (name = "etag")
 	private String etag;
 
-	@Column (name = "hoho")
-	private String ho;
-
 	// constructor
 	public Page() {}
 

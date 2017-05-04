@@ -1,8 +1,6 @@
-package com.squid.data;
+package com.squid.data.old;
 
 import org.springframework.data.repository.CrudRepository;
-
-import com.squid.data.old.SearchStatusData;
 
 /**
  * Repository for accessing current search status
