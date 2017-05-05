@@ -27,8 +27,8 @@ import com.squid.controller.rest.UserParameterDTO;
 import com.squid.data.Query;
 import com.squid.data.old.SearchStatusData;
 import com.squid.data.old.UserParameterData;
-import com.squid.parser.old.SearchService;
 import com.squid.parser.old.UserParameterService;
+import com.squid.service.SearchService;
 
 /**
  * Controller for controlling and monitoring searches

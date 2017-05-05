@@ -10,10 +10,12 @@ import com.squid.engine.requests.RequestMsg;
 public abstract class EngineThread implements Runnable {
 
 	protected final RequestMsg requestMessage;
+	protected final RepositoryService repoService;
 
 	// constructor
-	protected EngineThread(final RequestMsg msg) {
+	protected EngineThread(final RequestMsg msg, final RepositoryService repoService) {
 		requestMessage = msg;
+		this.repoService = repoService;
 	}
 
 	@Override

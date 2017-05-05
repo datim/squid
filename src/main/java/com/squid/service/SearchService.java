@@ -1,4 +1,4 @@
-package com.squid.parser.old;
+package com.squid.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +19,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.squid.config.SquidProperties;
-import com.squid.data.PageRepository;
 import com.squid.data.Query;
 import com.squid.data.QueryRepository;
 import com.squid.data.old.NodeData;
@@ -29,10 +28,12 @@ import com.squid.data.old.PhotoDataRepository;
 import com.squid.data.old.SearchStatusData;
 import com.squid.data.old.SearchStatusRepository;
 import com.squid.engine.PageEngine;
+import com.squid.engine.RepositoryService;
 import com.squid.engine.old.PageSearchRequest;
 import com.squid.engine.old.SearchConstants;
 import com.squid.engine.old.SearchExecutor;
 import com.squid.engine.requests.PageRequestMsg;
+import com.squid.parser.old.UserParameterService;
 
 import javassist.NotFoundException;
 
@@ -68,7 +69,7 @@ public class SearchService {
 	private QueryRepository queryRepo;
 
 	@Autowired
-	private PageRepository pageRepo;
+	private RepositoryService repoService;
 
 	private PageEngine pEngine;
 
@@ -89,7 +90,7 @@ public class SearchService {
 
 
 		final int THREADPOOLSIZE = 10;	// FIXME, make configurable
-		pEngine = new PageEngine("PageSearch", THREADPOOLSIZE, pageRepo);
+		pEngine = new PageEngine("PageSearch", THREADPOOLSIZE, repoService);
 		pEngine.start();
 	}
 

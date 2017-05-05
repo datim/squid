@@ -1,6 +1,5 @@
 package com.squid.engine;
 
-import com.squid.data.PageRepository;
 import com.squid.engine.requests.PageRequestMsg;
 import com.squid.engine.requests.RequestMsg;
 
@@ -11,12 +10,13 @@ import com.squid.engine.requests.RequestMsg;
  */
 public class PageEngine extends EngineBase {
 
-    private final PageRepository pageRepo;
+    private final RepositoryService repoService;
+
 
 	// constructor
-	public PageEngine(String searchName, int threadPoolSize, final PageRepository pageRepo) {
+	public PageEngine(String searchName, int threadPoolSize, final RepositoryService repoService) {
 		super(searchName, threadPoolSize);
-		this.pageRepo = pageRepo;
+		this.repoService = repoService;
 	}
 
 	/**
@@ -33,8 +33,16 @@ public class PageEngine extends EngineBase {
 	 * @param requestMessage The request message to process
 	 */
 	@Override
-	protected Runnable generateRequest(final RequestMsg requestMessage) {
+	protected Runnable getMessageHandler(final RequestMsg requestMessage) {
 		final PageRequestMsg pageMsg = (PageRequestMsg) requestMessage;
-		return new PageEngineThread(pageRepo, pageMsg);
+
+		if (requestMessage instanceof PageRequestMsg) {
+			// handle page request
+			return new PageEngineThread(pageMsg, repoService, requestQueue);
+
+		} else {
+			log.error("Unexpected request message of type {}", requestMessage.getClass().getName());
+			return null;
+		}
 	}
 }

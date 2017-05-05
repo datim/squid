@@ -1,7 +1,14 @@
 package com.squid.engine;
 
-import com.squid.data.PageRepository;
+import java.io.IOException;
+import java.util.concurrent.BlockingQueue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.squid.engine.requests.PageRequestMsg;
+import com.squid.engine.requests.RequestMsg;
+import com.squid.parser.PageSearchParser;
 
 /**
  * Implement parsing of a page
@@ -10,12 +17,14 @@ import com.squid.engine.requests.PageRequestMsg;
  */
 public class PageEngineThread extends EngineThread {
 
-	private final PageRepository pageRepo;
+    protected static final Logger log = LoggerFactory.getLogger(PageEngineThread.class);
+	private final BlockingQueue<RequestMsg> requestQueue;
 
 	// constructor
-	public PageEngineThread(PageRepository pageRepo, final PageRequestMsg message) {
-		super(message);
-		this.pageRepo = pageRepo;
+	public PageEngineThread(final PageRequestMsg message, final RepositoryService repoService,
+						    final BlockingQueue<RequestMsg> requestQueue) {
+		super(message, repoService);
+		this.requestQueue = requestQueue;
 	}
 
 	/**
@@ -23,6 +32,11 @@ public class PageEngineThread extends EngineThread {
 	 */
 	@Override
 	protected void execute() {
-		// TODO Auto-generated method stub
+		// parse a page
+		try {
+			PageSearchParser.parse((PageRequestMsg)requestMessage, requestQueue, repoService);
+		} catch (final IOException e) {
+			log.error("Unable to parse page {} for query {}. Exception {}", requestMessage.getUrl().toString(), requestMessage.getSearchQuery().getId(), e.getMessage());
+		}
 	}
 }

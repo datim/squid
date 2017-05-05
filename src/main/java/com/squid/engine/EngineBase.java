@@ -2,6 +2,7 @@ package com.squid.engine;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.slf4j.Logger;
@@ -16,7 +17,7 @@ import com.squid.engine.requests.RequestMsg;
  */
 public abstract class EngineBase extends Thread {
 
-    private static final Logger log = LoggerFactory.getLogger(EngineBase.class);
+    protected static final Logger log = LoggerFactory.getLogger(EngineBase.class);
 
 	protected BlockingQueue<RequestMsg> requestQueue;
 	private final ThreadPoolExecutor executor;
@@ -31,6 +32,7 @@ public abstract class EngineBase extends Thread {
 	protected EngineBase(String searchName, int threadPoolSize) {
 
 		this.searchName = searchName;
+		requestQueue = new LinkedBlockingQueue<>();
 		executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 		executor.setMaximumPoolSize(threadPoolSize);
 	}
@@ -56,9 +58,14 @@ public abstract class EngineBase extends Thread {
 
 				// block until we get a message, then hand it to a thread pool
 				final RequestMsg request = requestQueue.take();
-				executor.execute(generateRequest(request));
+				final Runnable messageHandler = getMessageHandler(request);
 
-				// generate runnable search for this message
+				if (messageHandler == null) {
+					// unable to handle this message.   Error already logged, skip message
+					continue;
+				}
+
+				executor.execute(messageHandler);
 
 			} catch (final InterruptedException e) {
 				// unable to fetch message
@@ -75,7 +82,7 @@ public abstract class EngineBase extends Thread {
 	 * @param requestMessage The message to process
 	 * @return
 	 */
-	protected abstract Runnable generateRequest(final RequestMsg requestMessage);
+	protected abstract Runnable getMessageHandler(final RequestMsg requestMessage);
 
 	/**
 	 * Push a new request on the queue

@@ -31,12 +31,19 @@ public class Page {
 	private String etag;
 
 	// constructor
-	public Page() {}
+	public Page() {
+		this(null, null);
+	}
 
 	// constructor
 	public Page(final URL url, final String etag) {
 		this.url = url;
 		this.etag = etag;
+	}
+
+	// constructor
+	public Page(final URL url) {
+		this(url, null);
 	}
 
 	public URL getUrl() {
