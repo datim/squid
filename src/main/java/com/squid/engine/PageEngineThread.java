@@ -8,10 +8,10 @@ import org.slf4j.LoggerFactory;
 
 import com.squid.engine.requests.PageRequestMsg;
 import com.squid.engine.requests.RequestMsg;
-import com.squid.parser.PageSearchParser;
+import com.squid.parser.SearchPageParser;
 
 /**
- * Implement parsing of a page
+ * Implement parsing of a page in a thread
  * @author Datim
  *
  */
@@ -32,9 +32,10 @@ public class PageEngineThread extends EngineThread {
 	 */
 	@Override
 	protected void execute() {
-		// parse a page
 		try {
-			PageSearchParser.parse((PageRequestMsg)requestMessage, requestQueue, repoService);
+			// parse a page URL
+			new SearchPageParser(requestQueue, repoService).executeMsg((PageRequestMsg)requestMessage);
+
 		} catch (final IOException e) {
 			log.error("Unable to parse page {} for query {}. Exception {}", requestMessage.getUrl().toString(), requestMessage.getSearchQuery().getId(), e.getMessage());
 		}

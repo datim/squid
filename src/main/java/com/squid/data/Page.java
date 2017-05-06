@@ -27,8 +27,8 @@ public class Page {
 	@Column (name = "url")
 	private URL url;
 
-	@Column (name = "etag")
-	private String etag;
+	@Column (name = "md5")
+	private String md5;
 
 	// constructor
 	public Page() {
@@ -36,9 +36,9 @@ public class Page {
 	}
 
 	// constructor
-	public Page(final URL url, final String etag) {
+	public Page(final URL url, final String md5) {
 		this.url = url;
-		this.etag = etag;
+		this.md5 = md5;
 	}
 
 	// constructor
@@ -54,11 +54,15 @@ public class Page {
 		this.url = url;
 	}
 
-	public String getEtag() {
-		return etag;
+	public String getMd5() {
+		return md5;
 	}
 
-	public void setEtag(String etag) {
-		this.etag = etag;
+	public void setMd5(String md5) {
+		this.md5 = md5;
+	}
+
+	public long getId() {
+		return id;
 	}
 }
