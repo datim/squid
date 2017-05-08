@@ -27,21 +27,16 @@ public class Page {
 	@Column (name = "url")
 	private URL url;
 
-	@Column (name = "md5")
-	private String md5;
+	@Column (name = "checksum")
+	private String checksum;
 
 	// default constructor
 	public Page() {}
 
 	// constructor
-	public Page(final URL url, final String md5) {
+	public Page(final URL url, final String checksum) {
 		this.url = url;
-		this.md5 = md5;
-	}
-
-	// constructor
-	public Page(final URL url) {
-		this(url, null);
+		this.checksum = checksum;
 	}
 
 	public URL getUrl() {
@@ -52,15 +47,15 @@ public class Page {
 		this.url = url;
 	}
 
-	public String getMd5() {
-		return md5;
-	}
-
-	public void setMd5(String md5) {
-		this.md5 = md5;
-	}
-
 	public long getId() {
 		return id;
+	}
+
+	public String getChecksum() {
+		return checksum;
+	}
+
+	public void setChecksum(String checksum) {
+		this.checksum = checksum;
 	}
 }

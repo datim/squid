@@ -18,7 +18,7 @@ ALTER TABLE image add UNIQUE(url);
 CREATE TABLE page (
   id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   url VARCHAR(2048) NOT NULL,
-  md5 VARCHAR(255)
+  checksum VARCHAR(255)
 );
 
 /* page url is unique */
