@@ -1,7 +1,9 @@
 package com.squid.parser;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -44,6 +46,7 @@ public class SearchPage {
 	 * @param requestQueue
 	 * @param repoService
 	 * @throws IOException
+	 * @throws URISyntaxException
 	 */
 	public void executeMsg(final PageRequestMsg requestMessage) throws IOException {
 
@@ -53,9 +56,9 @@ public class SearchPage {
 		Page page = repoService.getPageRepo().findByUrl(pageUrl);
 
 		if (page != null) {
-			// this page has a record
-			// FIXME check if page has changed before re-parsing
-			log.debug("Page {} previously visited. Not parsing", pageUrl);
+			final URL myUrl = new URL(requestMessage.getUrl().toString());
+			final URLConnection connection = myUrl.openConnection();
+
 
 		} else {
 			// this is a new page. Attempt to parse it
@@ -69,7 +72,7 @@ public class SearchPage {
 		}
 
 		// Add page to topology if it has not done so yet
-		final PageTopology topology = setPageTopology(requestMessage.getSearchQuery(), page, requestMessage.getParentPage());
+		setPageTopology(requestMessage.getSearchQuery(), page, requestMessage.getParentPage());
 
 		// search for the page
 		parsePage(page);

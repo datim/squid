@@ -1,12 +1,13 @@
 package com.squid.data;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
 /*
@@ -31,8 +32,20 @@ public class PageTopology {
 	private long parentPage;
 
 	@Column (name = "create_time")
-	private Timestamp createTime;
+	private Date createTime;
 
+	// generate create time stamp
+	@PrePersist
+	void createdAt() {
+		createTime = new Date();
+	}
+
+/*
+	@PreUpdate
+	  void updatedAt() {
+	    this.updateTime = new Date();
+	  }
+*/
 	// default constructor
 	public PageTopology() {}
 
@@ -76,11 +89,11 @@ public class PageTopology {
 		this.parentPage = parentPage;
 	}
 
-	public Timestamp getCreateTime() {
+	public Date getCreateTime() {
 		return createTime;
 	}
 
-	public void setCreateTime(Timestamp createTime) {
+	public void setCreateTime(Date createTime) {
 		this.createTime = createTime;
 	}
 
