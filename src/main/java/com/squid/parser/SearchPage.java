@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.squid.data.Page;
+import com.squid.data.PageTopology;
 import com.squid.data.Query;
 import com.squid.engine.RepositoryService;
 import com.squid.engine.requests.PageRequestMsg;
@@ -19,26 +20,26 @@ import com.squid.engine.requests.RequestMsg;
 
 /**
  * Reference: https://www.mkyong.com/java/how-to-get-http-response-header-in-java/
- * Parse a page
+ * Handle the search of a page
  * @author Datim
  *
  */
-public class SearchPageParser {
+public class SearchPage {
 
-    protected static final Logger log = LoggerFactory.getLogger(SearchPageParser.class);
+    protected static final Logger log = LoggerFactory.getLogger(SearchPage.class);
 	private final RepositoryService repoService;
 	private final BlockingQueue<RequestMsg> requestQueue;
 	private static final List<String> pageBoundaries = Arrays.asList("#");
 
 	// constructor
-    public SearchPageParser(final BlockingQueue<RequestMsg> requestQueue,
+    public SearchPage(final BlockingQueue<RequestMsg> requestQueue,
 							final RepositoryService repoService) {
     	this.requestQueue = requestQueue;
     	this.repoService = repoService;
     }
 
 	/**
-	 * Parse a page from a page message
+	 * Parse a page based on a page request
 	 * @param requestMessage
 	 * @param requestQueue
 	 * @param repoService
@@ -53,9 +54,8 @@ public class SearchPageParser {
 
 		if (page != null) {
 			// this page has a record
-			// FIXME this is where we add re-parsing of a page
+			// FIXME check if page has changed before re-parsing
 			log.debug("Page {} previously visited. Not parsing", pageUrl);
-			return;
 
 		} else {
 			// this is a new page. Attempt to parse it
@@ -63,21 +63,52 @@ public class SearchPageParser {
 
 			// if a page record was unable to be created, an error was already logged. Just exit
 			if (page == null) {
+				log.debug("Unable to create page record for url '{}'. Record exists.  Not searching", requestMessage.getUrl());
 				return;
 			}
 		}
 
-		if (page != null) {
+		// Add page to topology if it has not done so yet
+		final PageTopology topology = setPageTopology(requestMessage.getSearchQuery(), page, requestMessage.getParentPage());
 
-			// FIXME TODO create a page record for this query
-			final Query query = requestMessage.getSearchQuery();
-			parsePage(page);
-		}
+		// search for the page
+		parsePage(page);
 	}
 
 	/**
-	 * Create a new page record
-	 * @param pageUrl
+	 * Create a new topology mapping for a page against a query. Create it if it does not yet exist.
+	 * already exists, just return it.
+	 * @param query The query to map to a topology tree
+	 * @param page The page to map to a toplogy tree.
+	 * @return An existing page topology mapping, or a new one if it has not yet been created
+	 */
+	private PageTopology setPageTopology(final Query query, final Page page, final Page parentPage) {
+
+		PageTopology pageMapping = repoService.getPageTopologyRepo().findByQueryAndPage(query.getId(), page.getId());
+
+		if (pageMapping == null) {
+			// topology record does not exist. Create it.
+			log.debug("Creating a new page topology for page '{}' to query '{}'", page.getUrl(), query.getUrl());
+			if (parentPage != null) {
+				pageMapping = new PageTopology(query.getId(), page.getId(), parentPage.getId());
+			} else {
+				pageMapping = new PageTopology(query.getId(), page.getId());
+			}
+
+			// save record
+			pageMapping = repoService.getPageTopologyRepo().save(pageMapping);
+
+
+			log.debug("Topology created with id {}", pageMapping.getId());
+		}
+
+		return pageMapping;
+	}
+
+	/**
+	 * Create a new page record. If record cannot successfully be created, return null.
+	 * @param pageUrl The url to create a page record from
+	 * @return A new page record, or null if record cannot be created
 	 */
 	private Page createNewPage(final URL pageUrl) {
 
@@ -89,7 +120,7 @@ public class SearchPageParser {
 
 		} catch (final org.hibernate.exception.ConstraintViolationException | org.springframework.dao.DataIntegrityViolationException e) {
 			// create a new Page record.  Record already created, fail
-			log.warn("Failed to create a new page record for url '{}'. Record already exists. Exception: {}", pageUrl, e.getMessage());
+			log.info("Failed to create a new page record for url '{}'. Record already exists. Exception: '{}'", pageUrl, e.getMessage());
 			return null;
 		}
 

@@ -36,15 +36,27 @@ CREATE TABLE query (
 /* url field must be unique */
 ALTER TABLE query ADD UNIQUE(url);
 
-/* Create a search topology of pages */
+/* Create a topology of pages discovered as part of a query */
 CREATE TABLE page_topology (
   id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   query_id INT NOT NULL,
   page_id INT NOT NULL,
-  parent_id INT,
-  create_time TIMESTAMP default CURRENT_TIME,
+  parent_page_id INT,
+  create_time TIMESTAMP default CURRENT_TIME
 );
 
 ALTER TABLE page_topology ADD FOREIGN KEY (query_id) REFERENCES query(id);
 ALTER TABLE page_topology ADD FOREIGN KEY (page_id) REFERENCES page(id);
-ALTER TABLE page_topology ADD FOREIGN KEY (parent_id) REFERENCES page(id);
+ALTER TABLE page_topology ADD FOREIGN KEY (parent_page_id) REFERENCES page(id);
+
+/* Each query should only visit a page once */
+ALTER TABLE page_topology ADD UNIQUE(query_id, page_id);
+
+/* Map images to the pages where they can be found */
+CREATE TABLE image_page (
+  image_id INT NOT NULL,
+  page_id INT NOT NULL
+);
+
+ALTER TABLE image_page ADD FOREIGN KEY (image_id) REFERENCES image(id);
+ALTER TABLE image_page ADD FOREIGN KEY (page_id) REFERENCES page(id);

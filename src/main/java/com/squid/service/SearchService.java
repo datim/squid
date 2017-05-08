@@ -32,8 +32,8 @@ import com.squid.engine.RepositoryService;
 import com.squid.engine.old.PageSearchRequest;
 import com.squid.engine.old.SearchConstants;
 import com.squid.engine.old.SearchExecutor;
+import com.squid.engine.old.UserParameterService;
 import com.squid.engine.requests.PageRequestMsg;
-import com.squid.parser.old.UserParameterService;
 
 import javassist.NotFoundException;
 

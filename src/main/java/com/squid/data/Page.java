@@ -30,10 +30,8 @@ public class Page {
 	@Column (name = "md5")
 	private String md5;
 
-	// constructor
-	public Page() {
-		this(null, null);
-	}
+	// default constructor
+	public Page() {}
 
 	// constructor
 	public Page(final URL url, final String md5) {

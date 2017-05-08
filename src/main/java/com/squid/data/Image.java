@@ -48,7 +48,7 @@ public class Image {
 	@Column (name = "tshirt_size")
 	private String size;
 
-	// constructor
+	// default constructor
 	public Image() {}
 
 	// constructor
