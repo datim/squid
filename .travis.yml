@@ -12,7 +12,7 @@ jdk:
 # compile javascript
 before_script:
  - travis_retry npm install 
- - webpack
+ - webpack --config webpack.config.js
 
 # package UI and run
 script:
