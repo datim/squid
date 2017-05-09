@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.squid.config.SquidProperties;
+import com.squid.data.PageTopologyRepository;
 import com.squid.data.Query;
 import com.squid.data.QueryRepository;
 import com.squid.data.old.NodeData;
@@ -71,6 +72,9 @@ public class SearchService {
 	@Autowired
 	private RepositoryService repoService;
 
+	@Autowired
+	private PageTopologyRepository topologyRepo;
+
 	private PageEngine pEngine;
 
 
@@ -85,10 +89,9 @@ public class SearchService {
 		// create a new search listener
 		searchListener = new SearchExecutor(photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
 		searchListener.start();
-
 		// - FIXME DELETE
 
-
+		// start the search engine
 		final int THREADPOOLSIZE = 10;	// FIXME, make configurable
 		pEngine = new PageEngine("PageSearch", THREADPOOLSIZE, repoService);
 		pEngine.start();
@@ -131,6 +134,10 @@ public class SearchService {
 
 		// get or create a new query object
 		final Query query = getOrCreateQuery(baseUrl, squidProps.getMaxNodes(), squidProps.getMaxImages());
+
+		// remove any existing topology information
+		final long pageCount = topologyRepo.deleteByQuery(query.getId());
+		log.info("Flushed {} pages in query history", pageCount);
 
 		try {
 			pEngine.addRequest(new PageRequestMsg(query, baseUrl));

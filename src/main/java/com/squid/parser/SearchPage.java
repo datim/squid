@@ -56,14 +56,13 @@ public class SearchPage {
 		// check if this page has already been searched
 		Page page = repoService.getPageRepo().findByUrl(pageUrl);
 
-		if (page != null) {
-			// Page already seen. If the checksum matches, do not continue to parse
-			if (checksum.equals(page.getChecksum())) {
-				return;
-			}
+		if (checkSearchStatus(requestMessage.getSearchQuery()) == false) {
+			// Reached the upper bounds of the number of pages to search
+			return;
+		}
 
-		} else {
-			// this is a new page. Attempt to parse it
+		if (page == null) {
+			// this is a new page. create record
 			page = createNewPage(pageUrl, checksum);
 
 			// if a page record was unable to be created, an error was already logged. Just exit
@@ -71,13 +70,52 @@ public class SearchPage {
 				log.debug("Unable to create page record for url '{}'. Record exists.  Not searching", requestMessage.getUrl());
 				return;
 			}
-		}
 
-		// Add page to topology if it has not done so yet
-		setPageTopology(requestMessage.getSearchQuery(), page, requestMessage.getParentPage());
+			// Add the page to the page topology map
+			setPageTopology(requestMessage.getSearchQuery(), page, requestMessage.getParentPage());
+
+		} else {
+			// Existing page. check whether this page has been visited before in this query
+			final PageTopology pageMapping = repoService.getPageTopologyRepo().findByQueryAndPage(
+					requestMessage.getSearchQuery().getId(), page.getId());
+
+			if (pageMapping != null) {
+				log.debug("Page '{}' has already been visited in this query", pageUrl);
+				return;
+			}
+
+			// set the page topology
+			setPageTopology(requestMessage.getSearchQuery(), page, requestMessage.getParentPage());
+
+			// Check whether page has been updated since the last time it was visited
+			if (checksum.equals(page.getChecksum())) {
+				return;
+			}
+		}
 
 		// search for the page
 		parsePage(page);
+	}
+
+	/**
+	 * Check whether query has reached the maximum number of pages, or whether the query
+	 * status has been changed to stopped
+	 * @param searchQuery
+	 * @return true if search status page threshold has been reached, false if search should be stopped
+	 */
+	private boolean checkSearchStatus(final Query searchQuery) {
+
+		boolean continueSearch = true;
+		// FIXME - check whether query has stopped
+
+		// check whether maximum pages have been visited
+		final long pageCount = repoService.getPageTopologyRepo().findByQuery(searchQuery.getId()).size();
+
+		if ( pageCount >= searchQuery.getMaxPages()) {
+			continueSearch = false;
+		}
+
+		return continueSearch;
 	}
 
 	/**
