@@ -12,7 +12,7 @@ export default class DownloadButton extends React.Component {
     this.state = {clicked: false};
     this.image_height = '20';
     this.image_width = '20';
-    this.download_img = 'images/download.jpg'
+    this.download_img = 'images/download.png'
     this.saved_img = 'images/saved.png'
   }
 

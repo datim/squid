@@ -4,13 +4,9 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,14 +26,13 @@ public class SearchPage {
 
     protected static final Logger log = LoggerFactory.getLogger(SearchPage.class);
 	private final RepositoryService repoService;
-	private final BlockingQueue<RequestMsg> requestQueue;
-	private static final List<String> pageBoundaries = Arrays.asList("#");
+	private final PageParser parser;
 
 	// constructor
     public SearchPage(final BlockingQueue<RequestMsg> requestQueue,
 							final RepositoryService repoService) {
-    	this.requestQueue = requestQueue;
     	this.repoService = repoService;
+    	parser = new PageParser(repoService, requestQueue);
     }
 
 	/**
@@ -50,16 +45,18 @@ public class SearchPage {
 	 */
 	public void executeMsg(final PageRequestMsg requestMessage) throws IOException {
 
+		final Query query = requestMessage.getSearchQuery();
+
+		// check whether the upper bounds of the search page has been reached
+		if (canSearchContinue(query) == false) {
+			return;
+		}
+
 		final URL pageUrl = requestMessage.getUrl();
 		final String checksum = calcPageChecksum(pageUrl);
 
 		// check if this page has already been searched
 		Page page = repoService.getPageRepo().findByUrl(pageUrl);
-
-		if (checkSearchStatus(requestMessage.getSearchQuery()) == false) {
-			// Reached the upper bounds of the number of pages to search
-			return;
-		}
 
 		if (page == null) {
 			// this is a new page. create record
@@ -67,17 +64,17 @@ public class SearchPage {
 
 			// if a page record was unable to be created, an error was already logged. Just exit
 			if (page == null) {
-				log.debug("Unable to create page record for url '{}'. Record exists.  Not searching", requestMessage.getUrl());
+				log.debug("Unable to create page record for url '{}'. Record exists.  Not searching", pageUrl);
 				return;
 			}
 
 			// Add the page to the page topology map
-			setPageTopology(requestMessage.getSearchQuery(), page, requestMessage.getParentPage());
+			setPageTopology(query, page, requestMessage.getParentPage());
 
 		} else {
 			// Existing page. check whether this page has been visited before in this query
 			final PageTopology pageMapping = repoService.getPageTopologyRepo().findByQueryAndPage(
-					requestMessage.getSearchQuery().getId(), page.getId());
+					query.getId(), page.getId());
 
 			if (pageMapping != null) {
 				log.debug("Page '{}' has already been visited in this query", pageUrl);
@@ -85,7 +82,7 @@ public class SearchPage {
 			}
 
 			// set the page topology
-			setPageTopology(requestMessage.getSearchQuery(), page, requestMessage.getParentPage());
+			setPageTopology(query, page, requestMessage.getParentPage());
 
 			// Check whether page has been updated since the last time it was visited
 			if (checksum.equals(page.getChecksum())) {
@@ -94,7 +91,7 @@ public class SearchPage {
 		}
 
 		// search for the page
-		parsePage(page);
+		parser.parsePage(page, query);
 	}
 
 	/**
@@ -103,7 +100,7 @@ public class SearchPage {
 	 * @param searchQuery
 	 * @return true if search status page threshold has been reached, false if search should be stopped
 	 */
-	private boolean checkSearchStatus(final Query searchQuery) {
+	private boolean canSearchContinue(final Query searchQuery) {
 
 		boolean continueSearch = true;
 		// FIXME - check whether query has stopped
@@ -194,35 +191,5 @@ public class SearchPage {
 		}
 
         return checksum;
-	}
-
-	/**
-	 *
-	 * @param page
-	 */
-	private void parsePage(final Page page) {
-
-		Document pageNode = null;
-
-		try {
-			// parse the page
-			pageNode = Jsoup.connect(page.getUrl().toString()).get();
-
-		} catch (final IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		final List<URL> subPages = findSubPages(pageNode);
-	}
-
-	private List<URL> findSubPages(final Document pageNode) {
-
-		return null;
-	}
-
-	private List<URL> findImageUrls(final Document pageNode) {
-
-		return null;
 	}
 }
