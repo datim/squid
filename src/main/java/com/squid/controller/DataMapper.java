@@ -3,6 +3,9 @@ package com.squid.controller;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.annotation.PostConstruct;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import com.squid.controller.rest.NodeDTO;
@@ -17,11 +20,18 @@ import com.squid.data.old.SearchStatusData;
 import com.squid.data.old.UserParameterData;
 
 /**
- * Map DTO to DAO objects and vice-versa
+ * Map DTO to DAO objects and map DAO to DTO objects
  *
  */
 @Service
 public class DataMapper {
+
+	private ModelMapper modelMapper;
+
+	@PostConstruct
+	private void initialize() {
+		modelMapper = new ModelMapper();
+	}
 
 	// convert dao to dto
 	public PhotoDTO daoToDto(final PhotoData dao) {
@@ -97,14 +107,8 @@ public class DataMapper {
 		return dto;
 	}
 
+	// copnvert query dao to dto
 	public QueryDTO daoToDto(Query dao) {
-		final QueryDTO dto = new QueryDTO();
-		dto.setId(dao.getId());
-		dto.setName(dao.getName());
-		dto.setMaxImages(dao.getMaxImages());
-		dto.setMaxPages(dao.getMaxPages());
-		dto.setUrl(dao.getUrl());
-
-		return dto;
+		return modelMapper.map(dao, QueryDTO.class);
 	}
 }
