@@ -37,9 +37,7 @@ public class SearchPage {
 
 	/**
 	 * Parse a page based on a page request
-	 * @param requestMessage
-	 * @param requestQueue
-	 * @param repoService
+	 * @param requestMessage The message containing the page to process
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
@@ -86,6 +84,9 @@ public class SearchPage {
 
 			// Check whether page has been updated since the last time it was visited
 			if (checksum.equals(page.getChecksum())) {
+
+				// FIXME TODO - Instead of just skipping this page, add all child pages and images to
+				// the search queue and don't parse this page.
 				return;
 			}
 		}
