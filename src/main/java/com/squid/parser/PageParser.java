@@ -1,6 +1,5 @@
 package com.squid.parser;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -13,6 +12,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,19 +51,17 @@ public class PageParser {
 
 		Document pageNode = null;
 
-		try {
-			// parse the page
-			pageNode = Jsoup.connect(page.getUrl().toString()).get();
+		// render the page before parsing it
+		// FIXME add time outs
+		final HtmlUnitDriver driver = new HtmlUnitDriver();
+		driver.get(page.getUrl().toString());
 
-		} catch (final IOException e) {
-			// failed to parse page. Stop all further operations
-			log.error("Unable to parse page '{}'. Exception: {}", page.getUrl(), e.getMessage());
-			return;
-		}
+		// parse the page
+		pageNode = Jsoup.parse(driver.getPageSource());
+		//pageNode = Jsoup.connect(page.getUrl().toString()).get();
 
 		findSubPages(pageNode, query, page);
 		findSubImages(pageNode, query, page);
-
 	}
 
 
@@ -81,6 +79,11 @@ public class PageParser {
 		for (final Element urlElement: urlElements) {
 
 			final String urlString = stripAnchorTags(urlElement.attr("abs:href"));
+
+			if ((urlString == null) || urlString.isEmpty()) {
+				// ignore invalid URLs
+				continue;
+			}
 
 			if (containsInvalidExtension(urlString)) {
 				// URL contains an invalid suffix
@@ -164,7 +167,8 @@ public class PageParser {
 				return urlString.substring(0, urlString.indexOf(boundary));
 			}
 		}
-		return null;
+		// no change to string
+		return urlString;
 	}
 
 	/**
