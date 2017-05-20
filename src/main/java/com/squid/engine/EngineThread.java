@@ -1,6 +1,7 @@
 package com.squid.engine;
 
 import com.squid.engine.requests.RequestMsg;
+import com.squid.service.RepositoryService;
 
 /**
  * Abstract class that defines the template for parsing threads

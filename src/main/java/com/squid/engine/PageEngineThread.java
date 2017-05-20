@@ -6,14 +6,14 @@ import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.squid.engine.parser.SearchPage;
 import com.squid.engine.requests.PageRequestMsg;
 import com.squid.engine.requests.RequestMsg;
-import com.squid.parser.SearchPage;
+import com.squid.service.RepositoryService;
 
 /**
  * Implement parsing of a page in a thread
  * @author Datim
- *
  */
 public class PageEngineThread extends EngineThread {
 
@@ -28,7 +28,7 @@ public class PageEngineThread extends EngineThread {
 	}
 
 	/**
-	 * Define the algorithm for parsing pages
+	 * Define the logic for parsing pages that will run in a thread
 	 */
 	@Override
 	protected void execute() {

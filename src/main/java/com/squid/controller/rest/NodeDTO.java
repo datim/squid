@@ -1,15 +1,16 @@
 package com.squid.controller.rest;
 
+@Deprecated
 public class NodeDTO {
 
 	private long id;
-	
+
 	private String url;
-	
+
 	private String parentUrl;
-	
+
 	private long parentId;
-	
+
 	private boolean visited;
 
 	public long getId() {

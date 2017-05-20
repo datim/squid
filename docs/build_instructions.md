@@ -25,9 +25,13 @@ Open url 'http://localhost:7777'
 `./gradlew eclipse`
 Run project through debug mode in eclipse with following settings:
 
+```
+VM Variables:
 -DROOT=C:/users/datim/Desktop/squid -DLOG_LEVEL=info
 ```
 
+To run with an in memory database, add the following program arguments:
+```--spring.config.name=debug.properties```
 
 ## Execute Project
 #### Execute Back-End the Command Line

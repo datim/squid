@@ -10,10 +10,10 @@ import com.squid.data.Query;
  * @author Datim
  *
  */
-public class ImageRequest extends RequestMsg {
+public class ImageRequestMsg extends RequestMsg {
 
 	// constructor
-	public ImageRequest(final Query searchQuery, final URL imageUrl, final Page hostPage) {
+	public ImageRequestMsg(final Query searchQuery, final URL imageUrl, final Page hostPage) {
 		super(searchQuery, imageUrl, hostPage);
 	}
 

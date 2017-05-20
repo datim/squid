@@ -1,9 +1,10 @@
-package com.squid.engine;
+package com.squid.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.squid.data.ImageRepository;
+import com.squid.data.ImageTopologyRepository;
 import com.squid.data.PageRepository;
 import com.squid.data.PageTopologyRepository;
 
@@ -25,28 +26,29 @@ public class RepositoryService {
 	@Autowired
 	private PageTopologyRepository pageTopologyRepo;
 
+	@Autowired
+	private ImageTopologyRepository imageTopoRepo;
+
+	@Autowired
+	private QueryStatusService queryStatus;
 
 	public PageRepository getPageRepo() {
 		return pageRepo;
-	}
-
-	public void setPageRepo(PageRepository pageRepo) {
-		this.pageRepo = pageRepo;
 	}
 
 	public ImageRepository getImageRepo() {
 		return imageRepo;
 	}
 
-	public void setImageRepo(ImageRepository imageRepo) {
-		this.imageRepo = imageRepo;
-	}
-
 	public PageTopologyRepository getPageTopologyRepo() {
 		return pageTopologyRepo;
 	}
 
-	public void setPageTopologyRepo(PageTopologyRepository pageTopologyRepo) {
-		this.pageTopologyRepo = pageTopologyRepo;
+	public QueryStatusService getQueryStatus() {
+		return queryStatus;
+	}
+
+	public ImageTopologyRepository getImageTopologyRepo() {
+		return imageTopoRepo;
 	}
 }

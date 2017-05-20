@@ -1,24 +1,23 @@
-package com.squid.parser;
+package com.squid.engine.parser;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.BlockingQueue;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.squid.data.Page;
 import com.squid.data.PageTopology;
 import com.squid.data.Query;
-import com.squid.engine.RepositoryService;
 import com.squid.engine.requests.PageRequestMsg;
 import com.squid.engine.requests.RequestMsg;
+import com.squid.service.RepositoryService;
 
 /**
- * Handle the search of a page
+ * Handle the page management of searching for a page.  Call the page parser if page
+ * needs to be parsed
  * @author Datim
  *
  */
@@ -47,11 +46,21 @@ public class SearchPage {
 
 		// check whether the upper bounds of the search page has been reached
 		if (canSearchContinue(query) == false) {
+			log.info("Maximum number of pages discovred for query '{}'. Stopping search", query);
 			return;
 		}
 
 		final URL pageUrl = requestMessage.getUrl();
-		final String checksum = calcPageChecksum(pageUrl);
+		String checksum = null;
+
+		try {
+			// calculate the checksum for the page
+			checksum = SearchHelperSingleton.getInstance().calcPageChecksum(pageUrl);
+
+		} catch (final IOException e) {
+			log.error("Unable to calculate checksum for page '{}'. Exception: {}", pageUrl, e.getMessage());
+			throw e;
+		}
 
 		// check if this page has already been searched
 		Page page = repoService.getPageRepo().findByUrl(pageUrl);
@@ -103,14 +112,24 @@ public class SearchPage {
 	 */
 	private boolean canSearchContinue(final Query searchQuery) {
 
-		boolean continueSearch = true;
-		// FIXME - check whether query has stopped
+		boolean continueSearch = false;
 
-		// check whether maximum pages have been visited
-		final long pageCount = repoService.getPageTopologyRepo().findByQuery(searchQuery.getId()).size();
+		if (repoService.getQueryStatus().isRunning(searchQuery)) {
 
-		if ( pageCount >= searchQuery.getMaxPages()) {
-			continueSearch = false;
+			// check whether maximum pages have been visited
+			final long pageCount = repoService.getPageTopologyRepo().findByQuery(searchQuery.getId()).size();
+
+			// if the maximum number of pages have been visited, then mark the query as stopped and finish
+			if ( pageCount < searchQuery.getMaxPages()) {
+				continueSearch = true; // search can continue, all checks pass
+
+			} else {
+				// maximum search pages have been visted. Mark the query as done
+				repoService.getQueryStatus().setStop(searchQuery);
+				log.debug("Maximum number of pages discovered for query {}. Will not continue", searchQuery.getId());
+			}
+		} else {
+			log.debug("Query status is '{}'. Will not continue search for this thread", repoService.getQueryStatus());
 		}
 
 		return continueSearch;
@@ -163,34 +182,5 @@ public class SearchPage {
 		}
 
 		return newPage;
-	}
-
-	/**
-	 *  Calculate the checksum for a URL
-	 *
-	 * Reference: http://stackoverflow.com/questions/6881029/how-to-check-whether-a-website-has-been-updated-and-send-a-email
-	 * @param pageUrl the URL to calculate checksum for
-	 * @return The calculated checksum for a page
-	 * @throws IOException
-	 */
-	private String calcPageChecksum(final URL pageUrl) throws IOException  {
-
-		String checksum = null;
-
-		try {
-			final HttpURLConnection pageConnection = (HttpURLConnection) pageUrl.openConnection();
-			pageConnection.setRequestMethod("GET");
-			pageConnection.setDoOutput(true);
-		    pageConnection.connect();
-
-	        // Use MD5 because where just hashing a string and its faster, no security here
-		    checksum = DigestUtils.md5Hex(pageConnection.getInputStream());
-
-		} catch (final IOException e) {
-			log.error("Unable to calculate checksum for page '{}'. Exception: {}", pageUrl, e.getMessage());
-			throw e;
-		}
-
-        return checksum;
 	}
 }

@@ -8,11 +8,15 @@ import javax.annotation.PostConstruct;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import com.squid.controller.rest.ImageDTO;
 import com.squid.controller.rest.NodeDTO;
+import com.squid.controller.rest.PageDTO;
 import com.squid.controller.rest.PhotoDTO;
 import com.squid.controller.rest.QueryDTO;
 import com.squid.controller.rest.SearchStatusDTO;
 import com.squid.controller.rest.UserParameterDTO;
+import com.squid.data.Image;
+import com.squid.data.Page;
 import com.squid.data.Query;
 import com.squid.data.old.NodeData;
 import com.squid.data.old.PhotoData;
@@ -107,8 +111,18 @@ public class DataMapper {
 		return dto;
 	}
 
-	// copnvert query dao to dto
-	public QueryDTO daoToDto(Query dao) {
+	// convert query dao to dto
+	public QueryDTO convert(Query dao) {
 		return modelMapper.map(dao, QueryDTO.class);
+	}
+
+	// convert Image dao to dto
+	public ImageDTO convert(Image dao) {
+		return modelMapper.map(dao, ImageDTO.class);
+	}
+
+	// convert Page dao to dto
+	public PageDTO convert(Page dao) {
+		return modelMapper.map(dao,  PageDTO.class);
 	}
 }

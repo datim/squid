@@ -384,7 +384,7 @@ public class SearchNodes implements Runnable {
 		//
 
 		// construct a regular expression for discovering images embedded in java script.
-		final String imageRegex =     "imgList\\[[0-9]\\] = \\[\"([a-zA-Z0-9\\./]+)\", \"([a-zA-Z0-9\\./]+)\",";
+		final String imageRegex = "imgList\\[[0-9]\\] = \\[\"([a-zA-Z0-9\\./]+)\", \"([a-zA-Z0-9\\./]+)\",";
 
 		final List<Element> scripts = doc.select("script");	// find all Java Script references in the document
 

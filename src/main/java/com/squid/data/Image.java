@@ -36,8 +36,8 @@ public class Image {
 	@Column (name = "height")
 	private int height;
 
-	@Column (name = "etag")
-	private String etag;
+	@Column (name = "checksum")
+	private String checkSum;
 
     @Column(name="discovered", columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private Timestamp discovered;
@@ -52,9 +52,9 @@ public class Image {
 	public Image() {}
 
 	// constructor
-	public Image(final URL url, final String etag, final String name) {
+	public Image(final URL url, final String checkSum, final String name) {
 		this.url = url;
-		this.etag = etag;
+		this.checkSum = checkSum;
 		this.name = name;
 	}
 
@@ -90,14 +90,6 @@ public class Image {
 		this.height = height;
 	}
 
-	public String getEtag() {
-		return etag;
-	}
-
-	public void setEtag(String etag) {
-		this.etag = etag;
-	}
-
 	public int getByteSize() {
 		return byteSize;
 	}
@@ -112,5 +104,17 @@ public class Image {
 
 	public void setSize(String size) {
 		this.size = size;
+	}
+
+	public String getCheckSum() {
+		return checkSum;
+	}
+
+	public void setCheckSum(String checkSum) {
+		this.checkSum = checkSum;
+	}
+
+	public long getId() {
+		return id;
 	}
 }

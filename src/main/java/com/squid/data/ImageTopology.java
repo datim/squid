@@ -10,13 +10,14 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
-/*
- * Tree mapping of all pages discovered during a query.
+/**
+ * Topology record to map queries to discovered images
+ * @author Datim
+ *
  */
 @Entity
-@Table(name = "page_topology")
-public class PageTopology {
-
+@Table(name = "image_topology")
+public class ImageTopology {
 	@Id
     @GeneratedValue(strategy=GenerationType.AUTO)
 	@Column (name = "id")
@@ -25,15 +26,8 @@ public class PageTopology {
 	@Column (name = "query_id")
 	private long query;
 
-	/*
-	@OneToOne(cascade = {CascadeType.PERSIST,CascadeType.MERGE})
-    @JoinColumn(name = "page_id")
-	private Page page;
-	*/
-
-	@Column (name = "page_id")
-	private long page;
-
+	@Column (name = "image_id")
+	private long imageId;
 
 	@Column (name = "parent_page_id")
 	private long parentPage;
@@ -47,28 +41,14 @@ public class PageTopology {
 		createTime = new Date();
 	}
 
-/*
-	@PreUpdate
-	  void updatedAt() {
-	    this.updateTime = new Date();
-	  }
-*/
 	// default constructor
-	public PageTopology() {}
+	public ImageTopology() {}
 
 	// constructor
-	public PageTopology(long queryId, long pageId, long parentPageId) {
-		page = pageId;
+	public ImageTopology(long queryId, long imageId, long parentPageId) {
+		this.imageId = imageId;
 		query = queryId;
 		parentPage = parentPageId;
-	}
-
-	//constructor
-	// no parent page. Parent is itself
-	public PageTopology(long queryId, long pageId) {
-		page = pageId;
-		query = queryId;
-		parentPage = pageId;
 	}
 
 	public long getQuery() {
@@ -79,14 +59,13 @@ public class PageTopology {
 		this.query = query;
 	}
 
-	public long getPage() {
-		return page;
+	public long getImageId() {
+		return imageId;
 	}
 
-	public void setPage(long page) {
-		this.page = page;
+	public void setImageId(long imageId) {
+		this.imageId = imageId;
 	}
-
 
 	public long getParentPage() {
 		return parentPage;
@@ -96,15 +75,11 @@ public class PageTopology {
 		this.parentPage = parentPage;
 	}
 
-	public Date getCreateTime() {
-		return createTime;
-	}
-
-	public void setCreateTime(Date createTime) {
-		this.createTime = createTime;
-	}
-
 	public long getId() {
 		return id;
+	}
+
+	public Date getCreateTime() {
+		return createTime;
 	}
 }

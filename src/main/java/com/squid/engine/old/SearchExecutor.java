@@ -44,8 +44,7 @@ public class SearchExecutor extends Thread {
 		pageRequestsQueue = new LinkedBlockingQueue<>();
 
 		// create new thread pool
-		executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-		executor.setMaximumPoolSize(THREAD_POOL_SIZE);
+		executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 	}
 
 	/**

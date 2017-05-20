@@ -3,7 +3,7 @@ CREATE TABLE image (
   id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   discovered TIMESTAMP default CURRENT_TIME,
   name VARCHAR(255) NOT NULL,
-  etag VARCHAR(255),
+  checksum VARCHAR(255),
   url VARCHAR(2048) NOT NULL,
   height INT,
   width INT,
@@ -60,3 +60,19 @@ CREATE TABLE image_page (
 
 ALTER TABLE image_page ADD FOREIGN KEY (image_id) REFERENCES image(id);
 ALTER TABLE image_page ADD FOREIGN KEY (page_id) REFERENCES page(id);
+
+/* Each page can only have one instance of an image record */
+ALTER TABLE image_page ADD UNIQUE(image_id, page_id);
+
+/* Create a topology of images discovered as part of a query */
+CREATE TABLE image_topology (
+  id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  query_id INT NOT NULL,
+  image_id INT NOT NULL,
+  parent_page_id INT,
+  create_time TIMESTAMP default CURRENT_TIME
+);
+
+ALTER TABLE image_topology ADD FOREIGN KEY (query_id) REFERENCES query(id);
+ALTER TABLE image_topology ADD FOREIGN KEY (image_id) REFERENCES image(id);
+ALTER TABLE image_topology ADD FOREIGN KEY (parent_page_id) REFERENCES page(id);

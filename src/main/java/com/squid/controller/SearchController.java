@@ -2,9 +2,7 @@ package com.squid.controller;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -21,10 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.squid.config.SquidProperties;
 import com.squid.controller.exceptions.ResourceNotFoundException;
-import com.squid.controller.rest.QueryDTO;
 import com.squid.controller.rest.SearchStatusDTO;
 import com.squid.controller.rest.UserParameterDTO;
-import com.squid.data.Query;
 import com.squid.data.old.SearchStatusData;
 import com.squid.data.old.UserParameterData;
 import com.squid.engine.old.UserParameterService;
@@ -41,9 +37,8 @@ public class SearchController {
 
     private static final Logger log = LoggerFactory.getLogger(SearchController.class);
 
-
 	@Autowired
-	private SearchService crawler;
+	private SearchService sService;
 
 	@Autowired
 	private DataMapper dataMapper;
@@ -53,24 +48,6 @@ public class SearchController {
 
 	@Autowired
 	private UserParameterService userParamService;
-
-	/**
-	 * Return list of requested search queries
-	 * @return
-	 */
-	@RequestMapping(path = "/queries", method = RequestMethod.GET)
-	public List<QueryDTO> getQueries() {
-
-		final List<Query> queries = crawler.getQueries();
-
-		final List<QueryDTO> dtos = new ArrayList<>(queries.size());
-
-		for (final Query dao: queries) {
-			dtos.add(dataMapper.daoToDto(dao));
-		}
-
-		return dtos;
-	}
 
 	/**
 	 * Perform search on a URL
@@ -95,7 +72,7 @@ public class SearchController {
     	log.info("Performing search on url '{}'", searchUrl);
 
     	// start the search
-    	crawler.startSearch(searchUrl);
+    	sService.startSearch(searchUrl);
 
     	return new ResponseEntity<Object>(HttpStatus.OK);
     }
@@ -103,6 +80,7 @@ public class SearchController {
     /**
      * Get search status for a specific URL
      */
+    @Deprecated
     @RequestMapping(path = "/status", method = RequestMethod.GET)
     @ExceptionHandler({ResourceNotFoundException.class})
     public SearchStatusDTO getSearchStatus(@RequestParam(value="searchURL", defaultValue = "") String inUrl) {
@@ -116,7 +94,7 @@ public class SearchController {
     		//throw new ResourceNotFoundException("searchURL");
     	}
 
-    	final SearchStatusData dao = crawler.getSearchStatus(searchURL);
+    	final SearchStatusData dao = sService.getSearchStatus(searchURL);
 
     	if (dao == null) {
     		log.info("No status to report yet");
@@ -136,6 +114,7 @@ public class SearchController {
      * @param id
      * @return
      */
+    @Deprecated
     @RequestMapping(path = "/parameters/{id}", method = RequestMethod.GET)
     public UserParameterDTO getUserParameters(@PathVariable("id") long userId) {
 

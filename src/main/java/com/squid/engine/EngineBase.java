@@ -33,8 +33,10 @@ public abstract class EngineBase extends Thread {
 
 		this.searchName = searchName;
 		requestQueue = new LinkedBlockingQueue<>();
-		executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-		executor.setMaximumPoolSize(threadPoolSize);
+		//executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+		executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadPoolSize);
+		//executor.setMaximumPoolSize(threadPoolSize);
+		//executor.setCorePoolSize(threadPoolSize);
 	}
 
 	/**
@@ -57,8 +59,7 @@ public abstract class EngineBase extends Thread {
 			try {
 
 				// block until we get a message, then hand it to a thread pool
-				final RequestMsg request = requestQueue.take();
-				final Runnable messageHandler = getMessageHandler(request);
+				final Runnable messageHandler = getMessageHandler(requestQueue.take());
 
 				if (messageHandler == null) {
 					// unable to handle this message.   Error already logged, skip message

@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -19,6 +20,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.squid.config.SquidProperties;
+import com.squid.controller.exceptions.ResourceNotFoundException;
+import com.squid.data.ImageTopologyRepository;
+import com.squid.data.Page;
+import com.squid.data.PageTopology;
 import com.squid.data.PageTopologyRepository;
 import com.squid.data.Query;
 import com.squid.data.QueryRepository;
@@ -28,9 +33,7 @@ import com.squid.data.old.PhotoData;
 import com.squid.data.old.PhotoDataRepository;
 import com.squid.data.old.SearchStatusData;
 import com.squid.data.old.SearchStatusRepository;
-import com.squid.engine.PageEngine;
-import com.squid.engine.RepositoryService;
-import com.squid.engine.old.PageSearchRequest;
+import com.squid.engine.MessageEngine;
 import com.squid.engine.old.SearchConstants;
 import com.squid.engine.old.SearchExecutor;
 import com.squid.engine.old.UserParameterService;
@@ -40,6 +43,7 @@ import javassist.NotFoundException;
 
 /**
  * TODO: Breadth first search instead of depth-first search
+ * FIXME: Define max images and max pages through API
  */
 @Service
 public class SearchService {
@@ -73,9 +77,15 @@ public class SearchService {
 	private RepositoryService repoService;
 
 	@Autowired
-	private PageTopologyRepository topologyRepo;
+	private PageTopologyRepository pageTopoRepo;
 
-	private PageEngine pEngine;
+	@Autowired
+	private ImageTopologyRepository imageTopoRepo;
+
+	@Autowired
+	private QueryStatusService queryStatus;
+
+	private MessageEngine pEngine;
 
 
 	/**
@@ -83,7 +93,7 @@ public class SearchService {
 	 * that will execute page searches
 	 */
 	@PostConstruct
-	public void startThreadPolling() {
+	public void init() {
 
 		// - FIXME DELETE
 		// create a new search listener
@@ -93,7 +103,7 @@ public class SearchService {
 
 		// start the search engine
 		final int THREADPOOLSIZE = 10;	// FIXME, make configurable
-		pEngine = new PageEngine("PageSearch", THREADPOOLSIZE, repoService);
+		pEngine = new MessageEngine("PageSearch", THREADPOOLSIZE, repoService);
 		pEngine.start();
 	}
 
@@ -135,9 +145,13 @@ public class SearchService {
 		// get or create a new query object
 		final Query query = getOrCreateQuery(baseUrl, squidProps.getMaxNodes(), squidProps.getMaxImages());
 
+		// set the query status
+		queryStatus.setQueryStatusRunning(query);
+
 		// remove any existing topology information
-		final long pageCount = topologyRepo.deleteByQuery(query.getId());
-		log.info("Flushed {} pages in query history", pageCount);
+		final long pageCount = pageTopoRepo.deleteByQuery(query.getId());
+		final long imageCount = imageTopoRepo.deleteByQuery(query.getId());
+		log.info("Flushed {} pages and {} images in query history", pageCount, imageCount);
 
 		try {
 			pEngine.addRequest(new PageRequestMsg(query, baseUrl));
@@ -154,6 +168,7 @@ public class SearchService {
 		// initialize the status for a new search
 		SearchConstants.setSearchStatus(baseUrl, new Long(0), new Long(0), new Long(squidProps.getMaxNodes()), SearchStatusData.SearchStatus.NoResults, searchStatusRepo);
 
+		/*
 		try {
 			// submit a new request to be searched
 			searchListener.getPageRequestsQueue().put(new PageSearchRequest(baseUrl, baseUrl, null));
@@ -163,6 +178,7 @@ public class SearchService {
 			log.error("Unable to invoke a search for page: {}. Exception {}", baseUrl, e);
 			success = false;
 		}
+		*/
 
 		// FIXME end delete this
 
@@ -318,5 +334,62 @@ public class SearchService {
 		return searchStatusRepo.findByUrl(url);
 	}
 
+	/**
+	 * Return the status of a query
+	 * @param queryId the query status to look up
+	 * @return The status string
+	 */
+	public String getQueryStatus(long queryId) {
 
+		final Query query = queryRepo.findById(queryId);
+
+		if (query == null) {
+			log.error("Unable to find status. Query with id {} doesn't exist", queryId);
+			throw new ResourceNotFoundException("Query");
+		}
+
+		return queryStatus.getStatus(query);
+	}
+
+	/**
+	 * Find a query by id
+	 */
+	public Query getQuery(long queryId) {
+		return queryRepo.findById(queryId);
+	}
+
+	/**
+	 * Image counts for a query
+	 * @param queryId
+	 * @return image count for a query
+	 */
+	public long getQueryImageCount(long queryId) {
+		return imageTopoRepo.findByQuery(queryId).size();
+	}
+
+	/**
+	 * Page counts for a query
+	 * @param queryId
+	 * @return page count for query
+	 */
+	public long getQueryPageCount(long queryId) {
+		return pageTopoRepo.findByQuery(queryId).size();
+	}
+
+	/**
+	 * Get the list of pages associated with a query
+	 * @param queryId
+	 * @return
+	 */
+	public List<Page> getQueryPages(long queryId) {
+
+		final List<PageTopology> pagesByQuery = pageTopoRepo.findByQuery(queryId);
+		final List<Page> pages = new ArrayList<>(pagesByQuery.size());
+
+		for (final PageTopology topPage: pagesByQuery) {
+			pages.add(repoService.getPageRepo().findById(topPage.getPage()));
+		}
+
+		return pages;
+	}
 }
