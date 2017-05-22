@@ -5,7 +5,7 @@ CURRENT_DIR=$(dirname "$0")
 echo "----------------------------"
 echo "Building Front End"
 echo "----------------------------"
-webpack
+webpack --config webpack.config.js
 
 echo "----------------------------"
 echo "Building Back End"

@@ -2,7 +2,7 @@ import React from "react";
 /*
  * Button to trigger reporting of results
  */
- // Reference: https://facebook.github.io/react/docs/interactivity-and-dynamic-uis.html
+ // Reference: https://facebook.github.io/react/docs/state-and-lifecycle.html
 export default class ActionButton extends React.Component {
 
   constructor(props) {
