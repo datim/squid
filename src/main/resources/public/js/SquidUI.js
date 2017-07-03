@@ -1,29 +1,22 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import React, {Component} from 'react';
+import { render } from 'react-dom';
+import { Router, Route, browserHistory, hashHistory} from 'react-router'
 
-import SquidVersion from "./components/SquidVersion"
-import PhotoPanel from "./components/PhotoPanel"
-import IconPanel from "./components/IconPanel"
+import ImagePage from "./app/pages/image/ImagePage"
+import QueryPage from "./app/pages/query/QueryPage"
+import AdminPage from "./app/pages/admin/AdminPage"
 
-class MyApp extends React.Component {
+// https://medium.com/@pshrmn/a-simple-react-router-v4-tutorial-7f23ff27adf
+//https://github.com/reactjs/react-router-tutorial/tree/master/lessons/03-navigating-with-link
 
-  constructor() {
-    super();
-    this.photosPerRow = 4;
-  }
-
-  render() {
-
-    return(
-      <div>
-        <IconPanel/>
-        <SquidVersion/>
-        <PhotoPanel photosPerRow={this.photosPerRow} />
-      </div>
-    )
-  }
-}
-
-// render the main app
-const app = document.getElementById('ReactApp');
-ReactDOM.render(<MyApp/>, app);
+/**
+ * Define routes to each of the defined pages in the UI
+ *
+ **/
+render((
+  <Router history={hashHistory}>
+    <Route path="/" component={ImagePage}/>
+    <Route path="/query" component={QueryPage}/>
+    <Route path="/admin" component={AdminPage}/>
+  </Router>
+), document.getElementById('ReactApp'))

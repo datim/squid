@@ -11,7 +11,8 @@ jdk:
 
 # compile javascript
 before_script:
- - travis_retry npm install 
+ - travis_retry npm install -g npm@latest
+ - travis_retry npm install
  - webpack --config webpack.config.js
 
 # package UI and run
