@@ -1,5 +1,5 @@
 "use strict";
-// Production configuration for webpack
+// Development configuration for webpack
 // For webpack source maps, see: https://webpack.github.io/docs/configuration.html
 // To execute:
 //    # webpack --config webpack.config.dev.js
@@ -10,13 +10,15 @@ var rootPath = path.join(__dirname, "src", "main", "resources", "public");
 
 module.exports = {
   context: rootPath,
-  entry: './js/Launch.js',
+  devtool:  "eval-source-map",
+  entry: {
+  	app: './js/Launch.js',
+  },
   output: {
-    filename: 'index.js',
+  	filename: 'index.js',
     path: path.resolve(__dirname, 'src', 'main', 'resources', 'public')
   },
-
-  // Add Babel compiler
+  //Babel compiler
   module: {
     loaders: [
       {
@@ -30,8 +32,4 @@ module.exports = {
       }
     ]
   },
-
-  plugins: [
-    new webpack.optimize.UglifyJsPlugin({ mangle: false, sourcemap: false }),
-  ],
 };

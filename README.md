@@ -6,7 +6,5 @@
 # About
 Web crawler that extracts images and presents in a table implemented in React.  Backend in Java using Spring-Boot.
 
-# Build Instructions
+# Development Enviornment Setup and Build Instructions
 [Instructions for Building](docs/build_instructions.md)
-
-[Setup Notes](docs/setup.md)

@@ -22,7 +22,9 @@
   "devDependencies": {},
   "scripts": {
     "build" : "webpack --config webpack.config.js --progress --color",
-    "dev"   : "webpack-dev-server --content-base src\\main\\resources\\public --inline --hot --port 7777"
+    "devbuild" : "webpack --config webpack.config.dev.js --progress --color",
+    "devserver"   : "webpack-dev-server --content-base src\\main\\resources\\public --inline --hot --port 7777",
+    "dev"   : "npm run devbuild && npm run devserver"
   },
   "author": "datim",
   "license": "ISC"
