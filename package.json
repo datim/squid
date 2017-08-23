@@ -16,15 +16,17 @@
     "react": "^15.5.0",
     "react-dom": "^15.5.0",
     "react-router" : "^2.8.1",
+    "redux" : "^3.2.0",
+    "react-redux": "^4.2.0",
+    "redux-logger": "^2.4.0",
     "webpack": "^2.3.3",
     "webpack-dev-server": "^1.14.1"
   },
   "devDependencies": {},
   "scripts": {
     "build" : "webpack --config webpack.config.js --progress --color",
-    "devbuild" : "webpack --config webpack.config.dev.js --progress --color",
-    "devserver"   : "webpack-dev-server --content-base src\\main\\resources\\public --inline --hot --port 7777",
-    "dev"   : "npm run devbuild && npm run devserver"
+    "builddev" : "webpack --config webpack.config.dev.js --progress --color",
+    "dev"   : "webpack-dev-server --content-base src\\main\\resources\\public --debug --devtool eval-source-map --inline --hot --port 7777"
   },
   "author": "datim",
   "license": "ISC"

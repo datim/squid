@@ -9,11 +9,13 @@ export default class SideNavBarPages extends Component {
     return(
       <div id="header">
       <table>
-        <tr>
-          <th><Link to="/">Images</Link></th>
-          <th><Link to="/query">Query Details</Link></th>
-          <th><Link to="/admin">Admin</Link></th>
-        </tr>
+        <tbody>
+          <tr>
+            <th><Link to="/">Images</Link></th>
+            <th><Link to="/query">Query Details</Link></th>
+            <th><Link to="/admin">Admin</Link></th>
+          </tr>
+        </tbody>
       </table>
       </div>
     )

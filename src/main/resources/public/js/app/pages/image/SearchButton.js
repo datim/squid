@@ -1,10 +1,12 @@
 'use-strict'
 import React, {Component} from 'react';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import { getStore } from "../../store/ManageStore";
+import * as searchActions from "../../actions/Actions";
 
-/**
- * Define the search button for a pages
- */
-export default class SearchButton extends Component {
+// Search Button Component
+class SearchButton extends Component {
 
   constructor(props) {
     super(props);
@@ -16,12 +18,17 @@ export default class SearchButton extends Component {
     this.handleClick = this.handleClick.bind(this);
     }
 
-    // update on a click
-    handleClick() {
-      this.setState(prevState => ({
-        isToggleOn: !prevState.isToggleOn
-      }));
-    }
+  // update on a click
+  handleClick() {
+
+    // trigger action for button change
+    this.props.actions.toggleSearchButton()
+
+    // update button state
+    this.setState({
+      isToggleOn: !this.state.isToggleOn }
+    )
+  }
 
   render() {
     const displayImage = this.start_image;
@@ -31,3 +38,20 @@ export default class SearchButton extends Component {
     )
   }
 }
+
+// map state to properties
+const mapStateToProps = (state, ownProps) => {
+  return {
+    searchState: state.searchState
+  }
+};
+
+// map all actions to properties
+const mapDispatchToProps = (dispatch) => {
+  return {
+    actions: bindActionCreators(searchActions, dispatch)
+  }
+};
+
+// connect state to class
+export default connect(mapStateToProps, mapDispatchToProps)(SearchButton);
