@@ -30,6 +30,13 @@ module.exports = {
       }
     ]
   },
+  node: {
+    // reference: http://webpack.github.io/docs/configuration.html#node
+    console: false,
+    fs: 'empty',
+    net: 'empty',
+    tls: 'empty'
+  },
 
   plugins: [
     new webpack.optimize.UglifyJsPlugin({ mangle: false, sourcemap: false }),

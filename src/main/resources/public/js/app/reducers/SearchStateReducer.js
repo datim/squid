@@ -1,5 +1,10 @@
 'use-strict'
-import * as types from '../actions/ActionTypes';
+import * as actions from '../actions/ActionTypes';
+import * as searchStates from '../actions/SearchStates';
+
+var rp = require('request-promise');
+const crawlAPI = "/crawl/search";
+
 /**
  * Handle the changing search state
  **/
@@ -11,43 +16,58 @@ import * as types from '../actions/ActionTypes';
  *
  * The action is assumed to be: START, STOP
  **/
-const searchStateReducer = (state=[], action) => {
+const searchState = (state={}, action) => {
 
+  var newState = state;
+  
   switch(action.type) {
 
-    case 'CLICK_SEARCH_BUTTON':
-      var returnType = NaN;
-      if (state.search_status == types.SEARCH_STOPPED) {
-        console.log("Starting Search")
-        returnType = types.SEARCH_STARTING;
-      }
+    case actions.REQUEST_QUERY_STARTED:
 
-      else if (state.search_status == types.SEARCH_STARTING) {
-        console.log(" Search Running")
-        returnType = types.SEARCH_RUNNING;
-      }
-
-      else if (state.search_status == types.SEARCH_RUNNING) {
-        console.log("Stopping Search")
-        returnType = types.SEARCH_STOPPING;
-      }
-
-      else if (state.search_status == types.SEARCH_STOPPING) {
-        console.log("Search Stopped")
-        returnType = types.SEARCH_STOPED;
-      }
-
-      // construct state with new status
-      return [
-        ...state,
-        {
-          'search_status': returnType
+      if (state.searchState.state == searchStates.SEARCH_STOPPED) {
+        // Set state to start for the current query. Clear any errors, record the ID and the search URL
+        return {
+          ...state,
+          searchState : {
+            state: searchStates.SEARCH_RUNNING,
+            current_url : action.searchURI,
+            current_query_id : action.id,
+            errors: NaN
+          }
         }
-      ]
+      } else {
+        return state;
+      }
+
+    case actions.REQUEST_QUERY_STOPPED:
+      if (state.searchState.state == searchStates.SEARCH_RUNNING) {      
+        // Set state to stop for the current query. Set state to stopped, clear any errors  
+        return {
+          ...state,
+          searchState : {
+            state: searchStates.SEARCH_STOPPED,
+            errors: NaN          
+          }
+        }
+
+      } else {
+        return state;
+      }
+
+    case actions.REQUEST_QUERY_FAILED:
+      // Failed to invoke or start or stop search. Set state to stopped, record error and search URL
+      return {
+        ...state,
+        searchState : {
+          state: searchStates.SEARCH_STOPPED,          
+          current_url : action.searchURI,
+          errors: action.error          
+        }
+      }
 
     default:
-      return state;
+    return state;
   }
 };
 
-export default searchStateReducer
+export default searchState

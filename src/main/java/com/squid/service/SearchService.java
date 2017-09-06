@@ -137,10 +137,9 @@ public class SearchService {
 	 * @param huntUrl
 	 * @throws IOException
 	 * @throws InterruptedException
+	 * @return id of query running search
 	 */
-	public boolean startSearch(final URL baseUrl) throws IOException {
-
-		boolean success = true;
+	public long startSearch(final URL baseUrl) throws IOException {
 
 		// get or create a new query object
 		final Query query = getOrCreateQuery(baseUrl, squidProps.getMaxNodes(), squidProps.getMaxImages());
@@ -158,7 +157,6 @@ public class SearchService {
 
 		} catch (final InterruptedException e) {
 			log.error("Unable to invoke a search for url {}. Exception. {}", baseUrl, e);
-			success = false;
 		}
 
 		// FIXME - delete this
@@ -168,21 +166,7 @@ public class SearchService {
 		// initialize the status for a new search
 		SearchConstants.setSearchStatus(baseUrl, new Long(0), new Long(0), new Long(squidProps.getMaxNodes()), SearchStatusData.SearchStatus.NoResults, searchStatusRepo);
 
-		/*
-		try {
-			// submit a new request to be searched
-			searchListener.getPageRequestsQueue().put(new PageSearchRequest(baseUrl, baseUrl, null));
-
-		} catch (final InterruptedException e) {
-			// submission request failed. Throw an error
-			log.error("Unable to invoke a search for page: {}. Exception {}", baseUrl, e);
-			success = false;
-		}
-		*/
-
-		// FIXME end delete this
-
-		return success;
+		return query.getId();
 	}
 
 	/**

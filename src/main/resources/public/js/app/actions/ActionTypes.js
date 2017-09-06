@@ -1,8 +1,8 @@
-/** Action Types **/
+/** Define valid action types **/
+'use-strict'
 
-// search states
-export const TOGGLE_SEARCH_BUTTON = 'TOGGLE_SEARCH_BUTTON';
-export const SEARCH_STARTING = 'SEARCH_STARTING';
-export const SEARCH_RUNNING = 'SEARCH_RUNNING';
-export const SEARCH_STOPPING = 'SEARCH_STOPPING';
-export const SEARCH_STOPPED = 'SEARCH_STOPPED';
+export const REQUEST_QUERY_STARTED = 'REQUEST_QUERY_STARTED';
+export const REQUEST_QUERY_STOPPED = 'REQUEST_QUERY_STOPPED';
+export const REQUEST_QUERY_FAILED = 'REQUEST_QUERY_FAILED';
+
+

@@ -1,11 +1,11 @@
 'use-strict'
 import { combineReducers } from 'redux'
-import sampleReducer from './SampleReducer'
-import searchStateReducer from './SearchStateReducer'
+import searchState from './SearchStateReducer'
 
 // combine all redux reducers into a single reducer
+// reducers are mapped to the states by key/value pairs
 const rootReducer = combineReducers(
-  { sampleReducer, searchStateReducer }
+  { queryState: searchState }
 )
 
 export default rootReducer;
