@@ -32,7 +32,7 @@ const searchState = (state={}, action) => {
             state: searchStates.SEARCH_RUNNING,
             current_url : action.searchURI,
             current_query_id : action.id,
-            errors: NaN
+            errors: null
           }
         }
       } else {
@@ -46,7 +46,7 @@ const searchState = (state={}, action) => {
           ...state,
           searchState : {
             state: searchStates.SEARCH_STOPPED,
-            errors: NaN          
+            errors: null          
           }
         }
 
@@ -58,10 +58,11 @@ const searchState = (state={}, action) => {
       // Failed to invoke or start or stop search. Set state to stopped, record error and search URL
       return {
         ...state,
-        searchState : {
-          state: searchStates.SEARCH_STOPPED,          
+        searchState : {        
+          state : searchStates.SEARCH_STOPPED,
+          current_query_id : state.searchState.current_query_id,
           current_url : action.searchURI,
-          errors: action.error          
+          errors : action.error.message
         }
       }
 

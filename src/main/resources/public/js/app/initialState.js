@@ -9,8 +9,8 @@ export default {
         searchState : {
             state : states.SEARCH_STOPPED,
             current_query_id : -1,
-            current_url : NaN,
-            errors : NaN
+            current_url : null,
+            errors : null
         }
     } 
 };

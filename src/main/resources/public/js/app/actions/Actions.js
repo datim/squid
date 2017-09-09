@@ -2,12 +2,12 @@
 /**
  * State Actions
  */
-import * as actions from '../actions/ActionTypes';
-import * as searchStates from '../actions/SearchStates';
+import * as actions from './ActionTypes';
+import * as searchStates from './SearchStates';
+import * as globals from "../common/GlobalConstants";
+
 
 var rp = require('request-promise');
-const searchRoot = "/crawl/search";
-
 
 /**
  * Action for clicking search button
@@ -34,7 +34,7 @@ export function toggleSearch(host, port, queryURL, searchState) {
     return (dispatch) => {
 
         // construct the query URL
-        var searchURI = "http://" + host + ":" + port + searchRoot + "/search";
+        var searchURI = "http://" + host + ":" + port + globals.searchRoot + "/search";
         var dispatchRequest = actions.REQUEST_QUERY_START;
         var options = NaN;
 

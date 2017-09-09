@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 
 import SideNavBarPages from "../../common/nav/SideNavBar"
 import SearchContainer from "./SearchContainer"
+import StatusContainer from "./StatusContainer"
 
 /**
  * Represent the Image Search Page
@@ -20,6 +21,7 @@ export default class ImagePage extends Component {
         <h1>Image</h1>
         <SideNavBarPages/>
         <SearchContainer/>
+        <StatusContainer/>
       </div>
     )
   }
