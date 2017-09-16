@@ -6,11 +6,11 @@
 
 var webpack = require('webpack');
 var path = require('path');
-var rootPath = path.join(__dirname, "src", "main", "resources", "public");
+var rootPath = path.join(__dirname, "src", "main", "js");
 
 module.exports = {
   context: rootPath,
-  entry: './js/Launch.js',
+  entry: './Launch.js',
   output: {
     filename: 'index.js',
     path: path.resolve(__dirname, 'src', 'main', 'resources', 'public')

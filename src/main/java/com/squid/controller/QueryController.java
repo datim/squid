@@ -1,16 +1,18 @@
 package com.squid.controller;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.squid.controller.rest.ImageDTO;
@@ -31,7 +33,7 @@ import javassist.NotFoundException;
  *
  */
 @RestController
-@RequestMapping("/query")
+@RequestMapping("/api/query")
 public class QueryController {
 
     private static final Logger log = LoggerFactory.getLogger(QueryController.class);
@@ -51,7 +53,7 @@ public class QueryController {
 	 * @param queryId
 	 * @return The query object that matches the requested ID
 	 */
-    @RequestMapping(path = "/{id}", method = RequestMethod.GET)
+	@PostMapping(path = "/{id}")
 	public ResponseEntity<Object> getQuery(@PathVariable("id") long queryId) {
 
 		Query dao;
@@ -73,7 +75,7 @@ public class QueryController {
      * @param queryId
      * @return OK if query deleted
      */
-    @RequestMapping(path = "/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping(path = "/{id}")
     public ResponseEntity<Object> deleteQuery(@PathVariable("id") long queryId) {
 
 		try {
@@ -93,15 +95,15 @@ public class QueryController {
      * @param queryId The query to search for
      * @return A list of pages associated with the query
      */
-    @RequestMapping(path = "/{id}/page", method = RequestMethod.GET)
+    @GetMapping(path = "/{id}/page")
     public ResponseEntity<Object> getQueryPages(@PathVariable("id") long queryId) {
 
     	final List<Page> pageDaos = sService.getQueryPages(queryId);
-    	final List<PageDTO> pageDtos = new ArrayList<>(pageDaos.size());
 
-    	for (final Page page: pageDaos) {
-    		pageDtos.add(dataMapper.convert(page));
-    	}
+    	// convert DAO to DTO
+    	final List<PageDTO> pageDtos = pageDaos.stream()
+    			.map(page -> dataMapper.convert(page))
+    			.collect(Collectors.toList());
 
 		return ResponseEntity.accepted().body(pageDtos);
     }
@@ -111,15 +113,15 @@ public class QueryController {
      * @param queryId The query to search for
      * @return A list of pages associated with the query
      */
-    @RequestMapping(path = "/{id}/image", method = RequestMethod.GET)
+    @GetMapping(path = "/{id}/image")
     public ResponseEntity<Object> getQueryImages(@PathVariable("id") long queryId) {
 
     	final List<Image> imageDaos = sService.getQueryImages(queryId);
-    	final List<ImageDTO> imageDtos = new ArrayList<>(imageDaos.size());
 
-    	for (final Image image: imageDaos) {
-    		imageDtos.add(dataMapper.convert(image));
-    	}
+    	// convert DAO to DTO
+		final List<ImageDTO> imageDtos = imageDaos.stream()
+				.map(image -> dataMapper.convert(image))
+				.collect(Collectors.toList());
 
 		return ResponseEntity.accepted().body(imageDtos);
     }
@@ -129,7 +131,7 @@ public class QueryController {
 	 * @param queryId
 	 * @return
 	 */
-    @RequestMapping(path = "/{id}/status", method = RequestMethod.GET)
+    @GetMapping(path = "/{id}/status")
     public ResponseEntity<Object> getQueryStatus(@PathVariable("id") long queryId) {
 
     	QueryStatusDTO status = null;
@@ -159,17 +161,14 @@ public class QueryController {
 
 	/**
 	 * Return list of all search queries
-	 * @return
+	 * @return List of all query objects
 	 */
-	@RequestMapping(path = "/all", method = RequestMethod.GET)
+    @GetMapping
 	public ResponseEntity<Object> getQueries() {
 
-		final List<Query> queries = sService.getQueries();
-		final List<QueryDTO> dtos = new ArrayList<>(queries.size());
-
-		for (final Query dao: queries) {
-			dtos.add(dataMapper.convert(dao));
-		}
+		final List<QueryDTO> dtos = sService.getQueries().stream()
+				.map(dao -> dataMapper.convert(dao))
+				.collect(Collectors.toList());
 
 		return ResponseEntity.accepted().body(dtos);
 	}

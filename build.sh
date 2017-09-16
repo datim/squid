@@ -1,20 +1,24 @@
 #!/bin/bash
-# Build and launch application in 'production' mode
+# Build application in 'production' or 'debug' mode
 #
 
 CURRENT_DIR=$(dirname "$0")
-ROOT_DIR="C:/users/datim/Desktop/squid"
-LOG_LEVEL=info
 SPACER="---------------------------"
+WEB_PACK_CONFIG="webpack.config.js"
+
+if [ "$1" == "debug" ];then
+  echo "Compiling in debug mode"
+  WEB_PACK_CONFIG="webpack.config.dev.js"
+
+else
+  echo "Specify 'debug' to compile in debug mode"
+
+fi
 
 # compile front end with webpack
 printf "%s\n Building Front End\n%s\n" $SPACER $SPACER
-webpack --config webpack.config.js
+webpack --config ${WEB_PACK_CONFIG}
 
 # compile back end with Java
 printf "%s\n Building Back End\n%s\n" $SPACER $SPACER
 ${CURRENT_DIR}/gradlew clean build
-
-# launch application with 'production' configuration
-printf "%s\n Launching\n%s\n" $SPACER $SPACER
-java -DROOT=${ROOT_DIR} -DLOG_LEVEL=${LOG_LEVEL} -jar build/libs/squid-1.0.jar

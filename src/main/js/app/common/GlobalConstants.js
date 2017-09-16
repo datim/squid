@@ -3,4 +3,4 @@
  * Define global constants
  */
 
- export const searchRoot = "/crawl/search";
+ export const searchRoot = "/api/search";

@@ -10,14 +10,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 public class SquidRestConfiguration {
     @Bean
     public WebMvcConfigurer corsConfigurer() {
-    	
+
     	/**
     	 * Allow cross mappings from port 7777
     	 */
         return new WebMvcConfigurerAdapter() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/crawl/**")
+                registry.addMapping("/api/**")
                 		.allowedOrigins("http://localhost:7777")
             			.allowedMethods("PUT", "DELETE", "POST", "GET");
             }

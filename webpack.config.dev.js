@@ -6,13 +6,13 @@
 
 var webpack = require('webpack');
 var path = require('path');
-var rootPath = path.join(__dirname, "src", "main", "resources", "public");
+var rootPath = path.join(__dirname, "src", "main", "js");
 
 module.exports = {
   context: rootPath,
   devtool:  "eval-source-map",
   entry: {
-  	app: './js/Launch.js',
+  	app: './Launch.js',
   },
   output: {
   	filename: 'index.js',

@@ -1,10 +1,11 @@
 
 **Master Branch:**  [![Build Status](https://travis-ci.org/datim/squid.svg?branch=master)](https://travis-ci.org/datim/squid)
 
-**Develop Branch:** [![Build Status](https://travis-ci.org/datim/squid.svg?branch=develop)](https://travis-ci.org/datim/squid)
-
 # About
-Web crawler that extracts images and presents in a table implemented in React.  Backend in Java using Spring-Boot.
+This is a simple search application that extracts images and presents in a table implemented in React.  Backend in Java using Spring-Boot.
 
 # Development Enviornment Setup and Build Instructions
 [Instructions for Building](docs/build_instructions.md)
+
+# Design
+Design artifacts are located in `docs/design`
