@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.squid.controller.rest.ImageDTO;
 import com.squid.controller.rest.PageDTO;
 import com.squid.controller.rest.QueryDTO;
 import com.squid.controller.rest.QueryStatusDTO;
+import com.squid.data.Image;
 import com.squid.data.Page;
 import com.squid.data.Query;
 import com.squid.service.QueryService;
@@ -91,7 +93,7 @@ public class QueryController {
      * @param queryId The query to search for
      * @return A list of pages associated with the query
      */
-    @RequestMapping(path = "/{id}/pages", method = RequestMethod.GET)
+    @RequestMapping(path = "/{id}/page", method = RequestMethod.GET)
     public ResponseEntity<Object> getQueryPages(@PathVariable("id") long queryId) {
 
     	final List<Page> pageDaos = sService.getQueryPages(queryId);
@@ -102,6 +104,24 @@ public class QueryController {
     	}
 
 		return ResponseEntity.accepted().body(pageDtos);
+    }
+
+    /**
+     * Return a list of pages associated with the query
+     * @param queryId The query to search for
+     * @return A list of pages associated with the query
+     */
+    @RequestMapping(path = "/{id}/image", method = RequestMethod.GET)
+    public ResponseEntity<Object> getQueryImages(@PathVariable("id") long queryId) {
+
+    	final List<Image> imageDaos = sService.getQueryImages(queryId);
+    	final List<ImageDTO> imageDtos = new ArrayList<>(imageDaos.size());
+
+    	for (final Image image: imageDaos) {
+    		imageDtos.add(dataMapper.convert(image));
+    	}
+
+		return ResponseEntity.accepted().body(imageDtos);
     }
 
 	/**
@@ -145,7 +165,6 @@ public class QueryController {
 	public ResponseEntity<Object> getQueries() {
 
 		final List<Query> queries = sService.getQueries();
-
 		final List<QueryDTO> dtos = new ArrayList<>(queries.size());
 
 		for (final Query dao: queries) {

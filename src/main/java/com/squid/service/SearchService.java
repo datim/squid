@@ -16,27 +16,21 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.squid.config.SquidProperties;
 import com.squid.controller.exceptions.ResourceNotFoundException;
+import com.squid.data.Image;
+import com.squid.data.ImageTopology;
 import com.squid.data.ImageTopologyRepository;
 import com.squid.data.Page;
 import com.squid.data.PageTopology;
 import com.squid.data.PageTopologyRepository;
 import com.squid.data.Query;
 import com.squid.data.QueryRepository;
-import com.squid.data.old.NodeData;
-import com.squid.data.old.NodeDataRepository;
 import com.squid.data.old.PhotoData;
 import com.squid.data.old.PhotoDataRepository;
-import com.squid.data.old.SearchStatusData;
-import com.squid.data.old.SearchStatusRepository;
 import com.squid.engine.MessageEngine;
-import com.squid.engine.old.SearchConstants;
-import com.squid.engine.old.SearchExecutor;
-import com.squid.engine.old.UserParameterService;
 import com.squid.engine.requests.PageRequestMsg;
 
 import javassist.NotFoundException;
@@ -54,19 +48,6 @@ public class SearchService {
 
 	@Autowired
 	private PhotoDataRepository photoRepo;
-
-	@Autowired
-	private NodeDataRepository nodeRepo;
-
-	@Autowired
-	private SearchStatusRepository searchStatusRepo;
-
-	@Autowired
-	private UserParameterService userParamService;
-
-	private SearchExecutor searchListener;
-
-	// -- START of properties to keep
 
     private static final Logger log = LoggerFactory.getLogger(SearchService.class);
 
@@ -94,12 +75,6 @@ public class SearchService {
 	 */
 	@PostConstruct
 	public void init() {
-
-		// - FIXME DELETE
-		// create a new search listener
-		searchListener = new SearchExecutor(photoRepo, nodeRepo, searchStatusRepo, squidProps.getMaxImages(), squidProps.getMaxNodes());
-		searchListener.start();
-		// - FIXME DELETE
 
 		// start the search engine
 		final int THREADPOOLSIZE = 10;	// FIXME, make configurable
@@ -159,13 +134,6 @@ public class SearchService {
 			log.error("Unable to invoke a search for url {}. Exception. {}", baseUrl, e);
 		}
 
-		// FIXME - delete this
-		// update user search parameters
-		userParamService.setUserSearchString(UserParameterService.DEFAULT_USER_ID, baseUrl.toString());
-
-		// initialize the status for a new search
-		SearchConstants.setSearchStatus(baseUrl, new Long(0), new Long(0), new Long(squidProps.getMaxNodes()), SearchStatusData.SearchStatus.NoResults, searchStatusRepo);
-
 		return query.getId();
 	}
 
@@ -175,26 +143,6 @@ public class SearchService {
 	 */
 	public List<Query> getQueries() {
 		return queryRepo.findAll();
-	}
-
-	/**
-	 * Retrieve stored list of photos. Provide an optional filter term, which can be an empty string
-	 */
-	public List<PhotoData> getPhotos(String filter) {
-		if (filter.isEmpty()) {
-			return getAllPhotos();
-
-		} else {
-			// save filter and return photos
-			return getPhotosWithFilter(filter);
-		}
-	}
-
-	/**
-	 * Query all photos
-	 */
-	public List<PhotoData> getAllPhotos() {
-		return photoRepo.findAll(new Sort(Sort.Direction.ASC, "id"));
 	}
 
 	/**
@@ -218,50 +166,12 @@ public class SearchService {
 	}
 
 	/**
-	 * Retrieve all discovered nodes
-	 */
-	public List<NodeData> getNodes() {
-		return (List<NodeData>) nodeRepo.findAll();
-	}
-
-	/**
-	 * Retrieve the number of discovered nodes
-	 */
-	public long getNodeCount() {
-		return nodeRepo.count();
-	}
-
-	/**
-	 * Delete all photos
-	 */
-	public void deletePhotos() {
-		log.info("Erasing all photos");
-
-		final List<PhotoData> photos = (List<PhotoData>) photoRepo.findAll();
-
-		for (final PhotoData p: photos) {
-			photoRepo.delete(p);
-		}
-	}
-
-	/**
-	 *  Delete All nodes
-	 */
-	public void deleteNodes() {
-		log.info("Erasing all nodes");
-
-		final List<NodeData> nodes = (List<NodeData>) nodeRepo.findAll();
-		for (final NodeData n: nodes) {
-			nodeRepo.delete(n);
-		}
-	}
-
-	/**
 	 * Download a Photo to the default directory. Overwrite photo if it exists
 	 * @param Download a photo to the default directory. Save the updated photo
 	 * @throws IOException
 	 * @throws NotFoundException
 	 */
+	@Deprecated
 	public PhotoData savePhoto(long photoId) throws IOException, NotFoundException {
 
 		// get download path
@@ -310,15 +220,6 @@ public class SearchService {
 	}
 
 	/**
-	 * Return the last search status
-	 * @return
-	 */
-	public SearchStatusData getSearchStatus(String url) {
-		// it is expected that there will only be one record
-		return searchStatusRepo.findByUrl(url);
-	}
-
-	/**
 	 * Return the status of a query
 	 * @param queryId the query status to look up
 	 * @return The status string
@@ -362,8 +263,8 @@ public class SearchService {
 
 	/**
 	 * Get the list of pages associated with a query
-	 * @param queryId
-	 * @return
+	 * @param queryId the query to report images for
+	 * @return a list of pages associated with a query
 	 */
 	public List<Page> getQueryPages(long queryId) {
 
@@ -375,5 +276,22 @@ public class SearchService {
 		}
 
 		return pages;
+	}
+
+	/**
+	 * Get a list of images associated with the query
+	 * @param queryId the query to report images for
+	 * @return a list of images associated with a query
+	 */
+	public List<Image> getQueryImages(long queryId) {
+
+		final List<ImageTopology> imagesByQuery = imageTopoRepo.findByQuery(queryId);
+		final List<Image> images = new ArrayList<>(imagesByQuery.size());
+
+		for (final ImageTopology topImage: imagesByQuery) {
+			images.add(repoService.getImageRepo().findById(topImage.getImageId()));
+		}
+
+		return images;
 	}
 }

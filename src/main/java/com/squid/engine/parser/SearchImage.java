@@ -133,7 +133,7 @@ public class SearchImage {
 
 		} catch (final org.hibernate.exception.ConstraintViolationException | org.springframework.dao.DataIntegrityViolationException e) {
 			// create a new Page record.  Record already created, fail
-			log.warn("Failed to create a new page record for url '{}'. Record already exists. Exception: '{}'", image.getUrl(), e.getMessage());
+			log.warn("Failed to create a new image record for url '{}'. Record already exists. Exception: '{}'", image.getUrl(), e.getMessage());
 			return null;
 		}
 
@@ -148,6 +148,11 @@ public class SearchImage {
 	 * @return An existing page topology mapping, or a new one if it has not yet been created
 	 */
 	private ImageTopology setImageTopology(final Query query, final Image image, final Page parentPage) {
+
+		if ((image == null) || (query == null)) {
+			log.warn("Attempting to set image topology for an empty value");
+			return null;
+		}
 
 		ImageTopology ImageMapping = repoService.getImageTopologyRepo().findByQueryAndImageId(query.getId(), image.getId());
 

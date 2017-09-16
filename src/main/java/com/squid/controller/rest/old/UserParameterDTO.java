@@ -1,4 +1,4 @@
-package com.squid.controller.rest;
+package com.squid.controller.rest.old;
 
 /**
  * DTO representing user parameters

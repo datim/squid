@@ -205,6 +205,7 @@ public class PageParser {
 	private void findSubImages(final Document pageNode, final Query query, final Page parentPage) {
 
 		// Determine whether max images have already been discovered for this query
+		// FIXME - enable search for sub pages
 		if (canQuerySearchImages(query)) {
 			log.info("Maximum number of images have been found for this query. Stopping query");
 			return;

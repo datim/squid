@@ -34,7 +34,7 @@ export function toggleSearch(host, port, queryURL, searchState) {
     return (dispatch) => {
 
         // construct the query URL
-        var searchURI = "http://" + host + ":" + port + globals.searchRoot + "/search";
+        var searchURI = "http://" + host + ":" + port + globals.searchRoot + "/start";
         var dispatchRequest = actions.REQUEST_QUERY_START;
         var options = NaN;
 

@@ -17,14 +17,14 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "image")
-public class Image {
+public class Image  {
 
 	@Id
     @GeneratedValue(strategy=GenerationType.AUTO)
 	@Column (name = "id")
 	private long id;
 
-	@Column (name = "url")
+	@Column (name = "url", unique=true)
 	private URL url;
 
 	@Column (name = "name")

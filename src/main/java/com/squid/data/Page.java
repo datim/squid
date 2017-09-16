@@ -24,7 +24,7 @@ public class Page {
 	@Column (name = "id")
 	private long id;
 
-	@Column (name = "url")
+	@Column (name = "url", unique=true)
 	private URL url;
 
 	@Column (name = "checksum")

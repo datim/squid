@@ -23,9 +23,6 @@ public class QueryService {
 	@Autowired
 	private QueryRepository queryRepo;
 
-	@Autowired
-	private QueryStatusService queryStatus;
-
 	/**
 	 * Delete an existing query
 	 * @param queryId
