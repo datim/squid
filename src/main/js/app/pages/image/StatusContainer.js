@@ -11,7 +11,7 @@ import { isStateRunning } from "../../common/StateHelper";
 import * as globals from "../../common/GlobalConstants";
 
 var rp = require('request-promise');
-const defaultStatusMessage = "No Results";
+const noResultMessage = "No Search Results";
 
 /**
  * Report status as a table
@@ -23,8 +23,8 @@ const StatusTable = props => {
             <tbody>
                 <tr>
                     <th> {props.countStatus} Downloaded</th>
-                    <th> <font color="red"> {props.errorMsg} </font></th>
                     <th> {props.status} </th>
+                    <th> <font color="red"> {props.errorMsg} </font></th>
                 </tr>
             </tbody>
         </table>
@@ -47,7 +47,9 @@ class StatusContainer extends Component {
 
     // fetch the status about the current query
     fetchStatus() {
-        const statusAPI = "http://" + this.props.queryState.server + ":" + this.props.queryState.port + globals.searchRoot + "/status";
+        
+        const statusAPI = "http://" + this.props.queryState.server + ":" + this.props.queryState.port 
+                                    + globals.QUERY_ROOT + "/" + this.props.queryState.searchState.current_query_id + "/status";
         
         return rp(statusAPI)
             .then(results => {
@@ -67,9 +69,13 @@ class StatusContainer extends Component {
             });
     }
 
-    // get the initial status when page mounts
+    // get the initial status when page mounts if status is not -1
     componentDidMount() {
-        this.fetchStatus()
+        if (this.props.queryState.searchState.current_query_id != globals.DEFAULT_SEARCH_ID) {
+            this.fetchStatus()
+        } else {
+            console.log("No Search Performed. Will not fetch Search Status")
+        }
     }
 
     componentDidUpdate() {
@@ -100,7 +106,7 @@ class StatusContainer extends Component {
     // generate the page and image count status message
     getImageAndPageStatus() {
 
-        var message = defaultStatusMessage;
+        var message = noResultMessage;
 
         if (this.state.imageCount!= null && this.state.pageCount != null) {
             message = this.state.pageCount + " pages and " + this.state.imageCount + " images"; 
