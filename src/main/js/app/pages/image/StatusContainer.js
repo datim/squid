@@ -9,6 +9,8 @@ import { connect } from 'react-redux';
 import * as searchActions from "../../actions/Actions";
 import { isStateRunning } from "../../common/StateHelper";
 import * as globals from "../../common/GlobalConstants";
+import * as searchStates from '../../actions/SearchStates';
+
 
 var rp = require('request-promise');
 const noResultMessage = "No Search Results";
@@ -32,7 +34,7 @@ const StatusTable = props => {
 }
 
 /**
- * Container for Search Inputs
+ * Container for Search Status
  */
 class StatusContainer extends Component {
 
@@ -45,71 +47,29 @@ class StatusContainer extends Component {
         };
     }
 
-    // fetch the status about the current query
-    fetchStatus() {
-        
-        const statusAPI = "http://" + this.props.queryState.server + ":" + this.props.queryState.port 
-                                    + globals.QUERY_ROOT + "/" + this.props.queryState.searchState.current_query_id + "/status";
-        
-        return rp(statusAPI)
-            .then(results => {
-
-                var resultsJSON = JSON.parse(results);
-
-                // update state
-                console.log("Status: Image Count " + resultsJSON.imageCount + ", Page Count: " + resultsJSON.nodeCount);
-                this.setState({
-                    imageCount: resultsJSON.imageCount,
-                    pageCount: resultsJSON.nodeCount
-                })
-            })
-            .catch(err => {
-                // do not update state
-                console.log("Error fetching status results from " + statusAPI + ". Error: " + err);
-            });
-    }
-
     // get the initial status when page mounts if status is not -1
     componentDidMount() {
-        if (this.props.queryState.searchState.current_query_id != globals.DEFAULT_SEARCH_ID) {
-            this.fetchStatus()
-        } else {
-            console.log("No Search Performed. Will not fetch Search Status")
+        if (this.props.queryState.searchState.state == searchStates.SEARCH_RUNNING) {
+            // search status is running, request another status check
+            this.props.actions.delayedCheckSearchStatus(this.props.queryState.server, this.props.queryState.port, this.props.queryState.searchState);
         }
     }
 
     componentDidUpdate() {
-        //this.delayThenCheckStatus()   // FIXME ADD
-    }
-
-    // check the status of the container    
-    /**
-     * check the status of a container
-     * FIXME - add this when stop mechanism works
-     */
-    delayThenCheckStatus() {
-
-        // if search is started, then periodically request status updates
-        if (isStateRunning(this.props.queryState.searchState.state)) {
-            var timerCheck = new Promise( (resolve) => {
-                setTimeout( () => {
-                    console.log("Checking Status");
-                    resolve();
-                }, 5000);
-            })
-    
-            // invoke the timer and call fetch status when done
-            timerCheck.then(this.fetchStatus());
+        if (this.props.queryState.searchState.state == searchStates.SEARCH_RUNNING) {
+            // search status is running, request another status check
+            this.props.actions.delayedCheckSearchStatus(this.props.queryState.server, this.props.queryState.port, this.props.queryState.searchState);
         }
     }
 
-    // generate the page and image count status message
+    /**
+     * Get the image and page counts from the global status
+     */
     getImageAndPageStatus() {
 
         var message = noResultMessage;
-
-        if (this.state.imageCount!= null && this.state.pageCount != null) {
-            message = this.state.pageCount + " pages and " + this.state.imageCount + " images"; 
+        if (this.props.queryState.searchState.current_query_id != globals.DEFAULT_SEARCH_ID) {
+            message = this.props.queryState.searchState.page_count + " pages and " + this.props.queryState.searchState.image_count + " images";
         }
 
         return message;
