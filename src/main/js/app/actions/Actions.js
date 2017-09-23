@@ -27,8 +27,9 @@ export const toggleSearchButton = (searchInput, searchButtonOn) => {
  * @param {*} host  the host IP to send the POST request to
  * @param {*} port - the port to send POST request to 
  * @param {*} queryURL - The url to request
+ * @param {*} currentQueryId - current search id
  */
-export function toggleSearch(host, port, queryURL, searchState) {
+export function toggleSearch(host, port, queryURL, searchState, currentQueryId) {
 
     return (dispatch) => {
 
@@ -40,8 +41,8 @@ export function toggleSearch(host, port, queryURL, searchState) {
         if (searchState == searchStates.SEARCH_RUNNING) {
 
             // stop a current search
-            console.log("stopping current search");
-            searchURI = "http://" + host + ":" + port + globals.SEARCH_ROOT + "/stop";
+            searchURI = "http://" + host + ":" + port + globals.SEARCH_ROOT + "/" + currentQueryId + "/stop";
+            console.log("stopping current search. URL: " + searchURI);            
             dispatchRequest = actions.REQUEST_QUERY_STOPPED;
 
             options = {

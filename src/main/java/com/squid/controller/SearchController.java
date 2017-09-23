@@ -12,12 +12,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.squid.data.Query;
 import com.squid.service.SearchService;
+
+import javassist.NotFoundException;
 
 /**
  * Controller for controlling and monitoring searches
@@ -35,7 +39,8 @@ public class SearchController {
 
 	/**
 	 * Perform search on a URL
-	 * @param inUrl
+	 * @param inUrl the URL to search
+	 * @returns the ID of the initiated query
 	 * @throws IOException
 	 */
     @PostMapping(path = "/start")
@@ -80,6 +85,26 @@ public class SearchController {
 
     	// return ID
     	return ResponseEntity.ok().body(id);
+    }
+
+    /**
+     * Stop a running search
+     * @param queryId The ID of the search to stop
+     * @return The id of the query that was stopped, or a bad request exception
+     */
+    @PostMapping(path = "/{id}/stop")
+    public ResponseEntity<Object> stopSearch(@PathVariable("id") long queryId) {
+
+    	Query query = null;
+
+    	try {
+			query = sService.stopSearch(queryId);
+		} catch (final NotFoundException e) {
+    		return ResponseEntity.badRequest().body("Search id '" + queryId + "' does not exist or is not running");
+		}
+
+    	// return stopped ID
+    	return ResponseEntity.ok().body(query.getId());
     }
 
 }

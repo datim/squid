@@ -57,7 +57,8 @@ class SearchContainer extends Component {
             this.props.queryState.server, 
             this.props.queryState.port, 
             this.state.searchInput,
-            this.props.queryState.searchState.state
+            this.props.queryState.searchState.state,
+            this.props.queryState.searchState.current_query_id
             );
     }
 

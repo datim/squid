@@ -294,4 +294,26 @@ public class SearchService {
 
 		return images;
 	}
+
+	/**
+	 * Stop a search for an existing query
+	 * @param queryId
+	 * @return The query that was stopped
+	 * @throws NotFoundException
+	 */
+	public Query stopSearch(long queryId) throws NotFoundException {
+
+		// fetch query. Throw exception if it can't be found
+		final Query query = queryRepo.findById(queryId);
+
+		if (query == null) {
+			log.error("Unable to stop query with id '{}'. Id does not exist", queryId);
+			throw new NotFoundException("Query with id '" + queryId + "' doesn't exist");
+		}
+
+		// stop query and return it
+		queryStatus.setStop(query);
+		log.info("Query '[{}]{}' stopped", query.getId(), query.getUrl());
+		return query;
+	}
 }
