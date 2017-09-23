@@ -8,14 +8,14 @@ import org.springframework.stereotype.Service;
 import com.squid.data.Query;
 
 /**
- * Service to track individual query status
+ * Service to track status for each query
  * @author Datim
  *
  */
 @Service
 public class QueryStatusService {
 
-	private enum QueryStatusEnum { RUNNING, STOPPED };
+	private enum QueryStatusEnum { RUNNING, STOP_PAGES, STOPPED };
 	private final Map<Long, QueryStatusEnum> queryStatus = new HashMap<>();
 
 	// check if a query is stopped
@@ -36,6 +36,29 @@ public class QueryStatusService {
 	// thread safe, mark a query as stopped
 	public void setStop(final Query query) {
 		queryStatus.put(query.getId(),  QueryStatusEnum.STOPPED);
+	}
+
+	// return true if the query has finished processing images or is completely stopped
+	public boolean isStopProcessingImages(final Query query) {
+		return isStopped(query);
+	}
+
+
+	// return true if the query has finished processing pages or is completely stopped
+	public boolean isStopProcessingPages(final Query query) {
+		return (queryStatus.get(query.getId()).equals(QueryStatusEnum.STOP_PAGES));
+	}
+
+	// thread safe. Mark a query as finished if we've completed processing images
+	public synchronized void setStopProcessingImages(final Query query) {
+		if (isRunning(query)) { setStop(query); }
+	}
+
+	// thread safe. Stop processing pages if the maximum page number has been reached
+	public synchronized void setStopProcessingPages(final Query query) {
+		if (isRunning(query)) {
+			queryStatus.put(query.getId(), QueryStatusEnum.STOP_PAGES);
+		}
 	}
 
 	// return the query status

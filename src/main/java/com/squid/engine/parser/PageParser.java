@@ -206,10 +206,6 @@ public class PageParser {
 
 		// Determine whether max images have already been discovered for this query
 		// FIXME - enable search for sub pages
-		if (canQuerySearchImages(query)) {
-			log.info("Maximum number of images have been found for this query. Stopping query");
-			return;
-		}
 
 		// find all image tags in this document
 		for (final Element image: pageNode.select("img")) {
@@ -264,33 +260,6 @@ public class PageParser {
 		}
 
 		// FIXME END DELETE
-	}
-
-	/**
-	 * Return true if the maximum number of images have been found for this query
-	 * @param query the query to check
-	 * @return true if maximum number of images have been found, false if max number not found
-	 */
-	private boolean canQuerySearchImages(final Query query) {
-
-		boolean continueSearch = false;
-
-		if (repoService.getQueryStatus().isRunning(query)) {
-
-			// check whether maximum pages have been visited
-			final long imageCount = repoService.getImageTopologyRepo().findByQuery(query.getId()).size();
-
-			// if the maximum number of pages have been visited, then mark the query as stopped and finish
-			if ( imageCount < query.getMaxImages()) {
-				continueSearch = true; // search can continue, all checks pass
-
-			} else {
-				// maximum search pages have been visted. Mark the query as done
-				repoService.getQueryStatus().setStop(query);
-			}
-		}
-
-		return continueSearch;
 	}
 
 	/**

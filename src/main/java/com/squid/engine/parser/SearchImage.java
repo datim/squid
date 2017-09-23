@@ -49,8 +49,7 @@ public class SearchImage {
 
 		String checksum = null;
 
-		if (!canSearchContinue(searchQuery)) {
-			log.info("Maximum number of images discovred for query '{}'. Stopping search", searchQuery);
+		if (canSearchContinue(searchQuery) == false) {
 			return;
 		}
 
@@ -84,19 +83,30 @@ public class SearchImage {
 	}
 
 	/**
-	 * Return false if query has been stopped or maximum number of images have been found
+	 * Return true if the query can continue searching for images
 	 * @param searchQuery
-	 * @return
+	 * @return true if search status image threshold has not been reached, false if search should be stopped
 	 */
 	private boolean canSearchContinue(final Query searchQuery) {
 
-		boolean continueSearch = true;
+		boolean continueSearch = false;
 
-		final long imageCount = repoService.getImageTopologyRepo().findByQuery(searchQuery.getId()).size();
+		if (!repoService.getQueryStatus().isStopProcessingImages(searchQuery)) {
 
-		if (imageCount >= searchQuery.getMaxImages()) {
-			log.debug("Maximum number of images discovered for query {}. Will not continue", searchQuery.getId());
-			continueSearch = false;
+			// check whether maximum pages have been visited
+			final long imageCount = repoService.getImageTopologyRepo().findByQuery(searchQuery.getId()).size();
+
+			// if the maximum number of images have been visited, then mark the query as stopped and finish
+			if (imageCount < searchQuery.getMaxImages()) {
+				continueSearch = true;
+
+			} else {
+				repoService.getQueryStatus().setStopProcessingImages(searchQuery);
+				log.info("Maximum number of images {} discovered for query {}. Will not continue", searchQuery.getMaxImages(), searchQuery.getId());
+			}
+
+		} else {
+			log.debug("Query status is '{}'. Will not continue searching images for this thread", repoService.getQueryStatus());
 		}
 
 		return continueSearch;

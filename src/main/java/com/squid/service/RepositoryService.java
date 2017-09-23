@@ -7,6 +7,7 @@ import com.squid.data.ImageRepository;
 import com.squid.data.ImageTopologyRepository;
 import com.squid.data.PageRepository;
 import com.squid.data.PageTopologyRepository;
+import com.squid.data.QueryRepository;
 
 /**
  * Helper class to provide access to Spring autowired repository objects. This helper class
@@ -32,6 +33,9 @@ public class RepositoryService {
 	@Autowired
 	private QueryStatusService queryStatus;
 
+	@Autowired
+	private QueryRepository queryRepo;
+
 	public PageRepository getPageRepo() {
 		return pageRepo;
 	}
@@ -50,5 +54,9 @@ public class RepositoryService {
 
 	public ImageTopologyRepository getImageTopologyRepo() {
 		return imageTopoRepo;
+	}
+
+	public QueryRepository getQueryRepo() {
+		return queryRepo;
 	}
 }

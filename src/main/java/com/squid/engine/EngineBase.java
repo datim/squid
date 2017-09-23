@@ -33,10 +33,7 @@ public abstract class EngineBase extends Thread {
 
 		this.searchName = searchName;
 		requestQueue = new LinkedBlockingQueue<>();
-		//executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 		executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadPoolSize);
-		//executor.setMaximumPoolSize(threadPoolSize);
-		//executor.setCorePoolSize(threadPoolSize);
 	}
 
 	/**

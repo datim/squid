@@ -13,6 +13,7 @@ import com.squid.data.PageTopology;
 import com.squid.data.Query;
 import com.squid.engine.requests.PageRequestMsg;
 import com.squid.engine.requests.RequestMsg;
+import com.squid.service.QueryStatusService;
 import com.squid.service.RepositoryService;
 
 /**
@@ -46,7 +47,6 @@ public class SearchPage {
 
 		// check whether the upper bounds of the search page has been reached
 		if (canSearchContinue(query) == false) {
-			log.info("Maximum number of pages discovred for query '{}'. Stopping search", query);
 			return;
 		}
 
@@ -108,13 +108,15 @@ public class SearchPage {
 	 * Check whether query has reached the maximum number of pages, or whether the query
 	 * status has been changed to stopped
 	 * @param searchQuery
-	 * @return true if search status page threshold has been reached, false if search should be stopped
+	 * @return true if search status page threshold has not been reached, false if search should be stopped
 	 */
 	private boolean canSearchContinue(final Query searchQuery) {
 
 		boolean continueSearch = false;
 
-		if (repoService.getQueryStatus().isRunning(searchQuery)) {
+		final QueryStatusService queryStatus = repoService.getQueryStatus();
+
+		if (!queryStatus.isStopProcessingPages(searchQuery) && !queryStatus.isStopped(searchQuery)) {
 
 			// check whether maximum pages have been visited
 			final long pageCount = repoService.getPageTopologyRepo().findByQuery(searchQuery.getId()).size();
@@ -124,12 +126,13 @@ public class SearchPage {
 				continueSearch = true; // search can continue, all checks pass
 
 			} else {
-				// maximum search pages have been visted. Mark the query as done
-				repoService.getQueryStatus().setStop(searchQuery);
-				log.debug("Maximum number of pages discovered for query {}. Will not continue", searchQuery.getId());
+				// maximum search pages have been visited. Mark the query as done
+				repoService.getQueryStatus().setStopProcessingPages(searchQuery);
+				log.debug("Maximum number of pages {} discovered for query {}. Will not continue", searchQuery.getMaxPages(), searchQuery.getId());
 			}
+
 		} else {
-			log.debug("Query status is '{}'. Will not continue search for this thread", repoService.getQueryStatus());
+			log.debug("Query status is '{}'. Will not continue searching pages for this thread", repoService.getQueryStatus());
 		}
 
 		return continueSearch;
