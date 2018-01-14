@@ -2,7 +2,7 @@ package com.squid.engine.requests;
 
 import java.net.URL;
 
-import com.squid.data.Page;
+import com.squid.data.FoundPage;
 import com.squid.data.Query;
 
 /**
@@ -14,10 +14,10 @@ public abstract class RequestMsg {
 
 	protected final Query searchQuery;
 	protected final URL url;
-	protected final Page page;
+	protected final FoundPage page;
 
 	// constructor
-	protected RequestMsg(final Query searchQuery, final URL url, final Page page) {
+	protected RequestMsg(final Query searchQuery, final URL url, final FoundPage page) {
 		this.searchQuery = searchQuery;
 		this.url = url;
 		this.page = page;
@@ -31,7 +31,7 @@ public abstract class RequestMsg {
 		return url;
 	}
 
-	public Page getPage() {
+	public FoundPage getPage() {
 		return page;
 	}
 }

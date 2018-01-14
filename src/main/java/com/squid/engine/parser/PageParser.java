@@ -17,7 +17,7 @@ import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.squid.data.Page;
+import com.squid.data.FoundPage;
 import com.squid.data.Query;
 import com.squid.engine.requests.ImageRequestMsg;
 import com.squid.engine.requests.PageRequestMsg;
@@ -52,7 +52,7 @@ public class PageParser {
 	 * @param page The page to parse
 	 * @param query The query that this page is being parsed for
 	 */
-	public void parsePage(final Page page, final Query query) {
+	public void parsePage(final FoundPage page, final Query query) {
 
 		Document pageNode = null;
 
@@ -82,7 +82,7 @@ public class PageParser {
 	 * @param query The query that this node belongs to
 	 * @param parentPage The parent page of these sub pages
 	 */
-	private void findSubPages(Document pageNode, final Query query, final Page parentPage) {
+	private void findSubPages(Document pageNode, final Query query, final FoundPage parentPage) {
 
 		final Set<URL> discoveredSubPages = new HashSet<>();
 
@@ -137,10 +137,10 @@ public class PageParser {
 	 * @param parentPage parent page of this URL
 	 * @throws InterruptedException
 	 */
-	private void markPageForSearch(final URL searchUrl, final Query query, final Page parentPage)  {
+	private void markPageForSearch(final URL searchUrl, final Query query, final FoundPage parentPage)  {
 
 		boolean searchPage = false;
-		final Page existingPage = repoService.getPageRepo().findByUrl(searchUrl);
+		final FoundPage existingPage = repoService.getPageRepo().findByUrl(searchUrl);
 
 		if (existingPage == null) {
 			// page does not yet exist, add it the search queue
@@ -202,7 +202,7 @@ public class PageParser {
 	 * @param query The query object associated with this search
 	 * @param parentPage The parent page of these sub images
 	 */
-	private void findSubImages(final Document pageNode, final Query query, final Page parentPage) {
+	private void findSubImages(final Document pageNode, final Query query, final FoundPage parentPage) {
 
 		// Determine whether max images have already been discovered for this query
 		// FIXME - enable search for sub pages
@@ -268,7 +268,7 @@ public class PageParser {
 	 * @param query The query asking for the search
 	 * @param parentPage The page the image belongs to
 	 */
-	private void markImageForSearch(final URL imageURL, final Query query, final Page parentPage)  {
+	private void markImageForSearch(final URL imageURL, final Query query, final FoundPage parentPage)  {
 
 		// first verify that the URL does not contain any banned phrases
 		if (doesNotContainFilteredValues(imageURL)) {

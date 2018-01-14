@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.squid.data.Image;
 import com.squid.data.ImageTopology;
-import com.squid.data.Page;
+import com.squid.data.FoundPage;
 import com.squid.data.Query;
 import com.squid.engine.requests.ImageRequestMsg;
 import com.squid.service.RepositoryService;
@@ -157,7 +157,7 @@ public class SearchImage {
 	 * @param page The page to map to a topology tree.
 	 * @return An existing page topology mapping, or a new one if it has not yet been created
 	 */
-	private ImageTopology setImageTopology(final Query query, final Image image, final Page parentPage) {
+	private ImageTopology setImageTopology(final Query query, final Image image, final FoundPage parentPage) {
 
 		if ((image == null) || (query == null)) {
 			log.warn("Attempting to set image topology for an empty value");

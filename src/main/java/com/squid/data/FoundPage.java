@@ -17,7 +17,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "page")
-public class Page {
+public class FoundPage {
 
 	@Id
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -31,10 +31,10 @@ public class Page {
 	private String checksum;
 
 	// default constructor
-	public Page() {}
+	public FoundPage() {}
 
 	// constructor
-	public Page(final URL url, final String checksum) {
+	public FoundPage(final URL url, final String checksum) {
 		this.url = url;
 		this.checksum = checksum;
 	}

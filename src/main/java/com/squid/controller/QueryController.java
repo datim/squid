@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,8 +21,8 @@ import com.squid.controller.rest.ImageDTO;
 import com.squid.controller.rest.PageDTO;
 import com.squid.controller.rest.QueryDTO;
 import com.squid.controller.rest.QueryStatusDTO;
+import com.squid.data.FoundPage;
 import com.squid.data.Image;
-import com.squid.data.Page;
 import com.squid.data.Query;
 import com.squid.service.QueryService;
 import com.squid.service.SearchService;
@@ -98,7 +100,7 @@ public class QueryController {
     @GetMapping(path = "/{id}/page")
     public ResponseEntity<Object> getQueryPages(@PathVariable("id") long queryId) {
 
-    	final List<Page> pageDaos = sService.getQueryPages(queryId);
+    	final List<FoundPage> pageDaos = sService.getQueryPages(queryId);
 
     	// convert DAO to DTO
     	final List<PageDTO> pageDtos = pageDaos.stream()
@@ -109,21 +111,26 @@ public class QueryController {
     }
 
     /**
-     * Return a list of pages associated with the query
+     * Return a list of images associated with the query
      * @param queryId The query to search for
      * @return A list of pages associated with the query
      */
     @GetMapping(path = "/{id}/image")
-    public ResponseEntity<Object> getQueryImages(@PathVariable("id") long queryId) {
+    public Page<ImageDTO> getQueryImages(@PathVariable("id") long queryId, Pageable pageRequest) {
 
-    	final List<Image> imageDaos = sService.getQueryImages(queryId);
+    	Page<ImageDTO> pageDTOs = null;
 
-    	// convert DAO to DTO
-		final List<ImageDTO> imageDtos = imageDaos.stream()
-				.map(image -> dataMapper.convert(image))
-				.collect(Collectors.toList());
+		try {
+			final Page<Image> imagePage = sService.getQueryImages(queryId, pageRequest);
 
-		return ResponseEntity.accepted().body(imageDtos);
+			// convert to page DTO requests
+			pageDTOs = imagePage.map(DataMapper::convert);
+
+		} catch (final NotFoundException e) {
+			ResponseEntity.badRequest().body("Query id '" + queryId + " not found");
+		}
+
+		return pageDTOs;
     }
 
 	/**

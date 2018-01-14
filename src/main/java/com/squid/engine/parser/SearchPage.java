@@ -8,7 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.squid.data.Page;
+import com.squid.data.FoundPage;
 import com.squid.data.PageTopology;
 import com.squid.data.Query;
 import com.squid.engine.requests.PageRequestMsg;
@@ -63,7 +63,7 @@ public class SearchPage {
 		}
 
 		// check if this page has already been searched
-		Page page = repoService.getPageRepo().findByUrl(pageUrl);
+		FoundPage page = repoService.getPageRepo().findByUrl(pageUrl);
 
 		if (page == null) {
 			// this is a new page. create record
@@ -145,7 +145,7 @@ public class SearchPage {
 	 * @param page The page to map to a topology tree.
 	 * @return An existing page topology mapping, or a new one if it has not yet been created
 	 */
-	private PageTopology setPageTopology(final Query query, final Page page, final Page parentPage) {
+	private PageTopology setPageTopology(final Query query, final FoundPage page, final FoundPage parentPage) {
 
 		PageTopology pageMapping = repoService.getPageTopologyRepo().findByQueryAndPage(query.getId(), page.getId());
 
@@ -169,13 +169,13 @@ public class SearchPage {
 	 * @param checksum The hash checksum of the URL of the page
 	 * @return A new page record, or null if record cannot be created
 	 */
-	private Page createNewPage(final URL pageUrl, final String checksum) {
+	private FoundPage createNewPage(final URL pageUrl, final String checksum) {
 
-		Page newPage = null;
+		FoundPage newPage = null;
 
 		try {
 			// Create a new record for the page
-			newPage = repoService.getPageRepo().save(new Page(pageUrl, checksum));
+			newPage = repoService.getPageRepo().save(new FoundPage(pageUrl, checksum));
 			log.debug("New page created for '{}' with id {}", pageUrl, newPage.getId());
 
 		} catch (final org.hibernate.exception.ConstraintViolationException | org.springframework.dao.DataIntegrityViolationException e) {

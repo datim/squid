@@ -10,20 +10,23 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.squid.config.SquidProperties;
 import com.squid.controller.exceptions.ResourceNotFoundException;
+import com.squid.data.FoundPage;
 import com.squid.data.Image;
 import com.squid.data.ImageTopology;
 import com.squid.data.ImageTopologyRepository;
-import com.squid.data.Page;
 import com.squid.data.PageTopology;
 import com.squid.data.PageTopologyRepository;
 import com.squid.data.Query;
@@ -266,10 +269,10 @@ public class SearchService {
 	 * @param queryId the query to report images for
 	 * @return a list of pages associated with a query
 	 */
-	public List<Page> getQueryPages(long queryId) {
+	public List<FoundPage> getQueryPages(long queryId) {
 
 		final List<PageTopology> pagesByQuery = pageTopoRepo.findByQuery(queryId);
-		final List<Page> pages = new ArrayList<>(pagesByQuery.size());
+		final List<FoundPage> pages = new ArrayList<>(pagesByQuery.size());
 
 		for (final PageTopology topPage: pagesByQuery) {
 			pages.add(repoService.getPageRepo().findById(topPage.getPage()));
@@ -282,16 +285,24 @@ public class SearchService {
 	 * Get a list of images associated with the query
 	 * @param queryId the query to report images for
 	 * @return a list of images associated with a query
+	 * @throws NotFoundException
 	 */
-	public List<Image> getQueryImages(long queryId) {
+	public Page<Image> getQueryImages(long queryId, Pageable pageable) throws NotFoundException {
 
-		final List<ImageTopology> imagesByQuery = imageTopoRepo.findByQuery(queryId);
-		final List<Image> images = new ArrayList<>(imagesByQuery.size());
+		final List<ImageTopology> imagePageByQuery = imageTopoRepo.findByQuery(queryId);
 
-		for (final ImageTopology topImage: imagesByQuery) {
-			images.add(repoService.getImageRepo().findById(topImage.getImageId()));
+		if ((imagePageByQuery == null) || imagePageByQuery.isEmpty()) {
+			log.warn("No images for query id [{}]", queryId);
+			throw new NotFoundException("Could not find images for query id '" + queryId + "'");
 		}
 
+		// fetch only the ids from the image queries
+		// grab only the image ids for each imagePage topology record
+		final List<Long> imageIds = imagePageByQuery.stream()
+				.map(imgQuery -> imgQuery.getImageId()).collect(Collectors.toList());
+
+		// find all images that map to the requested image queries
+		final Page<Image> images = repoService.getImageRepo().findByIdIn(imageIds, pageable);
 		return images;
 	}
 

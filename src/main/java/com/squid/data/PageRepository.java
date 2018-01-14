@@ -10,9 +10,9 @@ import org.springframework.data.repository.CrudRepository;
  * @author Datim
  *
  */
-public interface PageRepository extends CrudRepository<Page, Long> {
+public interface PageRepository extends CrudRepository<FoundPage, Long> {
 
-	public Page findById(long id);
-	public Page findByUrl(URL url);
-	public List<Page> findAll();
+	public FoundPage findById(long id);
+	public FoundPage findByUrl(URL url);
+	public List<FoundPage> findAll();
 }
