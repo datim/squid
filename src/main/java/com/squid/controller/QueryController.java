@@ -1,5 +1,6 @@
 package com.squid.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,7 +70,7 @@ public class QueryController {
     		return new ResponseEntity<Object>(errorMsg, HttpStatus.NOT_FOUND);
 		}
 
-		return ResponseEntity.accepted().body(dataMapper.convert(dao));
+		return ResponseEntity.ok().body(dataMapper.convert(dao));
 	}
 
     /**
@@ -89,7 +90,7 @@ public class QueryController {
     		return new ResponseEntity<Object>(errorMsg, HttpStatus.NOT_FOUND);
 		}
 
-		return new ResponseEntity<Object>(queryId + " deleted", HttpStatus.OK);
+		return ResponseEntity.ok().body(new String(queryId + "deleted"));
 	}
 
     /**
@@ -103,11 +104,10 @@ public class QueryController {
     	final List<FoundPage> pageDaos = sService.getQueryPages(queryId);
 
     	// convert DAO to DTO
-    	final List<PageDTO> pageDtos = pageDaos.stream()
-    			.map(page -> dataMapper.convert(page))
+    	final List<PageDTO> pageDtos = pageDaos.stream().map(page -> dataMapper.convert(page))
     			.collect(Collectors.toList());
 
-		return ResponseEntity.accepted().body(pageDtos);
+		return ResponseEntity.ok().body(pageDtos);
     }
 
     /**
@@ -150,7 +150,7 @@ public class QueryController {
         	final long pageCount = sService.getQueryPageCount(queryId);
         	status = new QueryStatusDTO(queryId, pageCount, imageCount, queryStatus);
 
-        	log.info("Found {} pages and {} images for query id {}. Status is {}", pageCount, imageCount, queryId, queryStatus);
+        	log.info("Status for query id {} is {}.  {} pages and {} images", queryId, queryStatus, pageCount, imageCount);
 
     	} catch (final Exception e) {
     		status = null;
@@ -163,20 +163,18 @@ public class QueryController {
     		return new ResponseEntity<Object>(errorMsg, HttpStatus.BAD_REQUEST);
     	}
 
-		return ResponseEntity.accepted().body(status);
+		return ResponseEntity.ok().body(status);
     }
 
 	/**
-	 * Return list of all search queries
 	 * @return List of all query objects
 	 */
     @GetMapping
 	public ResponseEntity<Object> getQueries() {
 
 		final List<QueryDTO> dtos = sService.getQueries().stream()
-				.map(dao -> dataMapper.convert(dao))
-				.collect(Collectors.toList());
+				.map(dao -> dataMapper.convert(dao)).collect(Collectors.toList());
 
-		return ResponseEntity.accepted().body(dtos);
+		return ResponseEntity.ok().body(dtos);
 	}
 }

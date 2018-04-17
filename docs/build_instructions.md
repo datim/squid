@@ -1,58 +1,53 @@
-# Development Usage
-Compiling and debugging project.  Front End and Back End can 
-be developed seperately
+# Development Guide
+Compiling and debugging project.  Client and server can be built seperately.
 
-## Setup Enviornment
-Before building, dependent libraries must be installed
+## Client
 
-#### Front End Env
-Install packages using npm. Install webpack globally, and all other packages locally in **./node_modules** directory.
-`npm install -g webpack`
-`npm install`
+#### Enviornment Setup
+Prior to building, setup client environment. Install webpack globally, 
+and all other packages locally in **./node_modules** directory.
 
-#### Back End Env
-Install Eclipse environment
-`./gradlew eclipse`
+```
+# npm install -g webpack@2.3.3
+# npm install
+```
 
-Download packages through Eclipse
-`./gradlew clean build`
+#### Build
+The client must be packaged using webpack prior to loading into the Java application:
 
-## Helper Scripts
-There are two helper scripts that will perform compiling and running for you.
-
-Compile in either regular or debug mode:
-`./build.sh [debug]`
-
-Run in either regular or debug mode:
-`./run.sh [debug]`
-
-## Build Details
-To build components by hand, follow these instructions
-
-### Build UI Code
-Package the UI code into a web pack for loading into Java application
+Production:
 `webpack --config webpack.config.js`
 
-Package the UI code into a web pack for loading into Java application with debug
+Development (includes debug):
 `webpack --config webpack.config.dev.js`
 
-### Build Back End Code
-Simply run gradle. There are no debug options
-`./gradlew clean build`   
+or alternatively:
+`./build.sh [debug]`
 
-
-## Run Details
-
-### Run UI Code in Dev Mode
-This command launches a nodejs express server using webpack-run-dev and runs webpack.  Code is hot-swapped on the fly.
+#### Execute
+**Dev Mode**
+Launches nodejs express server using webpack-run-dev.  Code is hot-swapped on the fly. 
 `npm run dev`
 
-Open URL `http://localhost:7777`
+and connect to URL:
+`http://localhost:7777`
 
-* Make sure there is a backend server running. Either run the entire program, or start the project through eclipse.
-* Debug in chrome.
+To test full functionality, start a server instance.
 
-### Launch Application in Debug mode through eclipse
+## Server
+
+#### Environment Setup
+Prior to building, setup server environment:
+`./gradlew eclipse`
+
+#### Build
+`./gradlew clean build`
+
+or alternatively:
+`./build.sh [debug]`
+
+#### Execute
+**Eclipse**:
 `./gradlew eclipse`
 Run project through debug mode in eclipse with following settings:
 
@@ -64,7 +59,8 @@ VM Variables:
 To run with an in memory database, add the following program arguments:
 `--spring.config.name=debug.properties`
 
-### Run Application through command line 
+**CLI**
+
 Normal Mode:
 `java -DROOT=[ROOT DIRECTORY for LOG files] -DLOG_LEVEL=info -jar build/libs/squid-1.0.jar`
 
@@ -73,6 +69,14 @@ Debug Mode:
 
 Open URL `http://localhost:8080`
 
+## Client and Server
+#### Build
+To build both the client and server together in production or debug mode:
+`./build.sh [debug]`
+
+#### Execute
+To run both the client and server together in production or debug mode:
+`./run.sh [debug]`
 
 ## Migrate Database
 In order to migrate the database manually, use flyway commands:
