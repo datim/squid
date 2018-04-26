@@ -96,6 +96,7 @@ public class SearchPage {
 
 				// FIXME TODO - Instead of just skipping this page, add all child pages and images to
 				// the search queue and don't parse this page.
+			    log.debug("Skipping page {} because it has already been parsed", pageUrl);
 				return;
 			}
 		}

@@ -8,12 +8,16 @@ import * as searchStates from '../actions/SearchStates';
 const searchState = (state={}, action) => {
 
   var newState = state;
+
+  console.log('received action ', action.type);
   
   switch(action.type) {
 
     case actions.REQUEST_QUERY_STARTED:
 
       if (state.searchState.state == searchStates.SEARCH_STOPPED) {
+
+        // Start a new search
         // Set state to start for the current query. Clear any errors, record the ID and the search URL, and clear counts
         return {
           ...state,
@@ -23,16 +27,32 @@ const searchState = (state={}, action) => {
             current_query_id : action.id,
             page_count : 0,          
             image_count : 0,
-            errors: null
+            errors: null,
+            images : []
           }
         }
       } else {
         return state;
       }
 
+    case actions.QUERY_STATUS_STOPPED: 
+      // The query has stopped from the back end.  Update the latest status for page and image count. Set state to stopped, clear any errors  
+      return {
+        ...state,
+        searchState : {
+          state: searchStates.SEARCH_STOPPED,
+          current_query_id : state.searchState.current_query_id,            
+          image_count : action.imageCount,
+          page_count : action.pageCount,
+          current_url : action.searchURI,
+          errors: null,
+          images : action.images
+        }
+      }
+
     case actions.REQUEST_QUERY_STOPPED:
-      if (state.searchState.state == searchStates.SEARCH_RUNNING) {      
-        // Set state to stop for the current query. Set state to stopped, clear any errors  
+      if (state.searchState.state == searchStates.SEARCH_RUNNING) { 
+        // The user has requested a stop the query.     Set state to stopped, clear any errors  
         return {
           ...state,
           searchState : {
@@ -41,7 +61,8 @@ const searchState = (state={}, action) => {
             current_url : state.searchState.searchURI,            
             page_count : state.searchState.page_count,          
             image_count : state.searchState.image_count,
-            errors: null          
+            errors: null,
+            images : state.searchState.images
           }
         }
 
@@ -59,7 +80,8 @@ const searchState = (state={}, action) => {
           current_url : action.searchURI,
           page_count : state.searchState.page_count,          
           image_count : state.searchState.image_count,
-          errors : action.error.message
+          errors : action.error.message,
+          images : state.searchState.images          
         }
       }
 
@@ -73,7 +95,8 @@ const searchState = (state={}, action) => {
           image_count : action.imageCount,
           page_count : action.pageCount,
           current_url : action.searchURI,
-          errors : null
+          errors : null,
+          images : action.images
         }
       }
 

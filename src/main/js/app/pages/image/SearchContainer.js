@@ -1,6 +1,6 @@
 'use-strict'
 /**
- * Container for rendering components of search
+ * Search bar and buttons
  */
 
 import React, {Component} from 'react';
@@ -87,7 +87,7 @@ class SearchContainer extends Component {
 
     render() {
         const displayImage = this.start_image;
-        const displayStopImage = !isStateStopped(this.props.queryState.searchState.state)
+        const displayStopImage = !isStateStopped(this.props.queryState.searchState.state);
 
         return(
             <div id="searchpanel">

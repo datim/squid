@@ -111,6 +111,16 @@ public class SearchService {
 	}
 
 	/**
+	 * Remove the previous contents of a search
+	 * @param id
+	 */
+	private void flushSearchResults(long id) {
+	    final long pageCount = pageTopoRepo.deleteByQuery(id);
+	    final long imageCount = imageTopoRepo.deleteByQuery(id);
+	    log.info("Flushed {} pages and {} images in query history", pageCount, imageCount);
+	}
+
+	/**
 	 * Start the crawl through a tree of pages starting with the base url
 	 * @param huntUrl
 	 * @throws IOException
@@ -126,9 +136,7 @@ public class SearchService {
 		queryStatus.setQueryStatusRunning(query);
 
 		// remove any existing topology information
-		final long pageCount = pageTopoRepo.deleteByQuery(query.getId());
-		final long imageCount = imageTopoRepo.deleteByQuery(query.getId());
-		log.info("Flushed {} pages and {} images in query history", pageCount, imageCount);
+		//flushSearchResults(query.getId()); // FIXME DELETE
 
 		try {
 			pEngine.addRequest(new PageRequestMsg(query, baseUrl));

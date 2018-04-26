@@ -12,7 +12,8 @@ export default {
             current_url : null,
             image_count : 0,
             page_count : 0,
-            errors : null
+            errors : null,
+            images: []            
         }
-    } 
+    }
 };
