@@ -1,5 +1,8 @@
 'use-strict'
 
+import * as globals from "./GlobalConstants";
+
+
 /**
  * Convert a single list of items into a multi-dimensional 
  * array 
@@ -26,4 +29,11 @@ export const createMultiArray = (itemList, numRows, numRowEntries) => {
         multiArray.push(rowList);
     }
     return multiArray;
+}
+
+/**
+ * Generate the base URL to the server
+ */
+export const getServerURL = () => {
+    return('http://' + globals.HOST + ':' + globals.PORT);
 }

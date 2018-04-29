@@ -10,50 +10,6 @@ import * as searchActions from "../../actions/Actions";
 import * as globals from "../../common/GlobalConstants";
 import { createMultiArray } from "../../common/Utils";
 
-
-
-/**
- * Generate an image result table
- * @param {*} props 
- */
-const ImageTable = (props) => {
-
-    // convert to a multi-array based on row count
-    const imageMultiMap = createMultiArray(props.images, props.numRows, props.numColumns);
-
-    console.log('multiarray:', imageMultiMap);
-    
-    const tableRows = imageMultiMap.map( rowList => {
-
-        // define the columns of images for each row
-        const tableColumns = rowList.map(rowImage => {
-            // if the default image size is smaller than the image, take the default
-            const imageWidth = (rowImage.width < props.width) ? rowImage.width : props.width;
-            return (<td id='imageResultColumn'
-                        width={props.width}
-                        key={rowImage.id}>
-                        <img className="img-responsive" src={rowImage.url} alt={rowImage.id} width={imageWidth}/>
-                    </td>);
-        });
-
-        // return the full table row
-        return(
-            <tr id='imageResultRow'
-                key={rowList[0].id}>
-                {tableColumns}
-            </tr>
-        )
-    });
-
-    return (
-        <table>
-            <tbody>
-                {tableRows}
-            </tbody>
-        </table>
-    );
-}
-
 /**
  * Container for displaying image results
  */
@@ -64,28 +20,77 @@ class ImageResultContainer extends Component {
         this.state = {};
     }
 
+    /** Generate a table cell that holds an image **/
+    genImageCell(image, defaultWidth, defaultHeight) {
+
+        const imageWidth = (image.width < defaultWidth) ? image.width : defaultWidth;
+
+        return (
+            <td id='imageTableCell'
+                width={defaultWidth}
+                key={image.id}>
+                <img className="img-responsive" src={image.url} alt={image.id} width={imageWidth}/>
+            </td>);
+    }
+
+    /** Generate a row of ImageCells for the table */
+    genImageRow(createImageCell, imageRowList, defaultWidth, defaultHeight) {
+        // define the columns of images for each row
+        const tableColumns = imageRowList.map(rowImage => {
+            return (createImageCell(rowImage, defaultWidth, defaultHeight));
+        });
+
+        // return the full table row
+        return(
+            <tr id='imageTableRow'
+                key={imageRowList[0].id}>
+                {tableColumns}
+            </tr>
+        )
+    }
+
+    /** Generate a  table that displays images **/
+    genImageTable(props) {
+
+        const {images, numRows, numColumns, defaultWidth, defaultHeight, createImageCell, createImageRow} = props;
+
+        // convert to a multi-array based on row count
+        const imageMultiMap = createMultiArray(images, numRows, numColumns);
+        
+        const tableRows = imageMultiMap.map(rowList => {
+            return(createImageRow(createImageCell, rowList, defaultWidth, defaultHeight));
+        });
+
+        return (
+            <table>
+                <tbody>
+                    {tableRows}
+                </tbody>
+            </table>
+        );
+    }
+
     /**
      * Calculate the number of rows that should be generated. If the number of rows is not a whole number, round to the next whole number
      */
     getRowCount() {
-        const rowSize = Math.ceil(this.props.queryState.searchState.image_count / globals.DEFAULT_IMAGE_RESULT_COLUMNS);
+        const rowSize = Math.ceil(this.props.queryResults.images.length / globals.DEFAULT_IMAGE_RESULT_COLUMNS);
         console.log('Row size is ' + rowSize);
         return rowSize;
     }
 
-    // FIXME - dynamically add columns
     render() {
-        console.log("Images found: ", this.props.queryState.searchState.images);
         const rowCount = this.getRowCount();
-        const imageList = this.props.queryState.searchState.images;
 
         return(
             <div id="ImageResults">
-                <ImageTable numRows={rowCount} 
-                            images={imageList}
+                <this.genImageTable numRows={rowCount} 
+                            images={this.props.queryResults.images}
                             numColumns={globals.DEFAULT_IMAGE_RESULT_COLUMNS}
-                            height={globals.IMAGE_THUMBNAIL_HEIGHT}
-                            width={globals.IMAGE_THUMBNAIL_WIDTH} />
+                            defaultHeight={globals.IMAGE_THUMBNAIL_HEIGHT}
+                            defaultWidth={globals.IMAGE_THUMBNAIL_WIDTH}
+                            createImageCell={this.genImageCell}
+                            createImageRow={this.genImageRow} />
             </div>
         )
     }
@@ -94,7 +99,7 @@ class ImageResultContainer extends Component {
 // map state to properties
 const mapStateToProps = (state, ownProps) => {
     return {
-        queryState: state.queryState
+        queryResults: state.queryState.searchResults
     }
   };
   

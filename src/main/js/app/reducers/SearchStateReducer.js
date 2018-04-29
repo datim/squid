@@ -27,7 +27,9 @@ const searchState = (state={}, action) => {
             current_query_id : action.id,
             page_count : 0,          
             image_count : 0,
-            errors: null,
+            errors: null
+          },
+          searchResults : {
             images : []
           }
         }
@@ -45,7 +47,9 @@ const searchState = (state={}, action) => {
           image_count : action.imageCount,
           page_count : action.pageCount,
           current_url : action.searchURI,
-          errors: null,
+          errors: null
+        }, 
+        searchResults : {
           images : action.images
         }
       }
@@ -61,7 +65,9 @@ const searchState = (state={}, action) => {
             current_url : state.searchState.searchURI,            
             page_count : state.searchState.page_count,          
             image_count : state.searchState.image_count,
-            errors: null,
+            errors: null
+          },
+          searchResults : {
             images : state.searchState.images
           }
         }
@@ -80,7 +86,9 @@ const searchState = (state={}, action) => {
           current_url : action.searchURI,
           page_count : state.searchState.page_count,          
           image_count : state.searchState.image_count,
-          errors : action.error.message,
+          errors : action.error.message
+        },
+        searchResults : {
           images : state.searchState.images          
         }
       }
@@ -95,7 +103,9 @@ const searchState = (state={}, action) => {
           image_count : action.imageCount,
           page_count : action.pageCount,
           current_url : action.searchURI,
-          errors : null,
+          errors : null
+        },
+        searchResults : {
           images : action.images
         }
       }

@@ -4,7 +4,8 @@
  */
 import * as actions from './ActionTypes';
 import * as searchStates from './SearchStates';
-import * as globals from "../common/GlobalConstants";
+import * as globals from '../common/GlobalConstants';
+import { getServerURL } from '../common/Utils';
 
 const rp = require('request-promise');
 
@@ -36,25 +37,23 @@ const urlGetRequest = (providedURL) => {
 /**
  * Request a search start or stop through a user action
  * Dispatch provided by Thunk
- * @param {*} host  the host IP to send the POST request to
- * @param {*} port - the port to send POST request to 
  * @param {*} queryURL - The url to request
  * @param {*} currentQueryId - current search id
  */
-export function toggleSearch(host, port, queryURL, searchState, currentQueryId) {
+export function toggleSearch(queryURL, searchState, currentQueryId) {
 
     return (dispatch) => {
 
         // construct the query URL
-        var searchURI = "http://" + globals.HOST + ":" + globals.PORT + globals.SEARCH_ROOT + "/start";
+        var searchURI = getServerURL() + globals.SEARCH_ROOT + '/start';
         var dispatchRequest = actions.REQUEST_QUERY_START;
         var options = NaN;
 
         if (searchState == searchStates.SEARCH_RUNNING) {
 
             // stop a current search
-            searchURI = "http://" + globals.HOST + ":" + globals.PORT + globals.SEARCH_ROOT + "/" + currentQueryId + "/stop";
-            console.log("stopping current search. URL: " + searchURI);            
+            searchURI = getServerURL() + globals.SEARCH_ROOT + '/' + currentQueryId + '/stop';
+            console.log('stopping current search. URL: ', searchURI);            
             dispatchRequest = actions.REQUEST_QUERY_STOPPED;
 
             options = {
@@ -67,7 +66,7 @@ export function toggleSearch(host, port, queryURL, searchState, currentQueryId) 
         } else if (searchState == searchStates.SEARCH_STOPPED) {
 
             // Start a new search
-            console.log("starting current search");
+            console.log('starting search on URL: ', searchURI);
             dispatchRequest = actions.REQUEST_QUERY_STARTED;
 
             options = {
@@ -103,14 +102,12 @@ export function toggleSearch(host, port, queryURL, searchState, currentQueryId) 
 
 /**
  * Check the search status every 5 seconds until search stops
- * @param {*} host - the backend server to query
- * @param {*} port  - the backend server port to query
- * @param {*} searchState - the current state of the system
+ * @param {*} current_query_id - the current query id to check
  */
-export function delayedCheckSearchStatus(host, port, searchState) {
+export function delayedCheckSearchStatus(current_query_id) {
     
-    const statusURL = "http://" + globals.HOST + ":" + globals.PORT + "/" + globals.QUERY_ROOT + "/" + searchState.current_query_id + "/status";
-    const resultsURL = "http://" + globals.HOST + ":" + globals.PORT + "/" + globals.QUERY_ROOT + "/" + searchState.current_query_id + "/image?page=0" + "&size=" + globals.DEFAULT_QUERY_PAGE_SIZE;
+    const statusURL = getServerURL() + globals.QUERY_ROOT + '/' + current_query_id + '/status';
+    const resultsURL = getServerURL() +  globals.QUERY_ROOT + '/' + current_query_id + '/image?page=0' + '&size=' + globals.DEFAULT_QUERY_PAGE_SIZE;
     
     return (dispatch) => {
 
@@ -140,7 +137,7 @@ export function delayedCheckSearchStatus(host, port, searchState) {
                 dispatch({ type: currentActionType, imageCount: statusResults.imageCount, pageCount: statusResults.pageCount, images: imageResults});
             });
         }).catch( err => {
-            console.log("Unable to fetch query status for id " + searchState.current_query_id + ". Error: " + err);       
+            console.log("Unable to fetch query status for id " + current_query_id + ". Error: " + err);       
         });
     }
 }

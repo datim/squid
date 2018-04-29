@@ -13,15 +13,19 @@ const defaultSearchInputValue = "Please Enter a Search";
 
 // Render Search Box
 const SearchBox = (props) => {
+    const { onClick, defaultValue, keyHandler } = props;
+
     return (
-        <input type='text' name='search' onClick={props.onClick} defaultValue={props.defaultValue} maxLength={2048} size={100} height="48" id='searchURLInput' onKeyUp={props.keyHandler.bind(this)}/>
+        <input type='text' name='search' onClick={onClick} defaultValue={defaultValue} maxLength={2048} size={100} height="48" id='searchURLInput' onKeyUp={keyHandler.bind(this)}/>
     );
 }
 
 // Render search button
 const SearchButton = (props) => {
+    const { onClick, display_img } = props;
+
     return (
-        <input onClick={props.onClick} type="image" src={props.display_img} alt="Submit"/>
+        <input onClick={onClick} type="image" src={display_img} alt="Submit"/>
     );
 }
 
@@ -44,21 +48,15 @@ class SearchContainer extends Component {
         this.handleSearchInputBoxClick = this.handleSearchInputBoxClick.bind(this);
     }
 
-    componentDidMount() {}
-    componentWillUpdate(nextProps, nextState) {}
-    componentDidUpdate(nextProps, nextState) {}
-
     // upon clicking the search button, trigger a search
     handleClick() {
         console.log("Search button pressed. Input is '" + this.state.searchInput + "'");
 
         // dispatch a search
         this.props.actions.toggleSearch(
-            this.props.queryState.server, 
-            this.props.queryState.port, 
             this.state.searchInput,
-            this.props.queryState.searchState.state,
-            this.props.queryState.searchState.current_query_id
+            this.props.queryState.state,
+            this.props.queryState.current_query_id
             );
     }
 
@@ -82,12 +80,10 @@ class SearchContainer extends Component {
                 searchInput: "" 
             })
         }
-
     }
 
     render() {
-        const displayImage = this.start_image;
-        const displayStopImage = !isStateStopped(this.props.queryState.searchState.state);
+        const displayStopImage = !isStateStopped(this.props.queryState.state);
 
         return(
             <div id="searchpanel">
@@ -106,7 +102,7 @@ class SearchContainer extends Component {
 // map state to properties
 const mapStateToProps = (state, ownProps) => {
     return {
-        queryState: state.queryState
+        queryState: state.queryState.searchState
     }
   };
   

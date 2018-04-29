@@ -11,27 +11,9 @@ import { isStateRunning } from "../../common/StateHelper";
 import * as globals from "../../common/GlobalConstants";
 import * as searchStates from '../../actions/SearchStates';
 
-
-var rp = require('request-promise');
+const rp = require('request-promise');
 const noResultMessage = "No Search Results";
 
-/**
- * Report status as a table
- * @param {*} props 
- */
-const StatusTable = props => {
-    return (
-        <table id="StatusTable">
-            <tbody>
-                <tr>
-                    <th> {props.countStatus} Downloaded</th>
-                    <th> {props.status} </th>
-                    <th> <font color="red"> {props.errorMsg} </font></th>
-                </tr>
-            </tbody>
-        </table>
-    );
-}
 
 /**
  * Container for Search Status
@@ -49,17 +31,38 @@ class StatusContainer extends Component {
 
     // get the initial status when page mounts if status is not -1
     componentDidMount() {
-        if (this.props.queryState.searchState.state == searchStates.SEARCH_RUNNING) {
+        if (this.props.queryState.state == searchStates.SEARCH_RUNNING) {
             // search status is running, request another status check
-            this.props.actions.delayedCheckSearchStatus(this.props.queryState.server, this.props.queryState.port, this.props.queryState.searchState);
+            this.props.actions.delayedCheckSearchStatus(this.props.queryState.current_query_id);
         }
     }
 
     componentDidUpdate() {
-        if (this.props.queryState.searchState.state == searchStates.SEARCH_RUNNING) {
+        if (this.props.queryState.state == searchStates.SEARCH_RUNNING) {
             // search status is running, request another status check
-            this.props.actions.delayedCheckSearchStatus(this.props.queryState.server, this.props.queryState.port, this.props.queryState.searchState);
+            this.props.actions.delayedCheckSearchStatus(this.props.queryState.current_query_id);
         }
+    }
+
+    /**
+     * Report status as a table
+     * @param {*} props properties
+     */
+     genStatusTable(props) {
+
+        const {countStatus, errorMsg, status} = props;
+
+        return (
+            <table id="StatusTable">
+                <tbody>
+                    <tr>
+                        <th> {props.countStatus} Downloaded</th>
+                        <th> {props.status} </th>
+                        <th> <font color="red"> {props.errorMsg} </font></th>
+                    </tr>
+                </tbody>
+            </table>
+        );
     }
 
     /**
@@ -68,8 +71,8 @@ class StatusContainer extends Component {
     getImageAndPageStatus() {
 
         var message = noResultMessage;
-        if (this.props.queryState.searchState.current_query_id != globals.DEFAULT_SEARCH_ID) {
-            message = this.props.queryState.searchState.page_count + " pages and " + this.props.queryState.searchState.image_count + " images";
+        if (this.props.queryState.current_query_id != globals.DEFAULT_SEARCH_ID) {
+            message = this.props.queryState.page_count + " pages and " + this.props.queryState.image_count + " images";
         }
 
         return message;
@@ -77,12 +80,12 @@ class StatusContainer extends Component {
 
     render() {
 
-        const status = (this.props.queryState.searchState.errors ? this.props.queryState.searchState.errors : "");
+        const status = (this.props.queryState.errors ? this.props.queryState.errors : "");
         const pageImgStatus = this.getImageAndPageStatus();
 
         return(
             <div id="searchStatus">
-                <StatusTable
+                <this.genStatusTable
                     countStatus = {this.state.downloadCount}
                     errorMsg = {status}
                     status = {pageImgStatus}
@@ -95,7 +98,7 @@ class StatusContainer extends Component {
 // map state to properties
 const mapStateToProps = (state, ownProps) => {
     return {
-        queryState: state.queryState
+        queryState: state.queryState.searchState
     }
   };
   
