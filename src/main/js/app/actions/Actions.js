@@ -5,7 +5,7 @@
 import * as actions from './ActionTypes';
 import * as searchStates from './SearchStates';
 import * as globals from '../common/GlobalConstants';
-import { getServerURL } from '../common/Utils';
+import { getServerURL, urlGetRequest } from '../common/Utils';
 
 const rp = require('request-promise');
 
@@ -23,15 +23,37 @@ export const toggleSearchButton = (searchInput, searchButtonOn) => {
 }
 
 /**
- * Helper function to fetch results of a URL and provide a JSON formatted object
- * @param {*} providedURL The URL to make a GET request to
+ * Initialize the state with the results of the last query
+ * @param {*} lastQuery The information about the last query
  */
-const urlGetRequest = (providedURL) => {
-    return rp(providedURL).then( result => {
-        return ((result) ? JSON.parse(result) : result);
-    }).catch( err => {
-        console.log("Unable to retrieve and parse data from url: '" + providedURL + "'. Error: " + err);
-    });
+export const initLastSearchResults = (lastQuery) => {
+
+    const { id, name, url, maxPages, maxImages } = lastQuery;
+
+    return (dispatch) => {
+        // fetch the images associated with the last query
+        const statusURL = getServerURL() + globals.QUERY_ROOT + '/' + id + '/status';
+        const resultsURL = getServerURL() +  globals.QUERY_ROOT + '/' + id + '/image?page=0' + '&size=' + globals.DEFAULT_QUERY_PAGE_SIZE;
+
+        // fetch metadata and images associated with the last search
+        return Promise.all([urlGetRequest(statusURL), urlGetRequest(resultsURL)]).then((requestResults) => {
+
+            // images may not be returned for API
+            const statusResults = requestResults[0];
+
+            // if results are not an array, replace with an array
+            const imageResults = ((requestResults[1]) ? requestResults[1].content : []);
+
+            // dispatch results to change state
+            dispatch({ type: actions.LOAD_LAST_QUERY_METADATA, 
+                       imageCount: statusResults.imageCount, 
+                       pageCount: statusResults.pageCount, 
+                       images: imageResults,
+                       lastQueryInfo: lastQuery});
+        }).catch( err => {
+            console.log("Unable to fetch last query metadata for query " + id + ". Error: " + err);       
+        });
+    }
 }
 
 /**
@@ -90,7 +112,7 @@ export function toggleSearch(queryURL, searchState, currentQueryId) {
         rp(options)
             .then( resultBody => {
                 // dispatch results to reducer to change state
-                dispatch( {type: dispatchRequest, id: resultBody, searchURI: searchURI })
+                dispatch( {type: dispatchRequest, id: resultBody, searchURI: queryURL })
             })
             .catch( err => {
                 // unable to invoke query, report error

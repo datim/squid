@@ -6,8 +6,10 @@
 import React, {Component} from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as searchActions from "../../actions/Actions";
-import { isStateStopped } from "../../common/StateHelper";
+import * as searchActions from '../../actions/Actions';
+import { isStateStopped } from '../../common/StateHelper';
+import { getServerURL, urlGetRequest } from '../../common/Utils';
+import * as globals from '../../common/GlobalConstants';
 
 const defaultSearchInputValue = "Please Enter a Search";
 
@@ -46,6 +48,20 @@ class SearchContainer extends Component {
         this.handleClick = this.handleClick.bind(this);
         this.handleSearchInputEvent = this.handleSearchInputEvent.bind(this);
         this.handleSearchInputBoxClick = this.handleSearchInputBoxClick.bind(this);
+    }
+
+    // when page mounts, check if there was a previous search
+    componentDidMount() {
+        // Check if a query was run
+        const lastSearchURL = getServerURL() + '/' + globals.SEARCH_ROOT + '/last';
+
+        urlGetRequest(lastSearchURL).then ( (lastQuery) => {
+            console.log('last search was', lastQuery);
+            if (lastQuery.id != '0') {
+                // initialize results for the last search
+                this.props.actions.initLastSearchResults(lastQuery);
+            }
+        });
     }
 
     // upon clicking the search button, trigger a search

@@ -1,7 +1,7 @@
 'use-strict'
 
 import * as globals from "./GlobalConstants";
-
+const rp = require('request-promise');
 
 /**
  * Convert a single list of items into a multi-dimensional 
@@ -36,4 +36,16 @@ export const createMultiArray = (itemList, numRows, numRowEntries) => {
  */
 export const getServerURL = () => {
     return('http://' + globals.HOST + ':' + globals.PORT);
+}
+
+/**
+ * Helper function to fetch results of a URL and provide a JSON formatted object
+ * @param {*} providedURL The URL to make a GET request to
+ */
+export const urlGetRequest = (providedURL) => {
+    return rp(providedURL).then( result => {
+        return ((result) ? JSON.parse(result) : result);
+    }).catch( err => {
+        console.log("Unable to retrieve and parse data from url: '" + providedURL + "'. Error: " + err);
+    });
 }

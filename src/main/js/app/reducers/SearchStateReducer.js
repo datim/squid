@@ -13,6 +13,26 @@ const searchState = (state={}, action) => {
   
   switch(action.type) {
 
+    case actions.LOAD_LAST_QUERY_METADATA: 
+      // load the metadata and results of the last run search.  
+      // This action will be called when the query page loads for the first time
+      const { id, name, url, maxPages, maxImages } = action.lastQueryInfo;
+
+      return {
+        ...state,
+        searchState : {
+          state: searchStates.SEARCH_STOPPED,
+          current_query_id : id,            
+          image_count : action.imageCount,
+          page_count : action.pageCount,
+          current_url : url,
+          errors: null
+        }, 
+        searchResults : {
+          images : action.images
+        }
+      }
+
     case actions.REQUEST_QUERY_STARTED:
 
       if (state.searchState.state == searchStates.SEARCH_STOPPED) {

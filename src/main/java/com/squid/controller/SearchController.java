@@ -12,12 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.squid.controller.rest.QueryDTO;
 import com.squid.data.Query;
 import com.squid.service.SearchService;
 
@@ -36,6 +38,20 @@ public class SearchController {
 
 	@Autowired
 	private SearchService sService;
+
+	@Autowired
+	private DataMapper dataMapper;
+
+	/**
+	 * Get id and URL of last search query
+	 * @return
+	 */
+    @GetMapping(path = "/last")
+    public ResponseEntity<Object> getLastQuery() {
+        final Query lastQuery = sService.getLastQuery();
+        final QueryDTO dto = (lastQuery != null) ? dataMapper.convert(lastQuery) : new QueryDTO();
+        return ResponseEntity.ok().body(dto);
+    }
 
 	/**
 	 * Perform search on a URL

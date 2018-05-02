@@ -75,7 +75,6 @@ class ImageResultContainer extends Component {
      */
     getRowCount() {
         const rowSize = Math.ceil(this.props.queryResults.images.length / globals.DEFAULT_IMAGE_RESULT_COLUMNS);
-        console.log('Row size is ' + rowSize);
         return rowSize;
     }
 

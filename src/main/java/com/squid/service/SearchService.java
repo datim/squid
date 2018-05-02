@@ -71,6 +71,8 @@ public class SearchService {
 
 	private MessageEngine pEngine;
 
+	private long lastQueryId = -1;
+
 
 	/**
 	 * After the service starts, launch the listening thread
@@ -144,6 +146,9 @@ public class SearchService {
 		} catch (final InterruptedException e) {
 			log.error("Unable to invoke a search for url {}. Exception. {}", baseUrl, e);
 		}
+
+		// save last query
+		lastQueryId = query.getId();
 
 		return query.getId();
 	}
@@ -335,4 +340,11 @@ public class SearchService {
 		log.info("Query '[{}]{}' stopped", query.getId(), query.getUrl());
 		return query;
 	}
+
+	/**
+	 * Get last query URL and ID, if it exist, else return null
+	 */
+    public Query getLastQuery() {
+        return queryRepo.findById(lastQueryId);
+    }
 }
